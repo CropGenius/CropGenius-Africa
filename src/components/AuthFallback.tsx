@@ -233,7 +233,7 @@ export function AuthFallback({
   return (
     <div className="flex items-center justify-center min-h-[80vh] p-4">
       <Card className="mx-auto max-w-lg w-full">
-        <CardHeader>
+         <CardHeader>
           <div className="flex items-center gap-3">
             {getErrorIcon()}
             <div className="flex-1">
@@ -244,7 +244,7 @@ export function AuthFallback({
                     {classifiedError.retryable ? 'Retryable' : 'Action Required'}
                   </Badge>
                 )}
-              </div>
+              </CardTitle>
               <CardDescription>
                 {classifiedError?.userMessage || 'We encountered a problem with your account access'}
               </CardDescription>
