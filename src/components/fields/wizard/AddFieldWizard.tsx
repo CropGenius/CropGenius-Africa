@@ -139,6 +139,11 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
   
   const handleNext = () => {
     if (currentStep < totalSteps) {
+      // Validate current step before proceeding
+      if (!validateCurrentStep()) {
+        return; // Stop if validation fails
+      }
+      
       setCurrentStep(prev => prev + 1);
       
       // Play a subtle success sound
@@ -182,31 +187,50 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
     });
   };
   
-  // Function to create confetti effect
-  const createConfetti = () => {
-    const container = document.querySelector('.dialog-content');
-    if (!container) return;
-    
-    const colors = ['#26de81', '#fd9644', '#a55eea', '#778ca3', '#2e86de'];
-    
-    for (let i = 0; i < 50; i++) {
-      const confetti = document.createElement('div');
-      confetti.className = 'confetti';
-      confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-      confetti.style.left = `${Math.random() * 100}%`;
-      confetti.style.top = `${Math.random() * 30}%`;
-      confetti.style.width = `${Math.random() * 10 + 5}px`;
-      confetti.style.height = `${Math.random() * 10 + 5}px`;
-      confetti.style.animationDuration = `${Math.random() * 2 + 1}s`;
-      confetti.style.animationDelay = `${Math.random() * 0.5}s`;
-      container.appendChild(confetti);
-      
-      // Remove confetti after animation completes
-      setTimeout(() => {
-        if (confetti.parentNode) {
-          confetti.parentNode.removeChild(confetti);
+  // Validate field data before proceeding to next step
+  const validateCurrentStep = (): boolean => {
+    switch (currentStep) {
+      case 1: // Field name
+        if (!fieldData.name || fieldData.name.trim().length < 2) {
+          toast.warning("Please enter a valid field name", {
+            description: "Field name must be at least 2 characters"
+          });
+          return false;
         }
-      }, 3000);
+        return true;
+        
+      case 2: // Field mapping
+        // This step has its own validation in FieldMapperStep
+        return true;
+        
+      case 3: // Field location
+        if (!fieldData.boundary && !fieldData.location) {
+          toast.warning("Missing field location", {
+            description: "Please define your field location on the map"
+          });
+          return false;
+        }
+        return true;
+        
+      case 4: // Crop type
+        // Crop type is optional, so always valid
+        return true;
+        
+      case 5: // Field size
+        if (fieldData.size !== undefined && (isNaN(fieldData.size) || fieldData.size <= 0)) {
+          toast.warning("Invalid field size", {
+            description: "Please enter a valid field size greater than zero"
+          });
+          return false;
+        }
+        return true;
+        
+      case 6: // Planting date
+        // Planting date is optional, so always valid
+        return true;
+        
+      default:
+        return true;
     }
   };
   

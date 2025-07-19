@@ -51,22 +51,74 @@ export default function GeniusGrow({
   const [recommendation, setRecommendation] = useState<FertilizerRecommendation | null>(null);
   const [speakingRecommendation, setSpeakingRecommendation] = useState(false);
 
+  const [isAIEnabled, setIsAIEnabled] = useState(false);
+  const [isEstimate, setIsEstimate] = useState(true);
+  
+  // Check if AI service is available
+  useEffect(() => {
+    const checkAIService = async () => {
+      try {
+        // In a real app, this would check if the AI service is available
+        // const response = await fetch('https://api.cropgenius.ai/status');
+        // setIsAIEnabled(response.ok);
+        
+        // For demo purposes, we'll simulate the AI service being unavailable
+        await new Promise(resolve => setTimeout(resolve, 500));
+        setIsAIEnabled(false);
+        setIsEstimate(true);
+      } catch (error) {
+        console.error("Failed to check AI service status:", error);
+        setIsAIEnabled(false);
+        setIsEstimate(true);
+      }
+    };
+    
+    checkAIService();
+  }, []);
+
   const generateRecommendation = trackOperation('generateRecommendation', async () => {
     setLoading(true);
     try {
       console.log("🧠 [GeniusGrow] Generating fertilizer recommendation for:", selectedCrop, "on", selectedSoilType, "soil");
       
-      // In a real app, this would call an AI service
-      // Simulating API call with timeout
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Try to use AI service if available
+      if (isAIEnabled) {
+        try {
+          // In a real app, this would call an AI service
+          // const response = await fetch('https://api.cropgenius.ai/fertilizer', {
+          //   method: 'POST',
+          //   headers: { 'Content-Type': 'application/json' },
+          //   body: JSON.stringify({ crop: selectedCrop, soil: selectedSoilType, size: fieldSize })
+          // });
+          // 
+          // if (!response.ok) throw new Error('AI service error');
+          // const data = await response.json();
+          // setRecommendation(data);
+          // setIsEstimate(false);
+          
+          // Simulate API call with timeout
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          throw new Error('AI service unavailable'); // Force fallback for demo
+        } catch (aiError) {
+          console.error("AI service error:", aiError);
+          // Fallback to local calculation
+          const recommendation = getFertilizerRecommendation(selectedCrop, selectedSoilType, fieldSize);
+          setRecommendation(recommendation);
+          setIsEstimate(true);
+          toast.warning("Using estimated recommendation", {
+            description: "AI service unavailable. Using our best estimate based on your inputs."
+          });
+        }
+      } else {
+        // Use local calculation
+        const recommendation = getFertilizerRecommendation(selectedCrop, selectedSoilType, fieldSize);
+        setRecommendation(recommendation);
+        setIsEstimate(true);
+      }
       
-      // Generate recommendation based on crop and soil type
-      const recommendation = getFertilizerRecommendation(selectedCrop, selectedSoilType, fieldSize);
-      setRecommendation(recommendation);
-      
-      logSuccess('recommendation_generated', { crop: selectedCrop, soil: selectedSoilType });
-      toast.success("AI Recommendation Ready", {
-        description: `Optimal fertilizer plan generated for your ${fieldName}`
+      logSuccess('recommendation_generated', { crop: selectedCrop, soil: selectedSoilType, isEstimate });
+      toast.success("Recommendation Ready", {
+        description: `Fertilizer plan generated for your ${fieldName}`
       });
     } catch (error) {
       logError(error as Error, { context: 'fertilizerRecommendation' });
@@ -209,10 +261,17 @@ export default function GeniusGrow({
       <CardHeader className="bg-primary-50 dark:bg-primary-900/30 pb-3">
         <CardTitle className="flex items-center gap-2">
           <Sprout className="h-5 w-5 text-primary" />
-          GeniusGrow AI Fertilizer Recommender
+          GeniusGrow Fertilizer Recommender
+          {isEstimate && (
+            <span className="text-xs bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200 px-2 py-0.5 rounded-full">
+              Estimate
+            </span>
+          )}
         </CardTitle>
         <CardDescription>
-          Get AI-powered fertilizer recommendations tailored to your crops and soil
+          {isAIEnabled 
+            ? 'Get AI-powered fertilizer recommendations tailored to your crops and soil'
+            : 'Get fertilizer recommendations based on your crop and soil type'}
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-4 space-y-4">
@@ -293,10 +352,10 @@ export default function GeniusGrow({
               disabled={loading}
             >
               {loading ? (
-                <>Analyzing with AI...</>
+                <>{isAIEnabled ? 'Analyzing with AI...' : 'Calculating recommendation...'}</>
               ) : (
                 <>
-                  Get AI Recommendation
+                  {isAIEnabled ? 'Get AI Recommendation' : 'Get Recommendation'}
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </>
               )}
