@@ -146,6 +146,19 @@ export async function analyzeField(coordinates: GeoLocation[], farmerId?: string
     console.log('✅ Sentinel Hub Process API call successful');
 
     // Get NDVI statistics using the Statistics API
+    const NDVI_EVALSCRIPT = `//VERSION=3
+function setup() {
+  return {
+    input: ['B04', 'B08'],
+    output: { bands: 1, sampleType: 'FLOAT32' }
+  };
+}
+
+function evaluatePixel(sample) {
+  const ndvi = (sample.B08 - sample.B04) / (sample.B08 + sample.B04);
+  return [ndvi];
+}`;
+
     const statsPayload = {
       input: payload.input,
       aggregation: {

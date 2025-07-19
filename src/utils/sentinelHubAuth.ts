@@ -72,7 +72,7 @@ class SentinelHubAuthManager {
       }
 
       const tokenData = await response.json();
-      
+
       this.currentToken = {
         access_token: tokenData.access_token,
         token_type: tokenData.token_type,
@@ -92,7 +92,7 @@ class SentinelHubAuthManager {
    */
   async authenticatedFetch(url: string, options: RequestInit = {}): Promise<Response> {
     const token = await this.getAccessToken();
-    
+
     const authenticatedOptions: RequestInit = {
       ...options,
       headers: {
@@ -122,7 +122,7 @@ export function getSentinelHubAuthenticatedFetch(): (url: string, options?: Requ
   if (!authManager) {
     throw new Error('Sentinel Hub auth not initialized. Call initializeSentinelHubAuth() first.');
   }
-  
+
   return authManager.authenticatedFetch.bind(authManager);
 }
 
@@ -133,7 +133,7 @@ export async function getSentinelHubAccessToken(): Promise<string> {
   if (!authManager) {
     throw new Error('Sentinel Hub auth not initialized. Call initializeSentinelHubAuth() first.');
   }
-  
+
   return authManager.getAccessToken();
 }
 
@@ -143,6 +143,6 @@ export async function getSentinelHubAccessToken(): Promise<string> {
 export function isSentinelHubAuthConfigured(): boolean {
   const clientId = import.meta.env.VITE_SENTINEL_CLIENT_ID;
   const clientSecret = import.meta.env.VITE_SENTINEL_CLIENT_SECRET;
-  
+
   return !!(clientId && clientSecret);
 }
