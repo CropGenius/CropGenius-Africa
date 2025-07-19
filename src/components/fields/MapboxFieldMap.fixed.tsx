@@ -3,12 +3,15 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Coordinates, Boundary } from "@/types/field";
 import { Button } from "@/components/ui/button";
-import { Loader2, Save, Undo, MapPin, Navigation, AlertTriangle, RefreshCw, WifiOff } from "lucide-react";
+import { Loader2, Save, Undo, MapPin, Navigation, Search, X, AlertTriangle, RefreshCw, WifiOff, Image } from "lucide-react";
 import { toast } from "sonner";
 import MapboxSDK from "@mapbox/mapbox-sdk";
 import MapboxGeocoding from "@mapbox/mapbox-sdk/services/geocoding";
 import { useErrorLogging } from "@/hooks/use-error-logging";
+import MapSearchInput from "./MapSearchInput";
 import MapNavigator from "./MapNavigator";
+import FieldConfirmationCard from "./FieldConfirmationCard";
+import SmartFieldRecommender from "./SmartFieldRecommender";
 import ErrorBoundary from "@/components/error/ErrorBoundary";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 
@@ -20,6 +23,7 @@ if (MAPBOX_ACCESS_TOKEN) {
   mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
 } else {
   console.error("❌ [MapboxFieldMap] VITE_MAPBOX_ACCESS_TOKEN not found in environment variables");
+  // We'll handle the missing token in the component rendering
 }
 
 interface MapboxFieldMapProps {
@@ -43,18 +47,22 @@ export default function MapboxFieldMap({
   onMapLoaded,
   onMapError
 }: MapboxFieldMapProps) {
-  const { logError, logSuccess } = useErrorLogging('MapboxFieldMap');
+  const { logError, logSuccess, trackOperation } = useErrorLogging('MapboxFieldMap');
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   
+  // Add missing refs that are used in the component
   const geocodingClient = useRef<any>(null);
   const drawMarkers = useRef<mapboxgl.Marker[]>([]);
   const locationMarker = useRef<mapboxgl.Marker | null>(null);
+  const flyToLocation = useRef<((lng: number, lat: number, zoom?: number) => void) | null>(null);
+  const markerPulse = useRef<HTMLElement | null>(null);
   
   const [isDrawing, setIsDrawing] = useState(false);
   const [coordinates, setCoordinates] = useState<Coordinates[]>(initialBoundary?.coordinates || []);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
+  const [locationName, setLocationName] = useState<string>("");
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [mapSnapshot, setMapSnapshot] = useState<string | null>(null);
   const [isCapturingSnapshot, setIsCapturingSnapshot] = useState(false);
@@ -80,60 +88,54 @@ export default function MapboxFieldMap({
     }
   }, [mapError, onMapError]);
 
-  // Draw field polygon on map
+  // Add missing functions that are referenced in the component
   const drawFieldPolygon = useCallback((mapInstance: mapboxgl.Map, coords: Coordinates[]) => {
     if (!mapInstance || coords.length < 3) return;
 
-    try {
-      // Clear existing polygon
-      if (mapInstance.getSource('field-polygon')) {
-        mapInstance.removeLayer('field-polygon-outline');
-        mapInstance.removeLayer('field-polygon');
-        mapInstance.removeSource('field-polygon');
-      }
-
-      // Add new polygon
-      const polygonCoords = [...coords, coords[0]].map(coord => [coord.lng, coord.lat]);
-
-      mapInstance.addSource('field-polygon', {
-        type: 'geojson',
-        data: {
-          type: 'Feature',
-          properties: {},
-          geometry: {
-            type: 'Polygon',
-            coordinates: [polygonCoords]
-          }
-        }
-      });
-
-      mapInstance.addLayer({
-        id: 'field-polygon',
-        type: 'fill',
-        source: 'field-polygon',
-        paint: {
-          'fill-color': '#4CAF50',
-          'fill-opacity': 0.3
-        }
-      });
-
-      mapInstance.addLayer({
-        id: 'field-polygon-outline',
-        type: 'line',
-        source: 'field-polygon',
-        paint: {
-          'line-color': '#4CAF50',
-          'line-width': 2
-        }
-      });
-    } catch (error) {
-      console.error("Error drawing field polygon:", error);
+    // Clear existing polygon
+    if (mapInstance.getSource('field-polygon')) {
+      mapInstance.removeLayer('field-polygon');
+      mapInstance.removeSource('field-polygon');
     }
+
+    // Add new polygon
+    const polygonCoords = [...coords, coords[0]].map(coord => [coord.lng, coord.lat]);
+
+    mapInstance.addSource('field-polygon', {
+      type: 'geojson',
+      data: {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'Polygon',
+          coordinates: [polygonCoords]
+        }
+      }
+    });
+
+    mapInstance.addLayer({
+      id: 'field-polygon',
+      type: 'fill',
+      source: 'field-polygon',
+      paint: {
+        'fill-color': '#4CAF50',
+        'fill-opacity': 0.3
+      }
+    });
+
+    mapInstance.addLayer({
+      id: 'field-polygon-outline',
+      type: 'line',
+      source: 'field-polygon',
+      paint: {
+        'line-color': '#4CAF50',
+        'line-width': 2
+      }
+    });
   }, []);
 
-  // Handle map click for drawing
   const handleMapClick = useCallback((e: mapboxgl.MapMouseEvent) => {
-    if (!isDrawing || readOnly || !map.current) return;
+    if (!isDrawing || readOnly) return;
 
     const newCoord: Coordinates = {
       lat: e.lngLat.lat,
@@ -143,35 +145,22 @@ export default function MapboxFieldMap({
     setCoordinates(prev => {
       const updated = [...prev, newCoord];
       
-      try {
-        // Add marker for this point
-        const marker = new mapboxgl.Marker({ color: '#4CAF50' })
-          .setLngLat([newCoord.lng, newCoord.lat])
-          .addTo(map.current!);
-        
-        drawMarkers.current.push(marker);
+      // Add marker for this point
+      const marker = new mapboxgl.Marker({ color: '#4CAF50' })
+        .setLngLat([newCoord.lng, newCoord.lat])
+        .addTo(map.current!);
+      
+      drawMarkers.current.push(marker);
 
-        // Draw polygon if we have enough points
-        if (updated.length >= 3 && map.current) {
-          drawFieldPolygon(map.current, updated);
-          
-          // Notify parent of boundary change
-          if (onBoundaryChange && updated.length >= 3) {
-            onBoundaryChange({
-              type: 'polygon',
-              coordinates: updated
-            });
-          }
-        }
-      } catch (error) {
-        console.error("Error handling map click:", error);
+      // Draw polygon if we have enough points
+      if (updated.length >= 3 && map.current) {
+        drawFieldPolygon(map.current, updated);
       }
 
       return updated;
     });
-  }, [isDrawing, readOnly, drawFieldPolygon, onBoundaryChange]);
+  }, [isDrawing, readOnly, drawFieldPolygon]);
 
-  // Capture map snapshot for offline use
   const captureMapSnapshot = useCallback(() => {
     if (!map.current || isCapturingSnapshot) return;
 
@@ -227,6 +216,9 @@ export default function MapboxFieldMap({
   useEffect(() => {
     if (!MAPBOX_ACCESS_TOKEN) {
       setMapError("Missing Mapbox access token. Please check your environment configuration.");
+      toast.error("Map configuration error", {
+        description: "Map loading failed – check your internet or configuration"
+      });
       return;
     }
 
@@ -241,13 +233,13 @@ export default function MapboxFieldMap({
       logError(error as Error, { context: 'geocodingClientInit' });
       setMapError("Failed to initialize geocoding client");
     }
-  }, [isOffline, logError]);
+  }, [isOffline]);
 
   // Initialize map
   useEffect(() => {
     if (!mapContainer.current) return;
 
-    // If offline and we have a cached snapshot, use cached data
+    // If offline and we have a cached snapshot, don't try to initialize the map
     if (isOffline && cachedMapData.snapshot) {
       console.log("🌐 [MapboxFieldMap] Offline mode - using cached map data");
       setMapLoaded(true);
@@ -261,6 +253,11 @@ export default function MapboxFieldMap({
           onBoundaryChange(cachedMapData.boundary);
         }
       }
+
+      // If we have cached location name, use it
+      if (cachedMapData.location?.name) {
+        setLocationName(cachedMapData.location.name);
+      }
       
       // If we have cached location coordinates, notify parent
       if (cachedMapData.location?.coordinates && onLocationChange) {
@@ -273,12 +270,6 @@ export default function MapboxFieldMap({
     if (!MAPBOX_ACCESS_TOKEN) {
       setMapError("Missing Mapbox access token. Please check your environment configuration.");
       return;
-    }
-
-    // Clean up previous map instance
-    if (map.current) {
-      map.current.remove();
-      map.current = null;
     }
 
     try {
@@ -300,7 +291,6 @@ export default function MapboxFieldMap({
         attributionControl: false,
       });
 
-      // Add navigation controls
       mapInstance.addControl(
         new mapboxgl.NavigationControl({
           visualizePitch: true,
@@ -308,7 +298,6 @@ export default function MapboxFieldMap({
         "top-right"
       );
 
-      // Add scale control
       mapInstance.addControl(
         new mapboxgl.ScaleControl({
           maxWidth: 150,
@@ -317,7 +306,6 @@ export default function MapboxFieldMap({
         "bottom-left"
       );
 
-      // Add geolocation control
       const geolocateControl = new mapboxgl.GeolocateControl({
         positionOptions: {
           enableHighAccuracy: true,
@@ -326,7 +314,86 @@ export default function MapboxFieldMap({
       });
       mapInstance.addControl(geolocateControl, "top-right");
 
-      // Handle map load event
+      flyToLocation.current = (lng: number, lat: number, zoom: number = 16) => {
+        if (!map.current) return;
+
+        console.log(`🚀 [MapboxFieldMap] Flying to: ${lng}, ${lat}, zoom: ${zoom}`);
+
+        map.current.flyTo({
+          center: [lng, lat],
+          essential: true,
+          zoom: zoom,
+          duration: 2000,
+          pitch: 60,
+          bearing: Math.random() * 180 - 90,
+          easing: (t) => {
+            return t * (2 - t);
+          }
+        });
+
+        if (locationMarker.current) {
+          locationMarker.current.remove();
+        }
+
+        const el = document.createElement('div');
+        el.className = 'location-marker';
+        el.innerHTML = `
+          <div class="location-marker-inner"></div>
+          <div class="location-marker-pulse"></div>
+        `;
+
+        const style = document.createElement('style');
+        style.innerHTML = `
+          .location-marker {
+            width: 24px;
+            height: 24px;
+            position: relative;
+          }
+          .location-marker-inner {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background-color: #4CAF50;
+            border: 2px solid white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            position: absolute;
+            top: 5px;
+            left: 5px;
+          }
+          .location-marker-pulse {
+            width: 40px;
+            height: 40px;
+            background: rgba(76, 175, 80, 0.4);
+            border-radius: 50%;
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            animation: pulse 2s infinite;
+          }
+          @keyframes pulse {
+            0% {
+              transform: scale(0.5);
+              opacity: 1;
+            }
+            100% {
+              transform: scale(1.5);
+              opacity: 0;
+            }
+          }
+        `;
+        document.head.appendChild(style);
+
+        locationMarker.current = new mapboxgl.Marker({ element: el })
+          .setLngLat([lng, lat])
+          .addTo(map.current);
+
+        markerPulse.current = el;
+
+        if (onLocationChange) {
+          onLocationChange({ lng, lat });
+        }
+      };
+
       mapInstance.on("load", () => {
         console.log("✅ [MapboxFieldMap] Map loaded successfully");
         setMapLoaded(true);
@@ -341,7 +408,6 @@ export default function MapboxFieldMap({
           drawFieldPolygon(mapInstance, coordsToUse);
           setCoordinates(coordsToUse);
 
-          // Fit map to boundary
           const bounds = new mapboxgl.LngLatBounds();
           coordsToUse.forEach((coord) => {
             bounds.extend([coord.lng, coord.lat]);
@@ -362,19 +428,33 @@ export default function MapboxFieldMap({
         }
 
         // Capture snapshot after map has loaded and rendered
+        // Use a timeout to ensure the map has fully rendered
         setTimeout(() => {
           captureMapSnapshot();
         }, 2000);
+
+        // Set up periodic snapshot capture (every 30 seconds when map changes)
+        let lastMoveTime = Date.now();
+        mapInstance.on('moveend', () => {
+          // Only capture snapshot if it's been more than 30 seconds since the last one
+          // and the user has stopped moving the map
+          const now = Date.now();
+          if (now - lastMoveTime > 30000) {
+            captureMapSnapshot();
+          }
+          lastMoveTime = now;
+        });
       });
 
-      // Store map instance
       map.current = mapInstance;
-      logSuccess('map_initialized', {});
+      logSuccess('map_initialized');
 
-      // Add click handler for drawing
-      mapInstance.on('click', handleMapClick);
+      mapInstance.on('click', (e) => {
+        if (isDrawing && !readOnly) {
+          handleMapClick(e);
+        }
+      });
 
-      // Clean up on unmount
       return () => {
         drawMarkers.current.forEach(marker => marker.remove());
         if (locationMarker.current) locationMarker.current.remove();
@@ -384,35 +464,26 @@ export default function MapboxFieldMap({
       logError(error as Error, { context: 'mapInitialization' });
       setMapError("Failed to load map. Please check your internet connection.");
     }
-  }, [defaultLocation, onLocationChange, onBoundaryChange, drawFieldPolygon, captureMapSnapshot, 
-      cachedMapData, coordinates, handleMapClick, isOffline, logError, logSuccess]);
+  }, [defaultLocation, onLocationChange]);
 
-  // Start drawing mode
   const handleStartDrawing = () => {
     setIsDrawing(true);
+    setCoordinates([]);
     
     // Clear existing markers
     drawMarkers.current.forEach(marker => marker.remove());
     drawMarkers.current = [];
     
-    // Clear coordinates
-    setCoordinates([]);
-    
     // Clear existing polygon if any
     if (map.current && map.current.getSource('field-polygon')) {
-      try {
-        map.current.removeLayer('field-polygon-outline');
-        map.current.removeLayer('field-polygon');
-        map.current.removeSource('field-polygon');
-      } catch (error) {
-        console.error("Error clearing polygon:", error);
-      }
+      map.current.removeLayer('field-polygon');
+      map.current.removeLayer('field-polygon-outline');
+      map.current.removeSource('field-polygon');
     }
     
     toast.info("Drawing started. Click on the map to add points.");
   };
 
-  // Undo last point
   const handleUndo = () => {
     if (coordinates.length === 0) return;
     
@@ -427,30 +498,17 @@ export default function MapboxFieldMap({
       // Redraw polygon if we still have enough points
       if (newCoords.length >= 3 && map.current) {
         drawFieldPolygon(map.current, newCoords);
-        
-        // Notify parent of boundary change
-        if (onBoundaryChange && newCoords.length >= 3) {
-          onBoundaryChange({
-            type: 'polygon',
-            coordinates: newCoords
-          });
-        }
       } else if (map.current && map.current.getSource('field-polygon')) {
         // Remove polygon if not enough points
-        try {
-          map.current.removeLayer('field-polygon-outline');
-          map.current.removeLayer('field-polygon');
-          map.current.removeSource('field-polygon');
-        } catch (error) {
-          console.error("Error removing polygon:", error);
-        }
+        map.current.removeLayer('field-polygon');
+        map.current.removeLayer('field-polygon-outline');
+        map.current.removeSource('field-polygon');
       }
       
       return newCoords;
     });
   };
   
-  // Complete drawing
   const handleComplete = () => {
     if (coordinates.length < 3) {
       toast.warning("Please draw at least 3 points.");
@@ -470,23 +528,14 @@ export default function MapboxFieldMap({
       boundary: newBoundary
     }));
     
-    // Notify parent of boundary change
-    if (onBoundaryChange) {
-      onBoundaryChange(newBoundary);
-      
-      toast.success("Field boundary completed", {
-        description: `Field mapped with ${coordinates.length} points`
-      });
-    }
+    if (onBoundaryChange) onBoundaryChange(newBoundary);
+    
+    toast.success("Field boundary completed", {
+      description: `Field mapped with ${coordinates.length} points`
+    });
   };
   
-  // Use current location
   const handleUseCurrentLocation = () => {
-    if (!navigator.geolocation) {
-      toast.error("Geolocation is not supported by your browser");
-      return;
-    }
-    
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { longitude, latitude } = position.coords;
@@ -507,11 +556,7 @@ export default function MapboxFieldMap({
         
         // Fly to location if map is available
         if (map.current) {
-          map.current.flyTo({ 
-            center: [longitude, latitude], 
-            zoom: 16,
-            essential: true
-          });
+          map.current.flyTo({ center: [longitude, latitude], zoom: 16 });
           
           // Add marker
           if (locationMarker.current) {
@@ -527,13 +572,7 @@ export default function MapboxFieldMap({
           description: "Using your current location"
         });
       },
-      (error) => {
-        console.error("Geolocation error:", error);
-        toast.error("Could not get location", { 
-          description: error.message || "Permission denied or location unavailable" 
-        });
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      (error) => toast.error("Could not get location", { description: error.message })
     );
   };
 
@@ -580,7 +619,6 @@ export default function MapboxFieldMap({
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         )}
-        
         {mapError && (
           <div className="absolute inset-0 flex items-center justify-center bg-destructive/10 z-20">
             <div className="bg-background/90 p-4 rounded-lg max-w-xs text-center">
@@ -595,6 +633,17 @@ export default function MapboxFieldMap({
               >
                 <RefreshCw className="h-3 w-3 mr-1" />
                 Reload
+              </Button>
+              <Button 
+                variant="default" 
+                size="sm" 
+                onClick={() => {
+                  if (onMapError) onMapError(null);
+                  setMapError(null);
+                }}
+              >
+                <X className="h-3 w-3 mr-1" />
+                Dismiss
               </Button>
             </div>
           </div>
@@ -621,13 +670,6 @@ export default function MapboxFieldMap({
                {isSaving ? 'Saving...' : 'Complete Field'}
              </Button>
            </div>
-        )}
-        
-        {coordinates.length >= 3 && (
-          <div className="absolute bottom-2 left-2 bg-background/80 p-1 rounded text-xs">
-            <MapPin className="inline-block h-3 w-3 mr-1 text-primary" />
-            {coordinates.length} points mapped
-          </div>
         )}
       </div>
     </ErrorBoundary>

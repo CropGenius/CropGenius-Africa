@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { MapPin, ChevronLeft, ChevronRight, Loader2, AlertTriangle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import MapSearchInput from '@/components/fields/MapSearchInput';
 import { Boundary, Coordinates } from '@/types/field';
 import { useErrorLogging } from '@/hooks/use-error-logging';
 import { isOnline } from '@/utils/isOnline';
@@ -29,7 +30,7 @@ export default function FieldMapperStep({
   initialBoundary = null,
   initialName = ''
 }: FieldMapperStepProps) {
-  const { logError } = useErrorLogging('FieldMapperStep');
+  const { logError, trackOperation } = useErrorLogging('FieldMapperStep');
   const [fieldName, setFieldName] = useState(initialName);
   const [boundary, setBoundary] = useState<Boundary | null>(initialBoundary);
   const [location, setLocation] = useState<Coordinates | null>(defaultLocation || null);
@@ -50,8 +51,6 @@ export default function FieldMapperStep({
         if (parsedData.boundary) setBoundary(parsedData.boundary);
         if (parsedData.location) setLocation(parsedData.location);
         if (parsedData.fieldName && !fieldName) setFieldName(parsedData.fieldName);
-        
-        console.log("✅ [FieldMapperStep] Restored data from session storage");
       }
     } catch (error) {
       console.error('Error loading field mapper data from session storage:', error);
@@ -71,7 +70,6 @@ export default function FieldMapperStep({
     }
   }, [boundary, location, fieldName]);
 
-  // Monitor online/offline status
   useEffect(() => {
     const handleOnline = () => setIsOnlineStatus(true);
     const handleOffline = () => setIsOnlineStatus(false);
@@ -85,31 +83,24 @@ export default function FieldMapperStep({
     };
   }, []);
 
-  // Handle location change from map
   const handleMapLocation = useCallback((loc: Coordinates) => {
-    console.log("📍 [FieldMapperStep] Location updated:", loc);
     setLocation(loc);
   }, []);
 
-  // Handle boundary change from map
   const handleBoundaryChange = useCallback((newBoundary: Boundary) => {
-    console.log("🔷 [FieldMapperStep] Boundary updated:", newBoundary);
     setBoundary(newBoundary);
     setIsDrawing(false);
   }, []);
 
-  // Handle map loaded status
   const handleMapLoaded = useCallback((loaded: boolean) => {
     setIsMapLoaded(loaded);
   }, []);
 
-  // Handle map error
   const handleMapError = useCallback((error: string | null) => {
     setMapError(error);
   }, []);
 
-  // Handle continue button click
-  const handleContinue = () => {
+  const handleContinue = async () => {
     try {
       // If offline and no boundary, allow using just location
       if (!isOnlineStatus && !boundary && location) {
@@ -170,15 +161,14 @@ export default function FieldMapperStep({
         location,
         name: processedName
       });
-      
-      // Clear session storage for this step
-      sessionStorage.removeItem(SESSION_MAPPER_KEY);
-      
     } catch (error) {
       logError(error as Error, { context: 'handleContinue' });
       toast.error("Something went wrong");
     }
   };
+
+  // Create a wrapped version for trackOperation
+  const trackedHandleContinue = trackOperation('continueWithField', handleContinue);
 
   // Handle skip action with proper data
   const handleSkip = () => {
@@ -211,9 +201,6 @@ export default function FieldMapperStep({
       // Just skip if we don't have enough data
       onSkip();
     }
-    
-    // Clear session storage for this step
-    sessionStorage.removeItem(SESSION_MAPPER_KEY);
   };
 
   return (
@@ -300,7 +287,7 @@ export default function FieldMapperStep({
             <Button variant="outline" onClick={handleSkip} type="button">
               Skip
             </Button>
-            <Button onClick={handleContinue} type="button">
+            <Button onClick={trackedHandleContinue} type="button">
               {boundary?.coordinates.length >= 3 ? 'Continue' : 'Draw Field'} 
               <ChevronRight className="h-4 w-4 ml-1" />
             </Button>

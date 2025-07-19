@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button, ButtonProps } from '@/components/ui/button';
 import { Plus, MapPin, Sparkles } from 'lucide-react';
@@ -10,6 +9,7 @@ import { useErrorLogging } from '@/hooks/use-error-logging';
 import ErrorBoundary from '@/components/error/ErrorBoundary';
 import AddFieldWizard from './wizard/AddFieldWizard';
 import { motion } from 'framer-motion';
+import { isOnline } from '@/utils/isOnline';
 
 interface AddFieldWizardButtonProps extends ButtonProps {
   onFieldAdded?: (field: Field) => void;
@@ -40,7 +40,7 @@ export default function AddFieldWizardButton({
       
       // Show success toast with confetti animation
       toast.success("Field added successfully!", {
-        description: `${field.name} has been added to your farm`,
+        description: `${field.name} has been added to your farm${!isOnline() ? ' (offline)' : ''}`,
         duration: 6000,
         icon: <Sparkles className="h-5 w-5 text-yellow-500" />,
       });
@@ -52,9 +52,20 @@ export default function AddFieldWizardButton({
       }
       
       // Otherwise navigate to the field detail
-      navigate(`/fields/${field.id}`);
+      // For offline fields, navigate to the fields list instead
+      if (field.id.startsWith('offline-')) {
+        navigate('/fields');
+        toast.info("Offline field created", {
+          description: "Your field will appear in the list when you're back online"
+        });
+      } else {
+        navigate(`/fields/${field.id}`);
+      }
     } catch (error) {
       logError(error as Error, { context: 'handleFieldAdded' });
+      toast.error("Error adding field", {
+        description: "Please try again or check your connection"
+      });
     }
   };
   

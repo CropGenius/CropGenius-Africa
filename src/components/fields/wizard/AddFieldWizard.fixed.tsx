@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, Loader2 } from 'lucide-react';
+import { Tractor, MapPin, ArrowRight, Circle, CheckCircle, Sparkles, AlertTriangle, Loader2, Shield, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,6 +16,7 @@ import StepFour from './steps/StepFour';
 import StepFive from './steps/StepFive';
 import FieldMapperStep from './steps/FieldMapperStep';
 import { sanitizeFieldData, isOnline } from '@/utils/fieldSanitizer';
+import { Database } from '@/types/supabase';
 import { v4 as uuidv4 } from 'uuid';
 import { useCreateField } from '@/features/fields/hooks/useCreateField';
 import { addOnlineStatusListener } from '@/utils/isOnline';
@@ -58,14 +59,13 @@ const clearSessionData = (): void => {
     sessionStorage.removeItem(SESSION_FIELD_DATA_KEY);
     sessionStorage.removeItem(SESSION_STEP_KEY);
     sessionStorage.removeItem(SESSION_FARM_KEY);
-    sessionStorage.removeItem('cropgenius_field_mapper_data');
   } catch (error) {
     console.error(`Error clearing session data:`, error);
   }
 };
 
 export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }: AddFieldWizardProps) {
-  const { logError, logSuccess } = useErrorLogging('AddFieldWizard');
+  const { logError, logSuccess, trackOperation } = useErrorLogging('AddFieldWizard');
   const navigate = useNavigate();
   const { user } = useAuthContext();
   
@@ -293,12 +293,6 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
     // Sanitize field data before submission
     const sanitizedData = sanitizeFieldData(fieldData);
     
-    // Log the data being submitted
-    console.log("📝 [AddFieldWizard] Submitting field data:", {
-      ...sanitizedData,
-      farm_id: farmContext.id
-    });
-    
     // The useCreateField hook handles the rest (user, etc.)
     createField({
       ...sanitizedData,
@@ -307,9 +301,6 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
       onSuccess: (createdField) => {
         // Clear session storage after successful submission
         clearSessionData();
-        
-        // Log success
-        logSuccess('field_created', { field_id: createdField.id });
         
         // Show success message
         toast.success("Field added successfully", {
@@ -323,8 +314,6 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
         }
       },
       onError: (error) => {
-        console.error("❌ [AddFieldWizard] Error creating field:", error);
-        
         toast.error("Failed to add field", {
           description: error.message
         });
@@ -485,7 +474,6 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
                 initialBoundary={fieldData.boundary}
                 initialName={fieldData.name}
                 onNext={(data) => {
-                  console.log("📍 [AddFieldWizard] Field mapper data:", data);
                   updateFieldData({ 
                     boundary: data.boundary,
                     location: data.location,

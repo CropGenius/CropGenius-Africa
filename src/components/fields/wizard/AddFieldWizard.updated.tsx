@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, Loader2 } from 'lucide-react';
+import { Tractor, MapPin, ArrowRight, Circle, CheckCircle, Sparkles, AlertTriangle, Loader2, Shield, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,10 +16,10 @@ import StepFour from './steps/StepFour';
 import StepFive from './steps/StepFive';
 import FieldMapperStep from './steps/FieldMapperStep';
 import { sanitizeFieldData, isOnline } from '@/utils/fieldSanitizer';
+import { Database } from '@/types/supabase';
 import { v4 as uuidv4 } from 'uuid';
 import { useCreateField } from '@/features/fields/hooks/useCreateField';
 import { addOnlineStatusListener } from '@/utils/isOnline';
-import OfflineStatusIndicator from '../OfflineStatusIndicator';
 
 interface AddFieldWizardProps {
   onSuccess?: (field: Field) => void;
@@ -52,20 +52,19 @@ const saveSessionData = <T,>(key: string, data: T): void => {
   }
 };
 
-// Helper to clear session data
-const clearSessionData = (): void => {
+// Helper to clear wizard session data
+const clearWizardSessionData = (): void => {
   try {
     sessionStorage.removeItem(SESSION_FIELD_DATA_KEY);
     sessionStorage.removeItem(SESSION_STEP_KEY);
-    sessionStorage.removeItem(SESSION_FARM_KEY);
-    sessionStorage.removeItem('cropgenius_field_mapper_data');
+    // Don't clear farm context as it might be useful for future fields
   } catch (error) {
-    console.error(`Error clearing session data:`, error);
+    console.error('Error clearing wizard session data:', error);
   }
 };
 
 export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }: AddFieldWizardProps) {
-  const { logError, logSuccess } = useErrorLogging('AddFieldWizard');
+  const { logError, logSuccess, trackOperation } = useErrorLogging('AddFieldWizard');
   const navigate = useNavigate();
   const { user } = useAuthContext();
   
@@ -159,22 +158,9 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
           return;
         }
         
-        // If offline, use cached farm context or create a temporary one
-        if (!isOnlineStatus) {
-          if (farmContext) {
-            console.log("⚠️ [AddFieldWizard] Offline mode - using cached farm context");
-            setIsLoading(false);
-            return;
-          }
-          
-          // Create a temporary farm context for offline mode
-          const tempFarmContext = {
-            id: `temp-farm-${Date.now()}`,
-            name: 'My Farm (Offline)'
-          };
-          
-          setFarmContext(tempFarmContext);
-          console.log("⚠️ [AddFieldWizard] Offline mode - created temporary farm context");
+        // If we already have farm context from session storage, use it
+        if (farmContext?.id && farmContext?.name) {
+          console.log("✅ [AddFieldWizard] Using farm from session storage:", farmContext);
           setIsLoading(false);
           return;
         }
@@ -194,12 +180,18 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
         }
         
         // Try to use the selected farm
-        if (farms && farms.length > 0) {
+        if (farms && farms.some(farm => farm.id === farms[0].id)) {
+          const selectedFarm = farms.find(farm => farm.id === farms[0].id);
+          setFarmContext(selectedFarm || null);
+          console.log("✅ [AddFieldWizard] Using selected farm:", selectedFarm);
+        } 
+        // Or use the first available farm
+        else if (farms && farms.length > 0) {
           setFarmContext(farms[0]);
-          console.log("✅ [AddFieldWizard] Using farm:", farms[0]);
+          console.log("⚠️ [AddFieldWizard] Selected farm not found. Using first farm:", farms[0]);
           
           // Show info toast
-          toast.info("Using farm", {
+          toast.info("Using default farm", {
             description: `Your field will be added to "${farms[0].name}"`,
           });
         }
@@ -227,15 +219,6 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
           } catch (err) {
             console.error("❌ [AddFieldWizard] Error creating default farm:", err);
             // Don't block the flow
-            
-            // Create a temporary farm context
-            const tempFarmContext = {
-              id: `temp-farm-${Date.now()}`,
-              name: 'My Farm (Temporary)'
-            };
-            
-            setFarmContext(tempFarmContext);
-            console.log("⚠️ [AddFieldWizard] Created temporary farm context");
           }
         }
       } catch (error) {
@@ -248,11 +231,16 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
     };
     
     loadFarmContext();
-  }, [user?.id, logError, isOnlineStatus, farmContext]);
+  }, [user?.id, logError, farmContext]);
   
-  const updateFieldData = (partialData: Partial<typeof fieldData>) => {
-    setFieldData(prev => ({ ...prev, ...partialData }));
-  };
+  const updateFieldData = useCallback((partialData: Partial<typeof fieldData>) => {
+    setFieldData(prev => {
+      const updated = { ...prev, ...partialData };
+      // Save to session storage immediately
+      saveSessionData(SESSION_FIELD_DATA_KEY, updated);
+      return updated;
+    });
+  }, []);
   
   const handleNext = () => {
     if (currentStep < totalSteps) {
@@ -290,31 +278,14 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
       return;
     }
     
-    // Sanitize field data before submission
-    const sanitizedData = sanitizeFieldData(fieldData);
-    
-    // Log the data being submitted
-    console.log("📝 [AddFieldWizard] Submitting field data:", {
-      ...sanitizedData,
-      farm_id: farmContext.id
-    });
-    
     // The useCreateField hook handles the rest (user, etc.)
     createField({
-      ...sanitizedData,
+        ...fieldData,
       farm_id: farmContext.id,
     }, {
       onSuccess: (createdField) => {
-        // Clear session storage after successful submission
-        clearSessionData();
-        
-        // Log success
-        logSuccess('field_created', { field_id: createdField.id });
-        
-        // Show success message
-        toast.success("Field added successfully", {
-          description: `${sanitizedData.name} has been added to your farm.`
-        });
+        // Clear wizard data from session storage on successful submission
+        clearWizardSessionData();
         
         if (onSuccess) {
           onSuccess(createdField);
@@ -323,36 +294,28 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
         }
       },
       onError: (error) => {
-        console.error("❌ [AddFieldWizard] Error creating field:", error);
-        
-        toast.error("Failed to add field", {
-          description: error.message
+        toast.error("Failed to create field", {
+          description: error.message || "Please try again"
         });
         
-        // If offline, still consider it a success and clear session
+        // If offline, we can still proceed as if successful since the field
+        // will be stored locally and synced later
         if (!isOnlineStatus) {
-          clearSessionData();
-          
-          if (onSuccess && fieldData) {
-            // Create a mock field for offline mode
-            const mockField: Field = {
-              id: `offline-${Date.now()}`,
-              name: sanitizedData.name || 'Unnamed Field',
-              user_id: user?.id || 'offline-user',
+          clearWizardSessionData();
+          if (onSuccess) {
+            // Create a temporary field object with generated ID
+            const tempField = {
+              ...fieldData,
+              id: uuidv4(),
               farm_id: farmContext.id,
-              size: sanitizedData.size || 1,
-              size_unit: sanitizedData.size_unit || 'hectares',
-              boundary: sanitizedData.boundary,
-              location_description: sanitizedData.location_description,
-              soil_type: sanitizedData.soil_type,
-              irrigation_type: sanitizedData.irrigation_type,
+              user_id: user?.id || '',
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
-              offline_id: `offline-${Date.now()}`,
-              is_synced: false
-            };
+            } as Field;
             
-            onSuccess(mockField);
+            onSuccess(tempField);
+          } else {
+            navigate('/fields');
           }
         }
       }
@@ -428,9 +391,6 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
   return (
     <ErrorBoundary>
       <div className="space-y-6">
-        {/* Online/Offline indicator */}
-        <OfflineStatusIndicator isOnline={isOnlineStatus} />
-        
         {/* Progress indicator */}
         <div className="flex justify-center items-center space-x-2 mb-6">
           {Array.from({ length: totalSteps }).map((_, idx) => (
@@ -454,9 +414,13 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
         {farmContext && (
           <div className="text-center text-xs text-muted-foreground">
             Adding field to farm: <span className="font-medium">{farmContext.name}</span>
-            {farmContext.id.startsWith('temp-') && (
-              <span className="ml-1 text-amber-500">(Temporary)</span>
-            )}
+          </div>
+        )}
+        
+        {/* Offline indicator */}
+        {!isOnlineStatus && (
+          <div className="text-center text-xs bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-200 p-1 rounded-md">
+            You're currently offline. Your progress is being saved locally.
           </div>
         )}
         
@@ -485,7 +449,6 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
                 initialBoundary={fieldData.boundary}
                 initialName={fieldData.name}
                 onNext={(data) => {
-                  console.log("📍 [AddFieldWizard] Field mapper data:", data);
                   updateFieldData({ 
                     boundary: data.boundary,
                     location: data.location,
@@ -540,7 +503,6 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
                 onSubmit={handleSubmit}
                 isSubmitting={isSubmitting}
                 onSkip={() => handleSubmit()}
-                isOffline={!isOnlineStatus}
               />
             )}
             
@@ -564,7 +526,7 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
                   Your field has been added successfully.
                 </p>
                 {!isOnlineStatus && (
-                  <p className="text-amber-500 text-sm mt-2">
+                  <p className="text-xs text-amber-600 mt-2">
                     Your field will be synced when you're back online.
                   </p>
                 )}
@@ -572,6 +534,28 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
             )}
           </motion.div>
         </AnimatePresence>
+        
+        {/* Cancel button */}
+        {onCancel && currentStep < totalSteps + 1 && (
+          <div className="flex justify-center mt-4">
+            <Button 
+              variant="ghost" 
+              onClick={() => {
+                if (confirm("Are you sure you want to cancel? Your progress will be saved.")) {
+                  onCancel();
+                }
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        )}
+        
+        {/* Save progress indicator */}
+        <div className="text-center text-xs text-muted-foreground mt-2">
+          <Save className="inline-block h-3 w-3 mr-1" />
+          Progress saved automatically
+        </div>
       </div>
     </ErrorBoundary>
   );
