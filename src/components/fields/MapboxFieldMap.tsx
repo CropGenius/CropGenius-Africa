@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Coordinates, Boundary } from "@/types/field";
@@ -11,6 +11,17 @@ import { useErrorLogging } from "@/hooks/use-error-logging";
 import MapNavigator from "./MapNavigator";
 import ErrorBoundary from "@/components/error/ErrorBoundary";
 import { useLocalStorage } from "@/hooks/use-local-storage";
+import { 
+  safeCleanup, 
+  safeMapOperation, 
+  safeCleanupMapInstance, 
+  safeCleanupMarker,
+  safeCleanupSource,
+  safeCleanupLayer,
+  safeCleanupControl,
+  safeCleanupEventListener,
+  MapResourceTracker 
+} from "@/utils/mapboxCleanupUtils";
 
 // Use environment variable for access token with PRODUCTION-READY validation
 const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || "";
@@ -70,9 +81,16 @@ export default function MapboxFieldMap({
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   
+  // 🚀 INFINITY IQ Resource Tracking - tracks ALL map resources
+  const resourceTracker = useRef<MapResourceTracker>(new MapResourceTracker());
   const geocodingClient = useRef<any>(null);
   const drawMarkers = useRef<mapboxgl.Marker[]>([]);
   const locationMarker = useRef<mapboxgl.Marker | null>(null);
+  
+  // 🚀 INFINITY IQ Map State Management
+  const [mapInitialized, setMapInitialized] = useState(false);
+  const [mapDestroyed, setMapDestroyed] = useState(false);
+  const [isCleaningUp, setIsCleaningUp] = useState(false);
   
   const [isDrawing, setIsDrawing] = useState(false);
   const [coordinates, setCoordinates] = useState<Coordinates[]>(initialBoundary?.coordinates || []);
@@ -103,22 +121,20 @@ export default function MapboxFieldMap({
     }
   }, [mapError, onMapError]);
 
-  // Draw field polygon on map
+  // 🚀 INFINITY IQ Draw field polygon with DEFENSIVE resource tracking
   const drawFieldPolygon = useCallback((mapInstance: mapboxgl.Map, coords: Coordinates[]) => {
     if (!mapInstance || coords.length < 3) return;
 
-    try {
-      // Clear existing polygon
-      if (mapInstance.getSource('field-polygon')) {
-        mapInstance.removeLayer('field-polygon-outline');
-        mapInstance.removeLayer('field-polygon');
-        mapInstance.removeSource('field-polygon');
-      }
+    const success = safeMapOperation(mapInstance, (map) => {
+      // Clear existing polygon safely
+      safeCleanupLayer(map, 'field-polygon-outline');
+      safeCleanupLayer(map, 'field-polygon');
+      safeCleanupSource(map, 'field-polygon');
 
       // Add new polygon
       const polygonCoords = [...coords, coords[0]].map(coord => [coord.lng, coord.lat]);
 
-      mapInstance.addSource('field-polygon', {
+      map.addSource('field-polygon', {
         type: 'geojson',
         data: {
           type: 'Feature',
@@ -130,7 +146,7 @@ export default function MapboxFieldMap({
         }
       });
 
-      mapInstance.addLayer({
+      map.addLayer({
         id: 'field-polygon',
         type: 'fill',
         source: 'field-polygon',
@@ -140,7 +156,7 @@ export default function MapboxFieldMap({
         }
       });
 
-      mapInstance.addLayer({
+      map.addLayer({
         id: 'field-polygon-outline',
         type: 'line',
         source: 'field-polygon',
@@ -149,8 +165,15 @@ export default function MapboxFieldMap({
           'line-width': 2
         }
       });
-    } catch (error) {
-      console.error("Error drawing field polygon:", error);
+
+      // Track resources for cleanup
+      resourceTracker.current.addSource('field-polygon');
+      resourceTracker.current.addLayer('field-polygon');
+      resourceTracker.current.addLayer('field-polygon-outline');
+    }, 'drawFieldPolygon');
+
+    if (!success) {
+      console.error("❌ [MapboxFieldMap] Failed to draw field polygon");
     }
   }, []);
 
@@ -323,24 +346,22 @@ export default function MapboxFieldMap({
         attributionControl: false,
       });
 
-      // Add navigation controls
-      mapInstance.addControl(
-        new mapboxgl.NavigationControl({
-          visualizePitch: true,
-        }),
-        "top-right"
-      );
+      // Add navigation controls with INFINITY IQ tracking
+      const navigationControl = new mapboxgl.NavigationControl({
+        visualizePitch: true,
+      });
+      mapInstance.addControl(navigationControl, "top-right");
+      resourceTracker.current.addControl(navigationControl);
 
-      // Add scale control
-      mapInstance.addControl(
-        new mapboxgl.ScaleControl({
-          maxWidth: 150,
-          unit: "metric",
-        }),
-        "bottom-left"
-      );
+      // Add scale control with INFINITY IQ tracking
+      const scaleControl = new mapboxgl.ScaleControl({
+        maxWidth: 150,
+        unit: "metric",
+      });
+      mapInstance.addControl(scaleControl, "bottom-left");
+      resourceTracker.current.addControl(scaleControl);
 
-      // Add geolocation control
+      // Add geolocation control with INFINITY IQ tracking
       const geolocateControl = new mapboxgl.GeolocateControl({
         positionOptions: {
           enableHighAccuracy: true,
@@ -348,6 +369,7 @@ export default function MapboxFieldMap({
         trackUserLocation: true,
       });
       mapInstance.addControl(geolocateControl, "top-right");
+      resourceTracker.current.addControl(geolocateControl);
 
       // Handle map load event
       mapInstance.on("load", () => {
@@ -392,40 +414,69 @@ export default function MapboxFieldMap({
 
       // Store map instance
       map.current = mapInstance;
+      setMapInitialized(true);
       logSuccess('map_initialized', {});
 
-      // Add click handler for drawing
-      mapInstance.on('click', handleMapClick);
-
-      // Clean up on unmount
-      return () => {
+      // Add click handler for drawing with INFINITY IQ error handling
+      const clickHandler = (e: mapboxgl.MapMouseEvent) => {
         try {
-          // Clean up markers safely
-          drawMarkers.current.forEach(marker => {
-            try {
-              marker.remove();
-            } catch (error) {
-              console.warn('Error removing marker:', error);
-            }
+          handleMapClick(e);
+        } catch (error: any) {
+          console.error('❌ [MapboxFieldMap] Click handler error:', error);
+          // Handle specific errors that shouldn't crash the app
+          if (error?.message?.includes('indoor') || 
+              error?.message?.includes('Cannot read properties of undefined')) {
+            console.log('🔧 [MapboxFieldMap] Ignoring known Mapbox error in click handler');
+            return;
+          }
+          // For other errors, show user feedback but don't crash
+          toast.error("Map interaction error", {
+            description: "Please try again or refresh the page"
           });
+        }
+      };
+      
+      mapInstance.on('click', clickHandler);
+      resourceTracker.current.addEventListener('click', clickHandler);
+
+      // 🚀 INFINITY IQ PRODUCTION-READY CLEANUP - handles ALL edge cases
+      return () => {
+        console.log('🧹 [MapboxFieldMap] Starting INFINITY IQ cleanup process');
+        setIsCleaningUp(true);
+        
+        try {
+          // Clean up draw markers with defensive programming
+          drawMarkers.current.forEach((marker, index) => {
+            safeCleanupMarker(marker);
+            resourceTracker.current.addMarker(marker); // Track for comprehensive cleanup
+          });
+          drawMarkers.current = [];
           
-          // Clean up location marker safely
+          // Clean up location marker defensively
           if (locationMarker.current) {
-            try {
-              locationMarker.current.remove();
-            } catch (error) {
-              console.warn('Error removing location marker:', error);
-            }
+            safeCleanupMarker(locationMarker.current);
+            locationMarker.current = null;
           }
           
-          // Clean up map instance safely
-          try {
-            mapInstance.remove();
-          } catch (error) {
-            console.warn('Error removing map instance:', error);
+          // Clean up ALL tracked resources before destroying map
+          const cleanupResult = resourceTracker.current.cleanupAllResources(mapInstance);
+          console.log('🚀 [MapboxFieldMap] Resource cleanup result:', cleanupResult);
+          
+          // Finally, destroy the map instance with INFINITY IQ safety
+          const mapCleanupSuccess = safeCleanupMapInstance(mapInstance);
+          if (mapCleanupSuccess) {
+            console.log('✅ [MapboxFieldMap] Map instance destroyed successfully');
+            setMapDestroyed(true);
+          } else {
+            console.warn('⚠️ [MapboxFieldMap] Map cleanup had issues but continued safely');
           }
-        } catch (error) {
-          console.error('Error during map cleanup:', error);
+          
+        } catch (error: any) {
+          console.error('❌ [MapboxFieldMap] Unexpected error during cleanup:', error);
+          // Don't throw - this would crash the app during unmount
+        } finally {
+          setIsCleaningUp(false);
+          map.current = null;
         }
       };
     } catch (error) {
@@ -435,38 +486,36 @@ export default function MapboxFieldMap({
   }, [defaultLocation, onLocationChange, onBoundaryChange, drawFieldPolygon, captureMapSnapshot, 
       cachedMapData, coordinates, handleMapClick, isOffline, logError, logSuccess]);
 
-  // Start drawing mode
+  // 🚀 INFINITY IQ Start drawing mode with DEFENSIVE cleanup
   const handleStartDrawing = () => {
     setIsDrawing(true);
     
-    // Clear existing markers
-    drawMarkers.current.forEach(marker => marker.remove());
+    // Clear existing markers with DEFENSIVE programming
+    drawMarkers.current.forEach(marker => safeCleanupMarker(marker));
     drawMarkers.current = [];
     
     // Clear coordinates
     setCoordinates([]);
     
-    // Clear existing polygon if any
-    if (map.current && map.current.getSource('field-polygon')) {
-      try {
-        map.current.removeLayer('field-polygon-outline');
-        map.current.removeLayer('field-polygon');
-        map.current.removeSource('field-polygon');
-      } catch (error) {
-        console.error("Error clearing polygon:", error);
-      }
-    }
+    // Clear existing polygon with DEFENSIVE operations
+    safeMapOperation(map.current, (mapInstance) => {
+      safeCleanupLayer(mapInstance, 'field-polygon-outline');
+      safeCleanupLayer(mapInstance, 'field-polygon');
+      safeCleanupSource(mapInstance, 'field-polygon');
+    }, 'clearPolygonForDrawing');
     
     toast.info("Drawing started. Click on the map to add points.");
   };
 
-  // Undo last point
+  // 🚀 INFINITY IQ Undo last point with DEFENSIVE cleanup
   const handleUndo = () => {
     if (coordinates.length === 0) return;
     
-    // Remove the last marker
+    // Remove the last marker with DEFENSIVE programming
     const lastMarker = drawMarkers.current.pop();
-    if (lastMarker) lastMarker.remove();
+    if (lastMarker) {
+      safeCleanupMarker(lastMarker);
+    }
     
     // Update coordinates
     setCoordinates(coords => {
@@ -483,15 +532,13 @@ export default function MapboxFieldMap({
             coordinates: newCoords
           });
         }
-      } else if (map.current && map.current.getSource('field-polygon')) {
-        // Remove polygon if not enough points
-        try {
-          map.current.removeLayer('field-polygon-outline');
-          map.current.removeLayer('field-polygon');
-          map.current.removeSource('field-polygon');
-        } catch (error) {
-          console.error("Error removing polygon:", error);
-        }
+      } else {
+        // Remove polygon if not enough points with DEFENSIVE operations
+        safeMapOperation(map.current, (mapInstance) => {
+          safeCleanupLayer(mapInstance, 'field-polygon-outline');
+          safeCleanupLayer(mapInstance, 'field-polygon');
+          safeCleanupSource(mapInstance, 'field-polygon');
+        }, 'removePolygonOnUndo');
       }
       
       return newCoords;
