@@ -320,7 +320,7 @@ export class AuthenticationService {
 
     return {
       success: true,
-      data: null, // Always return null - let auth state listener do the work
+      data: session
       metadata: {
         latency: 0,
         attempts: 1,
@@ -400,3 +400,5 @@ export class AuthenticationService {
 
 // 🌟 EXPORT SINGLETON INSTANCE
 export const authService = AuthenticationService.getInstance();
+
+
