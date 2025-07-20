@@ -64,7 +64,7 @@ export default function Index() {
       const { data: fields, error: fieldsError } = await supabase
         .from('fields')
         .select('id, name')
-        .eq('user_id', user!.id);
+        .eq('created_by', user!.id);
 
       if (fieldsError) throw fieldsError;
 
@@ -72,7 +72,7 @@ export default function Index() {
       const { data: scans, error: scansError } = await supabase
         .from('scans')
         .select('id, crop, disease, confidence, created_at')
-        .eq('user_id', user!.id)
+        .eq('created_by', user!.id)
         .order('created_at', { ascending: false })
         .limit(5);
 
@@ -82,7 +82,7 @@ export default function Index() {
       const { data: tasks, error: tasksError } = await supabase
         .from('tasks')
         .select('id, title, status, priority, created_at')
-        .eq('user_id', user!.id)
+        .eq('created_by', user!.id)
         .order('created_at', { ascending: false })
         .limit(5);
 
@@ -418,3 +418,4 @@ export default function Index() {
     </ErrorBoundary>
   );
 }
+

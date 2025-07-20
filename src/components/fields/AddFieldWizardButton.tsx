@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button, ButtonProps } from '@/components/ui/button';
 import { Plus, MapPin, Sparkles } from 'lucide-react';
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Field } from '@/types/field';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -91,6 +91,10 @@ export default function AddFieldWizardButton({
         onOpenChange={setDialogOpen}
       >
         <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Add New Field</DialogTitle>
+            <DialogDescription>Create a new field for your farm</DialogDescription>
+          </DialogHeader>
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

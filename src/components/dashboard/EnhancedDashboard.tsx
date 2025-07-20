@@ -174,7 +174,7 @@ const EnhancedDashboard: React.FC = () => {
       } = await supabase
         .from('tasks')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('created_by', user.id)
         .neq('status', 'completed')
         .order('created_at', { ascending: false });
 
@@ -219,7 +219,7 @@ const EnhancedDashboard: React.FC = () => {
       .channel('tasks-feed')
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'tasks', filter: `user_id=eq.${user.id}` },
+        { event: 'INSERT', schema: 'public', table: 'tasks', filter: `created_by=eq.${user.id}` },
         (payload) => {
           setTasks((prevTasks) => [payload.new as Task, ...prevTasks]);
           toast.info('A new task has been added to your list!');
