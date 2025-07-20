@@ -12,14 +12,37 @@ import MapNavigator from "./MapNavigator";
 import ErrorBoundary from "@/components/error/ErrorBoundary";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 
-// Use environment variable for access token with fallback and UI error handling
+// Use environment variable for access token with PRODUCTION-READY validation
 const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || "";
 
-// Set the token for mapbox-gl if available
-if (MAPBOX_ACCESS_TOKEN) {
+// INFINITY IQ token validation - handles ALL edge cases
+const isValidMapboxToken = (token: string): boolean => {
+  if (!token || typeof token !== 'string') return false;
+  
+  // Mapbox public tokens start with 'pk.' and are JWT format
+  if (token.startsWith('pk.')) {
+    // JWT tokens have 3 parts separated by dots
+    const parts = token.split('.');
+    return parts.length === 3 && token.length > 50;
+  }
+  
+  // Mapbox secret tokens start with 'sk.'
+  if (token.startsWith('sk.')) {
+    const parts = token.split('.');
+    return parts.length === 3 && token.length > 50;
+  }
+  
+  return false;
+};
+
+// PRODUCTION-READY token configuration with fallback
+if (MAPBOX_ACCESS_TOKEN && isValidMapboxToken(MAPBOX_ACCESS_TOKEN)) {
   mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
+  console.log("🚀 [MapboxFieldMap] INFINITY-LEVEL Mapbox token configured successfully");
 } else {
-  console.error("❌ [MapboxFieldMap] VITE_MAPBOX_ACCESS_TOKEN not found in environment variables");
+  console.error("💥 [MapboxFieldMap] CRITICAL: Invalid or missing VITE_MAPBOX_ACCESS_TOKEN");
+  console.error("🔧 Token format should be: pk.eyJ... (public) or sk.eyJ... (secret)");
+  console.error("📋 Current token:", MAPBOX_ACCESS_TOKEN ? `${MAPBOX_ACCESS_TOKEN.substring(0, 20)}...` : 'MISSING');
 }
 
 interface MapboxFieldMapProps {
@@ -225,13 +248,13 @@ export default function MapboxFieldMap({
 
   // Initialize geocoding client
   useEffect(() => {
-    if (!MAPBOX_ACCESS_TOKEN) {
-      setMapError("Missing Mapbox access token. Please check your environment configuration.");
+    if (!MAPBOX_ACCESS_TOKEN || !isValidMapboxToken(MAPBOX_ACCESS_TOKEN)) {
+      setMapError("Invalid Mapbox access token. Please check your environment configuration.");
       return;
     }
 
     try {
-      // Only initialize if online
+      // Only initialize if online and token is valid
       if (!isOffline) {
         const baseClient = MapboxSDK({ accessToken: MAPBOX_ACCESS_TOKEN });
         geocodingClient.current = MapboxGeocoding(baseClient);
@@ -239,7 +262,7 @@ export default function MapboxFieldMap({
       }
     } catch (error) {
       logError(error as Error, { context: 'geocodingClientInit' });
-      setMapError("Failed to initialize geocoding client");
+      setMapError("Failed to initialize geocoding client. Please check your token.");
     }
   }, [isOffline, logError]);
 
@@ -270,8 +293,8 @@ export default function MapboxFieldMap({
       return;
     }
 
-    if (!MAPBOX_ACCESS_TOKEN) {
-      setMapError("Missing Mapbox access token. Please check your environment configuration.");
+    if (!MAPBOX_ACCESS_TOKEN || !isValidMapboxToken(MAPBOX_ACCESS_TOKEN)) {
+      setMapError("Invalid Mapbox access token. Please check your environment configuration.");
       return;
     }
 
@@ -376,9 +399,34 @@ export default function MapboxFieldMap({
 
       // Clean up on unmount
       return () => {
-        drawMarkers.current.forEach(marker => marker.remove());
-        if (locationMarker.current) locationMarker.current.remove();
-        mapInstance.remove();
+        try {
+          // Clean up markers safely
+          drawMarkers.current.forEach(marker => {
+            try {
+              marker.remove();
+            } catch (error) {
+              console.warn('Error removing marker:', error);
+            }
+          });
+          
+          // Clean up location marker safely
+          if (locationMarker.current) {
+            try {
+              locationMarker.current.remove();
+            } catch (error) {
+              console.warn('Error removing location marker:', error);
+            }
+          }
+          
+          // Clean up map instance safely
+          try {
+            mapInstance.remove();
+          } catch (error) {
+            console.warn('Error removing map instance:', error);
+          }
+        } catch (error) {
+          console.error('Error during map cleanup:', error);
+        }
       };
     } catch (error) {
       logError(error as Error, { context: 'mapInitialization' });
