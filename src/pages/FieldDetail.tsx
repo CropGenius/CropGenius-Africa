@@ -13,6 +13,7 @@ import { getFieldById, deleteField } from "@/services/fieldService";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Loader2, MapPin, Trash2, Edit, ArrowLeft, Calendar, Droplets, Tractor, Leaf, History, Check, AlertCircle, RefreshCw, Zap } from "lucide-react";
 import { analyzeField, getFieldRecommendations, checkFieldRisks } from "@/services/fieldAIService";
+import SatelliteImageryDisplay from "@/components/SatelliteImageryDisplay";
 
 // Lazy load FieldMap so leaflet isn't fetched unless the user opens a field
 const FieldMap = lazy(() => import("@/components/fields/FieldMap"));
@@ -434,6 +435,7 @@ const FieldDetail = () => {
             <Tabs defaultValue="crops" className="mt-6">
               <TabsList>
                 <TabsTrigger value="crops">Crops</TabsTrigger>
+                <TabsTrigger value="satellite">🛰️ Satellite Intelligence</TabsTrigger>
                 <TabsTrigger value="history">History</TabsTrigger>
               </TabsList>
               
@@ -518,6 +520,13 @@ const FieldDetail = () => {
                     )}
                   </CardContent>
                 </Card>
+              </TabsContent>
+              
+              <TabsContent value="satellite" className="mt-4">
+                <SatelliteImageryDisplay 
+                  fieldCoordinates={field?.boundary?.coordinates?.map(coord => ({ lat: coord.lat, lng: coord.lng }))}
+                  fieldId={field?.id}
+                />
               </TabsContent>
               
               <TabsContent value="history" className="mt-4">
