@@ -503,7 +503,16 @@ const FieldDetailView: React.FC<{ fieldId: string; onClose: () => void }> = ({ f
           </TabsContent>
 
           <TabsContent value="analytics">
-            <SatelliteImageryDisplay />
+            <SatelliteImageryDisplay 
+              fieldCoordinates={[
+                { lat: -1.2921, lng: 36.8219 },
+                { lat: -1.2921, lng: 36.8229 },
+                { lat: -1.2911, lng: 36.8229 },
+                { lat: -1.2911, lng: 36.8219 },
+                { lat: -1.2921, lng: 36.8219 }
+              ]}
+              fieldId={fieldId}
+            />
           </TabsContent>
 
           <TabsContent value="history">

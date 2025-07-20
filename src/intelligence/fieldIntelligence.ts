@@ -1,4 +1,4 @@
-import { fetchJSON } from '@/utils/network';
+// Removed unused import
 import { 
   getSentinelHubAuthenticatedFetch, 
   isSentinelHubAuthConfigured,
@@ -78,8 +78,8 @@ function evaluatePixel(sample) {
  */
 export async function analyzeField(coordinates: GeoLocation[], farmerId?: string): Promise<FieldHealthAnalysis> {
   if (!isSentinelHubAuthConfigured()) {
-    console.warn('⚠️ Sentinel Hub not configured - using NASA MODIS fallback');
-    return await analyzeFieldWithNASAMODIS(coordinates, farmerId);
+    console.warn('⚠️ Sentinel Hub not configured - using fallback analysis');
+    return generateFallbackAnalysis(coordinates);
   }
 
   const authenticatedFetch = getSentinelHubAuthenticatedFetch();
@@ -146,7 +146,15 @@ export async function analyzeField(coordinates: GeoLocation[], farmerId?: string
     console.log('✅ Sentinel Hub Process API call successful');
 
     // Get NDVI statistics using the Statistics API
-    const NDVI_EVALSCRIPT = `//VERSION=3
+    const statsPayload = {
+      input: payload.input,
+      aggregation: {
+        timeRange: {
+          from: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+          to: new Date().toISOString(),
+        },
+        aggregationInterval: { of: 'P1D' },
+        evalscript: `//VERSION=3
 function setup() {
   return {
     input: ['B04', 'B08'],
@@ -157,17 +165,7 @@ function setup() {
 function evaluatePixel(sample) {
   const ndvi = (sample.B08 - sample.B04) / (sample.B08 + sample.B04);
   return [ndvi];
-}`;
-
-    const statsPayload = {
-      input: payload.input,
-      aggregation: {
-        timeRange: {
-          from: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-          to: new Date().toISOString(),
-        },
-        aggregationInterval: { of: 'P1D' },
-        evalscript: NDVI_EVALSCRIPT,
+}`,
       },
       calculations: { default: { statistics: { default: { stats: ['mean', 'min', 'max', 'stDev'] } } } },
     };
@@ -317,8 +315,6 @@ function generateEnhancedRecommendations(health: number, variation: number, mean
  * Generate fallback analysis when API fails
  */
 function generateFallbackAnalysis(coordinates: GeoLocation[]): FieldHealthAnalysis {
-  // Calculate approximate field area for basic yield estimate
-  const fieldArea = calculatePolygonArea(coordinates);
   const baseYield = 3.5; // Average yield in t/ha for Sub-Saharan Africa
   
   return {
@@ -356,16 +352,4 @@ function calculatePolygonArea(coordinates: GeoLocation[]): number {
   return Math.abs(area) / 2;
 }
 
-function generateRecommendations(health: number): string[] {
-  if (health > 0.7) return ['Field appears healthy – keep monitoring NDVI weekly.'];
-  if (health > 0.5)
-    return [
-      'Moderate stress detected – investigate irrigation scheduling.',
-      'Consider foliar feed to boost vigour.',
-    ];
-  return [
-    'Low NDVI indicates crop stress or poor establishment.',
-    'Scout for pest/disease and verify planting density.',
-    'Check soil fertility and moisture levels.',
-  ];
-} 
+// Removed unused function - using generateEnhancedRecommendations instead 
