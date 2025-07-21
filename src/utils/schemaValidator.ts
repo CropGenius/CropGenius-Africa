@@ -165,7 +165,7 @@ class SchemaValidator {
       async () => {
         // Get column information from information_schema
         const { data: columns, error: columnsError } = await supabase
-          .from('information_schema.columns')
+          .rpc('get_table_columns', { p_table_name: tableName, p_table_schema: schema })
           .select(`
             column_name,
             data_type,
