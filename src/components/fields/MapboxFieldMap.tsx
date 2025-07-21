@@ -11,6 +11,7 @@ import { useErrorLogging } from "@/hooks/use-error-logging";
 import MapNavigator from "./MapNavigator";
 import ErrorBoundary from "@/components/error/ErrorBoundary";
 import { useLocalStorage } from "@/hooks/use-local-storage";
+import { useComponentLifecycle } from "@/utils/componentLifecycleManager";
 
 // Use environment variable for access token with PRODUCTION-READY validation
 const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || "";
@@ -33,6 +34,31 @@ const isValidMapboxToken = (token: string): boolean => {
   }
   
   return false;
+};
+
+// Calculate polygon area in square meters using the Shoelace formula
+const calculatePolygonArea = (coordinates: Coordinates[]): number => {
+  if (coordinates.length < 3) return 0;
+  
+  // Convert lat/lng to x/y using simple approximation
+  // This is a rough approximation for small areas
+  const EARTH_RADIUS = 6371000; // Earth radius in meters
+  const DEG_TO_RAD = Math.PI / 180;
+  
+  const points = coordinates.map(coord => ({
+    x: coord.lng * DEG_TO_RAD * EARTH_RADIUS * Math.cos(coord.lat * DEG_TO_RAD),
+    y: coord.lat * DEG_TO_RAD * EARTH_RADIUS
+  }));
+  
+  // Apply Shoelace formula
+  let area = 0;
+  for (let i = 0; i < points.length; i++) {
+    const j = (i + 1) % points.length;
+    area += points[i].x * points[j].y;
+    area -= points[j].x * points[i].y;
+  }
+  
+  return Math.abs(area / 2);
 };
 
 // PRODUCTION-READY token configuration with fallback
@@ -67,6 +93,9 @@ export default function MapboxFieldMap({
   onMapError
 }: MapboxFieldMapProps) {
   const { logError, logSuccess } = useErrorLogging('MapboxFieldMap');
+  const componentId = `MapboxFieldMap-${Date.now()}-${Math.random()}`;
+  const lifecycle = useComponentLifecycle(componentId);
+  
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   
@@ -81,6 +110,14 @@ export default function MapboxFieldMap({
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [mapSnapshot, setMapSnapshot] = useState<string | null>(null);
   const [isCapturingSnapshot, setIsCapturingSnapshot] = useState(false);
+
+  // Create safe state setters that check if component is still mounted
+  const safeSetMapLoaded = lifecycle.createSafeStateSetter(setMapLoaded);
+  const safeSetMapError = lifecycle.createSafeStateSetter(setMapError);
+  const safeSetIsOffline = lifecycle.createSafeStateSetter(setIsOffline);
+  const safeSetMapSnapshot = lifecycle.createSafeStateSetter(setMapSnapshot);
+  const safeSetIsCapturingSnapshot = lifecycle.createSafeStateSetter(setIsCapturingSnapshot);
+  const safeSetCoordinates = lifecycle.createSafeStateSetter(setCoordinates);
 
   // Local storage for caching map data
   const [cachedMapData, setCachedMapData] = useLocalStorage<{
@@ -198,12 +235,12 @@ export default function MapboxFieldMap({
   const captureMapSnapshot = useCallback(() => {
     if (!map.current || isCapturingSnapshot) return;
 
-    setIsCapturingSnapshot(true);
+    safeSetIsCapturingSnapshot(true);
     
     try {
       const canvas = map.current.getCanvas();
       const dataURL = canvas.toDataURL('image/jpeg', 0.8);
-      setMapSnapshot(dataURL);
+      safeSetMapSnapshot(dataURL);
       
       // Cache the snapshot
       setCachedMapData(prev => ({
@@ -215,15 +252,15 @@ export default function MapboxFieldMap({
     } catch (error) {
       console.error('Failed to capture map snapshot:', error);
     } finally {
-      setIsCapturingSnapshot(false);
+      safeSetIsCapturingSnapshot(false);
     }
-  }, [isCapturingSnapshot, setCachedMapData]);
+  }, [isCapturingSnapshot, setCachedMapData, safeSetIsCapturingSnapshot, safeSetMapSnapshot]);
 
   // Monitor online/offline status
   useEffect(() => {
     const handleOnline = () => {
       console.log("🌐 [MapboxFieldMap] Network connection restored");
-      setIsOffline(false);
+      safeSetIsOffline(false);
       toast.success("You're back online", {
         description: "Map functionality has been restored"
       });
@@ -231,7 +268,7 @@ export default function MapboxFieldMap({
 
     const handleOffline = () => {
       console.log("🌐 [MapboxFieldMap] Network connection lost");
-      setIsOffline(true);
+      safeSetIsOffline(true);
       toast.warning("You're offline", {
         description: "Limited map functionality available"
       });
@@ -240,16 +277,22 @@ export default function MapboxFieldMap({
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
+    // Register cleanup function
+    lifecycle.registerCleanup(() => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    });
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, []);
+  }, [lifecycle, safeSetIsOffline]);
 
   // Initialize geocoding client
   useEffect(() => {
     if (!MAPBOX_ACCESS_TOKEN || !isValidMapboxToken(MAPBOX_ACCESS_TOKEN)) {
-      setMapError("Invalid Mapbox access token. Please check your environment configuration.");
+      safeSetMapError("Invalid Mapbox access token. Please check your environment configuration.");
       return;
     }
 
@@ -259,12 +302,17 @@ export default function MapboxFieldMap({
         const baseClient = MapboxSDK({ accessToken: MAPBOX_ACCESS_TOKEN });
         geocodingClient.current = MapboxGeocoding(baseClient);
         console.log("✅ [MapboxFieldMap] Geocoding client initialized");
+        
+        // Register cleanup for geocoding client
+        lifecycle.registerCleanup(() => {
+          geocodingClient.current = null;
+        });
       }
     } catch (error) {
       logError(error as Error, { context: 'geocodingClientInit' });
-      setMapError("Failed to initialize geocoding client. Please check your token.");
+      safeSetMapError("Failed to initialize geocoding client. Please check your token.");
     }
-  }, [isOffline, logError]);
+  }, [isOffline, logError, lifecycle, safeSetMapError]);
 
   // Initialize map
   useEffect(() => {
@@ -273,11 +321,11 @@ export default function MapboxFieldMap({
     // If offline and we have a cached snapshot, use cached data
     if (isOffline && cachedMapData.snapshot) {
       console.log("🌐 [MapboxFieldMap] Offline mode - using cached map data");
-      setMapLoaded(true);
+      safeSetMapLoaded(true);
 
       // If we have cached coordinates, use them
       if (cachedMapData.boundary?.coordinates?.length > 2) {
-        setCoordinates(cachedMapData.boundary.coordinates);
+        safeSetCoordinates(cachedMapData.boundary.coordinates);
         
         // Notify parent of boundary
         if (onBoundaryChange) {
@@ -289,12 +337,37 @@ export default function MapboxFieldMap({
       if (cachedMapData.location?.coordinates && onLocationChange) {
         onLocationChange(cachedMapData.location.coordinates);
       }
+      
+      // Log success for offline mode
+      logSuccess('map_offline_mode_activated', { 
+        component: 'MapboxFieldMap',
+        metadata: {
+          hasCachedBoundary: !!cachedMapData.boundary,
+          hasCachedLocation: !!cachedMapData.location
+        }
+      });
 
       return;
     }
 
     if (!MAPBOX_ACCESS_TOKEN || !isValidMapboxToken(MAPBOX_ACCESS_TOKEN)) {
-      setMapError("Invalid Mapbox access token. Please check your environment configuration.");
+      const errorMessage = "Invalid Mapbox access token. Please check your environment configuration.";
+      safeSetMapError(errorMessage);
+      
+      // Log the error
+      logError(
+        new Error(errorMessage),
+        ErrorCategory.VALIDATION,
+        ErrorSeverity.HIGH,
+        {
+          component: 'MapboxFieldMap',
+          action: 'initializeMap',
+          metadata: {
+            tokenLength: MAPBOX_ACCESS_TOKEN ? MAPBOX_ACCESS_TOKEN.length : 0,
+            tokenPrefix: MAPBOX_ACCESS_TOKEN ? MAPBOX_ACCESS_TOKEN.substring(0, 5) : 'none'
+          }
+        }
+      );
       return;
     }
 
@@ -314,6 +387,17 @@ export default function MapboxFieldMap({
         : defaultLocation 
           ? [defaultLocation.lng, defaultLocation.lat]
           : [20, 5]; // Center of Africa
+          
+      // Log map initialization attempt
+      logSuccess('map_initialization_started', { 
+        component: 'MapboxFieldMap',
+        metadata: {
+          usingCachedLocation: !!cachedLocation,
+          usingDefaultLocation: !!defaultLocation && !cachedLocation,
+          center: defaultCenter,
+          zoom: cachedLocation ? 16 : 4
+        }
+      });
 
       const mapInstance = new mapboxgl.Map({
         container: mapContainer.current,
@@ -352,8 +436,19 @@ export default function MapboxFieldMap({
       // Handle map load event
       mapInstance.on("load", () => {
         console.log("✅ [MapboxFieldMap] Map loaded successfully");
-        setMapLoaded(true);
-        setMapError(null);
+        safeSetMapLoaded(true);
+        safeSetMapError(null);
+        
+        // Log successful map load
+        logSuccess('map_loaded_successfully', { 
+          component: 'MapboxFieldMap',
+          metadata: {
+            mapId: mapInstance.getCanvasContainer().id,
+            style: mapInstance.getStyle().name,
+            center: mapInstance.getCenter(),
+            zoom: mapInstance.getZoom()
+          }
+        });
 
         // Use cached coordinates if available and no coordinates are set
         const coordsToUse = coordinates.length > 0 
@@ -362,7 +457,7 @@ export default function MapboxFieldMap({
 
         if (coordsToUse.length > 2) {
           drawFieldPolygon(mapInstance, coordsToUse);
-          setCoordinates(coordsToUse);
+          safeSetCoordinates(coordsToUse);
 
           // Fit map to boundary
           const bounds = new mapboxgl.LngLatBounds();
@@ -381,13 +476,26 @@ export default function MapboxFieldMap({
               type: 'polygon',
               coordinates: coordsToUse
             });
+            
+            // Log boundary set
+            logSuccess('map_boundary_set', { 
+              component: 'MapboxFieldMap',
+              metadata: {
+                pointCount: coordsToUse.length,
+                boundaryType: 'polygon',
+                area: calculatePolygonArea(coordsToUse)
+              }
+            });
           }
         }
 
         // Capture snapshot after map has loaded and rendered
-        setTimeout(() => {
+        const safeSnapshotCapture = lifecycle.createSafeAsyncOperation(async () => {
+          await new Promise(resolve => setTimeout(resolve, 2000));
           captureMapSnapshot();
-        }, 2000);
+        });
+        
+        safeSnapshotCapture();
       });
 
       // Store map instance
@@ -401,36 +509,66 @@ export default function MapboxFieldMap({
       return () => {
         try {
           // Clean up markers safely
-          drawMarkers.current.forEach(marker => {
-            try {
-              marker.remove();
-            } catch (error) {
-              console.warn('Error removing marker:', error);
-            }
-          });
+          if (drawMarkers.current && Array.isArray(drawMarkers.current)) {
+            drawMarkers.current.forEach(marker => {
+              try {
+                if (marker && typeof marker.remove === 'function') {
+                  marker.remove();
+                }
+              } catch (error) {
+                console.warn('Error removing marker:', error);
+              }
+            });
+            drawMarkers.current = [];
+          }
           
           // Clean up location marker safely
-          if (locationMarker.current) {
+          if (locationMarker.current && typeof locationMarker.current.remove === 'function') {
             try {
               locationMarker.current.remove();
+              locationMarker.current = null;
             } catch (error) {
               console.warn('Error removing location marker:', error);
             }
           }
           
-          // Clean up map instance safely
-          try {
-            mapInstance.remove();
-          } catch (error) {
-            console.warn('Error removing map instance:', error);
+          // Clean up map instance safely with comprehensive null checks
+          if (mapInstance && typeof mapInstance.remove === 'function') {
+            try {
+              // Check if map is still valid before removing
+              if (mapInstance.getContainer && mapInstance.getContainer()) {
+                mapInstance.remove();
+              }
+            } catch (error) {
+              console.warn('Error removing map instance:', error);
+            }
+          }
+          
+          // Clear the map reference
+          if (map.current === mapInstance) {
+            map.current = null;
           }
         } catch (error) {
           console.error('Error during map cleanup:', error);
         }
       };
     } catch (error) {
-      logError(error as Error, { context: 'mapInitialization' });
-      setMapError("Failed to load map. Please check your internet connection.");
+      const errorMessage = "Failed to load map. Please check your internet connection.";
+      logError(
+        error as Error,
+        ErrorCategory.COMPONENT,
+        ErrorSeverity.HIGH,
+        {
+          component: 'MapboxFieldMap',
+          action: 'initializeMap',
+          metadata: {
+            mapContainerId: mapContainer.current?.id,
+            isOffline,
+            hasCachedData: !!cachedMapData.snapshot
+          }
+        }
+      );
+      safeSetMapError(errorMessage);
     }
   }, [defaultLocation, onLocationChange, onBoundaryChange, drawFieldPolygon, captureMapSnapshot, 
       cachedMapData, coordinates, handleMapClick, isOffline, logError, logSuccess]);
@@ -439,19 +577,33 @@ export default function MapboxFieldMap({
   const handleStartDrawing = () => {
     setIsDrawing(true);
     
-    // Clear existing markers
-    drawMarkers.current.forEach(marker => marker.remove());
-    drawMarkers.current = [];
+    // Clear existing markers safely
+    if (drawMarkers.current && Array.isArray(drawMarkers.current)) {
+      drawMarkers.current.forEach(marker => {
+        try {
+          if (marker && typeof marker.remove === 'function') {
+            marker.remove();
+          }
+        } catch (error) {
+          console.warn('Error removing marker during start drawing:', error);
+        }
+      });
+      drawMarkers.current = [];
+    }
     
     // Clear coordinates
     setCoordinates([]);
     
     // Clear existing polygon if any
-    if (map.current && map.current.getSource('field-polygon')) {
+    if (map.current && typeof map.current.getSource === 'function' && map.current.getSource('field-polygon')) {
       try {
-        map.current.removeLayer('field-polygon-outline');
-        map.current.removeLayer('field-polygon');
-        map.current.removeSource('field-polygon');
+        if (typeof map.current.removeLayer === 'function') {
+          map.current.removeLayer('field-polygon-outline');
+          map.current.removeLayer('field-polygon');
+        }
+        if (typeof map.current.removeSource === 'function') {
+          map.current.removeSource('field-polygon');
+        }
       } catch (error) {
         console.error("Error clearing polygon:", error);
       }
@@ -464,9 +616,17 @@ export default function MapboxFieldMap({
   const handleUndo = () => {
     if (coordinates.length === 0) return;
     
-    // Remove the last marker
-    const lastMarker = drawMarkers.current.pop();
-    if (lastMarker) lastMarker.remove();
+    // Remove the last marker safely
+    if (drawMarkers.current && Array.isArray(drawMarkers.current) && drawMarkers.current.length > 0) {
+      const lastMarker = drawMarkers.current.pop();
+      if (lastMarker && typeof lastMarker.remove === 'function') {
+        try {
+          lastMarker.remove();
+        } catch (error) {
+          console.warn('Error removing marker during undo:', error);
+        }
+      }
+    }
     
     // Update coordinates
     setCoordinates(coords => {
@@ -483,12 +643,16 @@ export default function MapboxFieldMap({
             coordinates: newCoords
           });
         }
-      } else if (map.current && map.current.getSource('field-polygon')) {
+      } else if (map.current && typeof map.current.getSource === 'function' && map.current.getSource('field-polygon')) {
         // Remove polygon if not enough points
         try {
-          map.current.removeLayer('field-polygon-outline');
-          map.current.removeLayer('field-polygon');
-          map.current.removeSource('field-polygon');
+          if (typeof map.current.removeLayer === 'function') {
+            map.current.removeLayer('field-polygon-outline');
+            map.current.removeLayer('field-polygon');
+          }
+          if (typeof map.current.removeSource === 'function') {
+            map.current.removeSource('field-polygon');
+          }
         } catch (error) {
           console.error("Error removing polygon:", error);
         }

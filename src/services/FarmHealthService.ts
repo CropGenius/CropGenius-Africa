@@ -9,7 +9,9 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { withRetryAndCache } from '@/utils/retryManager';
+import { validateColumns, schemaValidator, autoCorrectQuery } from '@/utils/schemaValidator';
+import { logError, logSuccess, ErrorCategory, ErrorSeverity } from '@/services/errorLogger';
 
 export interface TrustIndicator {
   type: 'soil' | 'weather' | 'disease' | 'market' | 'water' | 'nutrition';
@@ -89,6 +91,7 @@ export class FarmHealthService {
       if (!forceRefresh) {
         const cached = this.getCachedHealth(farmId);
         if (cached) {
+          logSuccess('farm_health_cache_hit', { component: 'FarmHealthService', farmId });
           return cached;
         }
       }
@@ -99,9 +102,26 @@ export class FarmHealthService {
       // Cache the result
       this.cacheHealthData(farmId, healthData);
       
+      logSuccess('farm_health_fetched', { 
+        component: 'FarmHealthService', 
+        farmId, 
+        healthScore: healthData.healthScore,
+        dataQuality: healthData.dataQuality
+      });
+      
       return healthData;
     } catch (error) {
-      console.error('Error fetching farm health:', error);
+      await logError(
+        error as Error,
+        ErrorCategory.API,
+        ErrorSeverity.HIGH,
+        { 
+          component: 'FarmHealthService',
+          action: 'getFarmHealth',
+          farmId,
+          forceRefresh
+        }
+      );
       throw new Error('Failed to fetch farm health data');
     }
   }
@@ -110,15 +130,49 @@ export class FarmHealthService {
    * Fetch farm health data from multiple sources
    */
   private async fetchFarmHealthData(farmId: string): Promise<FarmHealthData> {
-    const startTime = Date.now();
-
     try {
-      // Get farm and field information
-      const { data: farm, error: farmError } = await supabase
-        .from('farms')
-        .select(`
-          *,
-          fields (
+      // Validate schema before executing queries - INFINITY IQ PROTECTION
+      const fieldsValidation = await validateColumns('fields', [
+        'id', 'name', 'size', 'crop_type_id', 'planted_at', 
+        'harvest_date', 'location', 'metadata', 'created_at', 'updated_at'
+      ]);
+
+      if (!fieldsValidation.isValid) {
+        console.warn('🛡️ [FarmHealthService] Schema validation warnings:', fieldsValidation.warnings);
+        
+        // Auto-correct query if we have suggestions
+        if (Object.keys(fieldsValidation.suggestions).length > 0) {
+          console.log('🔧 [FarmHealthService] Applying schema corrections:', fieldsValidation.suggestions);
+          
+          // Register any new mappings discovered for future use
+          Object.entries(fieldsValidation.suggestions).forEach(([original, mapped]) => {
+            schemaValidator.registerColumnMapping('fields', original, mapped);
+          });
+        }
+      }
+      
+      // Also validate farms table schema
+      const farmsValidation = await validateColumns('farms', [
+        'id', 'name', 'user_id', 'location', 'size', 'created_at', 'updated_at'
+      ]);
+      
+      if (!farmsValidation.isValid) {
+        console.warn('🛡️ [FarmHealthService] Farms table schema validation warnings:', farmsValidation.warnings);
+        
+        // Register any new mappings discovered
+        if (Object.keys(farmsValidation.suggestions).length > 0) {
+          Object.entries(farmsValidation.suggestions).forEach(([original, mapped]) => {
+            schemaValidator.registerColumnMapping('farms', original, mapped);
+          });
+        }
+      }
+
+      // Get farm and field information with INFINITY IQ retry logic
+      const farm = await withRetryAndCache(
+        `farm-data-${farmId}`,
+        async () => {
+          // Auto-correct query with schema validation
+          const fieldsQuery = `
             id,
             name,
             size,
@@ -126,15 +180,48 @@ export class FarmHealthService {
             planted_at,
             harvest_date,
             location,
-            metadata
-          )
-        `)
-        .eq('id', farmId)
-        .single();
+            metadata,
+            created_at,
+            updated_at
+          `;
+          
+          // Apply auto-correction to the query
+          const { correctedQuery: correctedFieldsQuery, mappings: fieldsMappings } = 
+            await autoCorrectQuery('fields', fieldsQuery, [
+              'id', 'name', 'size', 'crop_type_id', 'planted_at', 
+              'harvest_date', 'location', 'metadata', 'created_at', 'updated_at'
+            ]);
+          
+          if (fieldsMappings.length > 0) {
+            console.log('🔧 [FarmHealthService] Applied query corrections:', fieldsMappings);
+          }
+          
+          const { data, error } = await supabase
+            .from('farms')
+            .select(`
+              *,
+              fields (
+                ${correctedFieldsQuery}
+              )
+            `)
+            .eq('id', farmId)
+            .single();
 
-      if (farmError) {
-        throw new Error(`Failed to fetch farm data: ${farmError.message}`);
-      }
+          if (error) {
+            throw new Error(`Failed to fetch farm data: ${error.message}`);
+          }
+          return data;
+        },
+        {
+          maxRetries: 3,
+          baseDelay: 1000,
+          onRetry: (attempt, error) => {
+            console.warn(`🔄 [FarmHealthService] Retrying farm data fetch (attempt ${attempt}):`, error.message);
+          }
+        },
+        300000, // 5 minute cache
+        'supabase-farms'
+      );
 
       // Get latest health snapshots for all fields
       const fieldHealthPromises = farm.fields.map((field: any) => 
@@ -187,26 +274,48 @@ export class FarmHealthService {
    * Get field health snapshot
    */
   private async getFieldHealthSnapshot(fieldId: string): Promise<FieldHealthSnapshot> {
-    try {
-      // Try to get from field-ai-insights first
-      const { data: insights, error } = await supabase.functions.invoke('field-ai-insights', {
-        body: { field_id: fieldId }
-      });
+    // Try to get AI insights with INFINITY IQ retry logic
+    const insights = await withRetryAndCache(
+      `field-insights-${fieldId}`,
+      async () => {
+        const { data, error } = await supabase.functions.invoke('field-ai-insights', {
+          body: { field_id: fieldId }
+        });
 
-      if (!error && insights) {
-        return {
-          fieldId,
-          healthScore: insights.health_score || 0.7,
-          ndviValue: insights.ndvi_value,
-          soilMoisture: insights.soil_moisture,
-          diseaseRisk: insights.disease_risks?.overall_risk || 0.3,
-          weatherStress: insights.weather_stress || 0.2,
-          nutritionLevel: insights.nutrition_level || 0.8,
-          timestamp: new Date().toISOString()
-        };
-      }
-    } catch (error) {
+        if (error) {
+          throw new Error(`AI insights error: ${error.message}`);
+        }
+        return data;
+      },
+      {
+        maxRetries: 2,
+        baseDelay: 500,
+        retryCondition: (error) => {
+          // Retry on server errors and timeouts, but not on client errors
+          return !error.message?.includes('404') && !error.message?.includes('401');
+        },
+        onRetry: (attempt, error) => {
+          console.warn(`🔄 [FarmHealthService] Retrying AI insights for field ${fieldId} (attempt ${attempt}):`, error.message);
+        }
+      },
+      120000, // 2 minute cache
+      'supabase-edge-functions'
+    ).catch((error) => {
       console.warn(`Failed to get AI insights for field ${fieldId}:`, error);
+      return null;
+    });
+
+    if (insights) {
+      return {
+        fieldId,
+        healthScore: insights.health_score || 0.7,
+        ndviValue: insights.ndvi_value,
+        soilMoisture: insights.soil_moisture,
+        diseaseRisk: insights.disease_risks?.overall_risk || 0.3,
+        weatherStress: insights.weather_stress || 0.2,
+        nutritionLevel: insights.nutrition_level || 0.8,
+        timestamp: new Date().toISOString()
+      };
     }
 
     // Fallback to calculated health
@@ -436,9 +545,29 @@ export class FarmHealthService {
    */
   private async calculateHealthTrends(farmId: string): Promise<FarmHealthData['trends']> {
     try {
+      // Validate schema before querying
+      const snapshotValidation = await validateColumns('farm_health_snapshots', [
+        'health_score', 'created_at', 'farm_id'
+      ]);
+      
+      if (!snapshotValidation.isValid) {
+        console.warn('🛡️ [FarmHealthService] Schema validation warnings for trends:', snapshotValidation.warnings);
+      }
+      
+      // Auto-correct query with schema validation
+      const { correctedQuery, mappings } = await autoCorrectQuery(
+        'farm_health_snapshots',
+        'health_score, created_at',
+        ['health_score', 'created_at']
+      );
+      
+      if (mappings.length > 0) {
+        console.log('🔧 [FarmHealthService] Applied trends query corrections:', mappings);
+      }
+      
       const { data: snapshots, error } = await supabase
         .from('farm_health_snapshots')
-        .select('health_score, created_at')
+        .select(correctedQuery)
         .eq('farm_id', farmId)
         .order('created_at', { ascending: false })
         .limit(30);
@@ -567,25 +696,76 @@ export class FarmHealthService {
    */
   private async storeFarmHealthSnapshot(farmId: string, healthData: FarmHealthData): Promise<void> {
     try {
+      // Validate schema before inserting
+      const snapshotValidation = await validateColumns('farm_health_snapshots', [
+        'farm_id', 'health_score', 'trust_indicators', 'health_factors',
+        'data_quality', 'analysis_metadata'
+      ]);
+      
+      if (!snapshotValidation.isValid) {
+        console.warn('🛡️ [FarmHealthService] Schema validation warnings for snapshot:', snapshotValidation.warnings);
+      }
+      
+      // Prepare data with potential column mapping corrections
+      const snapshotData = {
+        farm_id: farmId,
+        health_score: healthData.healthScore,
+        trust_indicators: healthData.trustIndicators,
+        health_factors: healthData.healthFactors,
+        data_quality: healthData.dataQuality,
+        analysis_metadata: {
+          alerts: healthData.alerts,
+          trends: healthData.trends
+        }
+      };
+      
+      // Apply any column mappings if needed
+      const mappedData: Record<string, any> = { ...snapshotData };
+      const mappings = schemaValidator.getAllMappings()['farm_health_snapshots'] || {};
+      
+      Object.entries(mappings).forEach(([original, mapped]) => {
+        if (original in snapshotData) {
+          mappedData[mapped] = snapshotData[original as keyof typeof snapshotData];
+          delete mappedData[original];
+          console.log(`🔧 [FarmHealthService] Applied mapping in snapshot: ${original} -> ${mapped}`);
+        }
+      });
+      
       const { error } = await supabase
         .from('farm_health_snapshots')
-        .insert({
-          farm_id: farmId,
-          health_score: healthData.healthScore,
-          trust_indicators: healthData.trustIndicators,
-          health_factors: healthData.healthFactors,
-          data_quality: healthData.dataQuality,
-          analysis_metadata: {
-            alerts: healthData.alerts,
-            trends: healthData.trends
-          }
-        });
+        .insert(mappedData);
 
       if (error) {
-        console.error('Error storing health snapshot:', error);
+        console.error('❌ [FarmHealthService] Error storing health snapshot:', error);
+        await logError(
+          new Error(`Failed to store farm health snapshot: ${error.message}`),
+          ErrorCategory.DATABASE,
+          ErrorSeverity.MEDIUM,
+          { 
+            component: 'FarmHealthService',
+            action: 'storeFarmHealthSnapshot',
+            farmId
+          }
+        );
+      } else {
+        logSuccess('farm_health_snapshot_stored', { 
+          component: 'FarmHealthService', 
+          farmId,
+          healthScore: healthData.healthScore
+        });
       }
     } catch (error) {
-      console.error('Error in storeFarmHealthSnapshot:', error);
+      console.error('❌ [FarmHealthService] Error in storeFarmHealthSnapshot:', error);
+      await logError(
+        error as Error,
+        ErrorCategory.DATABASE,
+        ErrorSeverity.MEDIUM,
+        { 
+          component: 'FarmHealthService',
+          action: 'storeFarmHealthSnapshot',
+          farmId
+        }
+      );
     }
   }
 
@@ -593,27 +773,65 @@ export class FarmHealthService {
    * Calculate field health fallback
    */
   private async calculateFieldHealthFallback(fieldId: string): Promise<FieldHealthSnapshot> {
-    // Get basic field information
-    const { data: field } = await supabase
-      .from('fields')
-      .select('*')
-      .eq('id', fieldId)
-      .single();
+    try {
+      // Validate fields table schema before querying
+      const fieldsValidation = await validateColumns('fields', [
+        'id', 'name', 'size', 'crop_type_id', 'planted_at', 
+        'harvest_date', 'location', 'metadata'
+      ]);
+      
+      if (!fieldsValidation.isValid) {
+        console.warn('🛡️ [FarmHealthService] Schema validation warnings in fallback:', fieldsValidation.warnings);
+      }
+      
+      // Get basic field information with auto-corrected query
+      const { correctedQuery, mappings } = await autoCorrectQuery(
+        'fields',
+        '*',
+        ['id', 'name', 'size', 'crop_type_id', 'planted_at', 'harvest_date', 'location', 'metadata']
+      );
+      
+      if (mappings.length > 0) {
+        console.log('🔧 [FarmHealthService] Applied fallback query corrections:', mappings);
+      }
+      
+      const { data: field, error } = await supabase
+        .from('fields')
+        .select(correctedQuery)
+        .eq('id', fieldId)
+        .single();
+        
+      if (error) {
+        console.warn('⚠️ [FarmHealthService] Error fetching field data in fallback:', error.message);
+      }
 
-    // Generate reasonable health estimates based on available data
-    const baseHealth = 0.7;
-    const diseaseRisk = 0.3;
-    const weatherStress = 0.2;
-    const nutritionLevel = 0.8;
+      // Generate reasonable health estimates based on available data
+      const baseHealth = 0.7;
+      const diseaseRisk = 0.3;
+      const weatherStress = 0.2;
+      const nutritionLevel = 0.8;
 
-    return {
-      fieldId,
-      healthScore: baseHealth,
-      diseaseRisk,
-      weatherStress,
-      nutritionLevel,
-      timestamp: new Date().toISOString()
-    };
+      return {
+        fieldId,
+        healthScore: baseHealth,
+        diseaseRisk,
+        weatherStress,
+        nutritionLevel,
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('❌ [FarmHealthService] Error in calculateFieldHealthFallback:', error);
+      
+      // Return minimal fallback data even if everything fails
+      return {
+        fieldId,
+        healthScore: 0.5,
+        diseaseRisk: 0.5,
+        weatherStress: 0.5,
+        nutritionLevel: 0.5,
+        timestamp: new Date().toISOString()
+      };
+    }
   }
 
   /**
@@ -714,6 +932,83 @@ export class FarmHealthService {
 
     await Promise.allSettled(promises);
     return results;
+  }
+  
+  /**
+   * Validate all critical database schemas
+   * This should be called during application initialization
+   */
+  async validateAllSchemas(): Promise<Record<string, boolean>> {
+    const results: Record<string, boolean> = {};
+    
+    try {
+      // Define critical tables and their required columns
+      const criticalSchemas = {
+        'farms': [
+          'id', 'name', 'user_id', 'location', 'size', 'created_at', 'updated_at'
+        ],
+        'fields': [
+          'id', 'name', 'farm_id', 'size', 'crop_type_id', 'planted_at', 
+          'harvest_date', 'location', 'metadata', 'created_at', 'updated_at'
+        ],
+        'tasks': [
+          'id', 'title', 'description', 'status', 'due_date', 'priority',
+          'assigned_to', 'field_id', 'farm_id', 'created_at', 'updated_at'
+        ],
+        'farm_health_snapshots': [
+          'id', 'farm_id', 'health_score', 'trust_indicators', 'health_factors',
+          'data_quality', 'analysis_metadata', 'created_at'
+        ]
+      };
+      
+      // Validate each schema and register any discovered mappings
+      for (const [table, columns] of Object.entries(criticalSchemas)) {
+        const validation = await validateColumns(table, columns);
+        results[table] = validation.isValid;
+        
+        if (!validation.isValid) {
+          console.warn(`🛡️ [FarmHealthService] Schema validation issues for ${table}:`, validation.warnings);
+          
+          // Register any discovered mappings
+          if (Object.keys(validation.suggestions).length > 0) {
+            Object.entries(validation.suggestions).forEach(([original, mapped]) => {
+              schemaValidator.registerColumnMapping(table, original, mapped);
+              console.log(`🔧 [FarmHealthService] Registered mapping for ${table}: ${original} -> ${mapped}`);
+            });
+          }
+          
+          // Log any errors that don't have suggestions
+          if (validation.errors.length > 0) {
+            await logError(
+              new Error(`Schema validation errors for ${table}`),
+              ErrorCategory.DATABASE,
+              ErrorSeverity.HIGH,
+              { 
+                component: 'SchemaValidator',
+                table,
+                errors: validation.errors
+              }
+            );
+          }
+        } else {
+          console.log(`✅ [FarmHealthService] Schema validation passed for ${table}`);
+        }
+      }
+      
+      return results;
+    } catch (error) {
+      console.error('❌ [FarmHealthService] Error validating schemas:', error);
+      await logError(
+        error as Error,
+        ErrorCategory.DATABASE,
+        ErrorSeverity.CRITICAL,
+        { 
+          component: 'SchemaValidator',
+          action: 'validateAllSchemas'
+        }
+      );
+      return {};
+    }
   }
 }
 
