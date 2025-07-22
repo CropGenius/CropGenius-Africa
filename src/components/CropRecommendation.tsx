@@ -8,7 +8,7 @@
  * - Personalized recommendations based on field conditions
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { 
   Sprout, 
   Droplets, 
@@ -27,7 +27,6 @@ import { useCropRecommendations, type FarmContext, type EnhancedCropRecommendati
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
 import CropRecommendationSkeleton from './CropRecommendation/CropRecommendationSkeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';

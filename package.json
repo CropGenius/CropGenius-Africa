@@ -94,7 +94,9 @@
     "test:onboarding:coverage": "npm run test:onboarding -- --coverage",
     "test:watch": "vitest watch",
     "test:coverage": "vitest run --coverage",
-    "generate-pwa-assets": "node --experimental-modules --no-warnings scripts/generate-pwa-assets.js"
+    "generate-pwa-assets": "node --experimental-modules --no-warnings scripts/generate-pwa-assets.js",
+    "audit:components": "node src/scripts/auditComponents.mjs",
+    "resurrect:ui": "npm run audit:components"
   },
   "devDependencies": {
     "@babel/plugin-transform-react-jsx": "^7.27.1",

@@ -104,66 +104,65 @@ export const useCropRecommendations = (
           throw new Error('Failed to fetch field data');
         }
 
-        // Step 2: Get AI-powered crop recommendations
-        const aiRecommendations = await getCropRecommendations(fieldId);
+        // Step 2: Call the PRODUCTION-READY Edge Function for AI recommendations
+        const { data: edgeResponse, error: edgeError } = await supabase.functions.invoke('crop-recommendations', {
+          body: {
+            fieldId,
+            fieldData,
+            userId: farmContext.userId,
+            includeMarketData: true,
+            includeDiseaseRisk: true,
+            maxRecommendations: 5
+          }
+        });
 
-        // Step 3: Enhance recommendations with additional intelligence
-        const enhancedRecommendations = await Promise.all(
-          aiRecommendations.crops.map(async (crop, index) => {
-            // Generate disease risk assessment
-            const diseaseRisk = await generateDiseaseRiskAssessment(
-              crop.name,
-              farmContext.location,
-              fieldData.soil_type || 'unknown'
-            );
+        if (edgeError) {
+          console.error('Edge function error:', edgeError);
+          // Fallback to service layer
+          const fallbackRecommendations = await getCropRecommendations(fieldId);
+          return transformFallbackRecommendations(fallbackRecommendations, fieldData, farmContext);
+        }
 
-            // Generate market outlook
-            const marketOutlook = await generateMarketOutlook(
-              crop.name,
-              farmContext.location
-            );
-
-            // Generate planting window
-            const plantingWindow = generatePlantingWindow(
-              crop.name,
-              farmContext.location,
-              farmContext.currentSeason
-            );
-
-            // Generate expected yield
-            const expectedYield = generateExpectedYield(
-              crop.name,
-              fieldData.size || 1,
-              fieldData.soil_type || 'unknown'
-            );
-
-            // Generate economic viability
-            const economicViability = calculateEconomicViability(
-              crop.name,
-              expectedYield,
-              marketOutlook
-            );
-
-            return {
-              id: `${fieldId}-${crop.name.toLowerCase().replace(/\s+/g, '-')}-${index}`,
-              name: crop.name,
-              confidence: crop.confidence,
-              description: crop.description,
-              rotationBenefit: crop.rotationBenefit,
-              waterNeeds: mapWaterNeeds(crop.name),
-              sunExposure: mapSunExposure(crop.name),
-              temperature: generateTemperatureRange(crop.name),
-              growingSeason: generateGrowingSeason(crop.name, farmContext.location),
-              compatibility: generateCompatibilityList(crop.name),
-              diseaseRisk,
-              marketOutlook,
-              aiReasoning: generateAIReasoning(crop, fieldData, farmContext),
-              plantingWindow,
-              expectedYield,
-              economicViability,
-            } as EnhancedCropRecommendation;
-          })
-        );
+        // Step 3: Transform Edge Function response to our enhanced format
+        const enhancedRecommendations = edgeResponse.crops.map((crop: any, index: number) => {
+          return {
+            id: `${fieldId}-${crop.name.toLowerCase().replace(/\s+/g, '-')}-${index}`,
+            name: crop.name,
+            confidence: Math.round(crop.confidence),
+            description: crop.description,
+            rotationBenefit: crop.rotationBenefit,
+            waterNeeds: mapWaterNeeds(crop.name),
+            sunExposure: mapSunExposure(crop.name),
+            temperature: generateTemperatureRange(crop.name),
+            growingSeason: generateGrowingSeason(crop.name, farmContext.location),
+            compatibility: generateCompatibilityList(crop.name),
+            diseaseRisk: {
+              level: crop.diseaseRisk.level,
+              commonDiseases: crop.diseaseRisk.commonDiseases
+            },
+            marketOutlook: {
+              currentPrice: crop.marketOutlook.currentPrice,
+              pricetrend: crop.marketOutlook.pricetrend,
+              demandLevel: crop.marketOutlook.demandLevel
+            },
+            aiReasoning: crop.description,
+            plantingWindow: {
+              start: crop.plantingWindow.start,
+              end: crop.plantingWindow.end,
+              optimal: crop.plantingWindow.optimal
+            },
+            expectedYield: {
+              min: crop.expectedYield.min,
+              max: crop.expectedYield.max,
+              unit: crop.expectedYield.unit
+            },
+            economicViability: {
+              profitabilityScore: crop.economicViability.profitabilityScore,
+              investmentRequired: crop.economicViability.investmentRequired,
+              expectedRevenue: crop.economicViability.expectedRevenue
+            }
+          } as EnhancedCropRecommendation;
+        });
 
         // Sort by confidence and economic viability
         return enhancedRecommendations.sort((a, b) => {
@@ -189,6 +188,74 @@ export const useCropRecommendations = (
 };
 
 /**
+ * Transform fallback recommendations to enhanced format
+ */
+async function transformFallbackRecommendations(
+  fallbackRecommendations: any,
+  fieldData: any,
+  farmContext: FarmContext
+): Promise<EnhancedCropRecommendation[]> {
+  const enhancedRecommendations = await Promise.all(
+    fallbackRecommendations.crops.map(async (crop: any, index: number) => {
+      // Generate disease risk assessment
+      const diseaseRisk = await generateDiseaseRiskAssessment(
+        crop.name,
+        farmContext.location,
+        fieldData.soil_type || 'unknown'
+      );
+
+      // Generate market outlook
+      const marketOutlook = await generateMarketOutlook(
+        crop.name,
+        farmContext.location
+      );
+
+      // Generate planting window
+      const plantingWindow = generatePlantingWindow(
+        crop.name,
+        farmContext.location,
+        farmContext.currentSeason
+      );
+
+      // Generate expected yield
+      const expectedYield = generateExpectedYield(
+        crop.name,
+        fieldData.size || 1,
+        fieldData.soil_type || 'unknown'
+      );
+
+      // Generate economic viability
+      const economicViability = calculateEconomicViability(
+        crop.name,
+        expectedYield,
+        marketOutlook
+      );
+
+      return {
+        id: `${fieldData.id}-${crop.name.toLowerCase().replace(/\s+/g, '-')}-${index}`,
+        name: crop.name,
+        confidence: Math.round(crop.confidence * 100),
+        description: crop.description,
+        rotationBenefit: crop.rotationBenefit,
+        waterNeeds: mapWaterNeeds(crop.name),
+        sunExposure: mapSunExposure(crop.name),
+        temperature: generateTemperatureRange(crop.name),
+        growingSeason: generateGrowingSeason(crop.name, farmContext.location),
+        compatibility: generateCompatibilityList(crop.name),
+        diseaseRisk,
+        marketOutlook,
+        aiReasoning: generateAIReasoning(crop, fieldData, farmContext),
+        plantingWindow,
+        expectedYield,
+        economicViability,
+      } as EnhancedCropRecommendation;
+    })
+  );
+
+  return enhancedRecommendations;
+}
+
+/**
  * Generate disease risk assessment for a crop
  */
 async function generateDiseaseRiskAssessment(
@@ -207,7 +274,7 @@ async function generateDiseaseRiskAssessment(
   };
 
   const cropKey = cropName.toLowerCase();
-  const riskData = riskFactors[cropKey as keyof typeof riskFactors] || 
+  const riskData = riskFactors[cropKey as keyof typeof riskFactors] ||
     { level: 'medium' as const, diseases: ['Common Plant Diseases'] };
 
   return {
@@ -234,7 +301,7 @@ async function generateMarketOutlook(
   };
 
   const cropKey = cropName.toLowerCase();
-  const market = marketData[cropKey as keyof typeof marketData] || 
+  const market = marketData[cropKey as keyof typeof marketData] ||
     { price: 0.50, trend: 'stable' as const, demand: 'medium' as const };
 
   return {
@@ -254,7 +321,7 @@ function generatePlantingWindow(
 ): { start: string; end: string; optimal: string } {
   // African farming seasons (simplified)
   const isNorthernHemisphere = location.lat > 0;
-  
+
   const plantingWindows = {
     maize: { start: 'March', end: 'May', optimal: 'April' },
     cassava: { start: 'March', end: 'June', optimal: 'April' },
@@ -265,7 +332,7 @@ function generatePlantingWindow(
   };
 
   const cropKey = cropName.toLowerCase();
-  return plantingWindows[cropKey as keyof typeof plantingWindows] || 
+  return plantingWindows[cropKey as keyof typeof plantingWindows] ||
     { start: 'March', end: 'May', optimal: 'April' };
 }
 
@@ -287,12 +354,12 @@ function generateExpectedYield(
   };
 
   const cropKey = cropName.toLowerCase();
-  const baseYield = yieldData[cropKey as keyof typeof yieldData] || 
+  const baseYield = yieldData[cropKey as keyof typeof yieldData] ||
     { min: 1000, max: 3000, unit: 'kg/ha' };
 
   // Adjust for soil type
-  const soilMultiplier = soilType.toLowerCase().includes('fertile') ? 1.2 : 
-                        soilType.toLowerCase().includes('poor') ? 0.8 : 1.0;
+  const soilMultiplier = soilType.toLowerCase().includes('fertile') ? 1.2 :
+    soilType.toLowerCase().includes('poor') ? 0.8 : 1.0;
 
   return {
     min: Math.round(baseYield.min * soilMultiplier),
@@ -311,7 +378,7 @@ function calculateEconomicViability(
 ): { profitabilityScore: number; investmentRequired: number; expectedRevenue: number } {
   const avgYield = (expectedYield.min + expectedYield.max) / 2;
   const expectedRevenue = avgYield * marketOutlook.currentPrice;
-  
+
   // Estimate investment required (simplified)
   const investmentData = {
     maize: 200,
@@ -324,7 +391,7 @@ function calculateEconomicViability(
 
   const cropKey = cropName.toLowerCase();
   const investmentRequired = investmentData[cropKey as keyof typeof investmentData] || 250;
-  
+
   const profitabilityScore = Math.min(
     Math.round(((expectedRevenue - investmentRequired) / investmentRequired) * 100),
     100

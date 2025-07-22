@@ -157,11 +157,18 @@ export const getCropRecommendations = async (fieldId: string): Promise<{
   }[];
 }> => {
   try {
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      throw new Error('Authentication required for crop recommendations');
+    }
+
     // Get field data from Supabase
     const { data: fieldData, error: fieldError } = await supabase
       .from('fields')
       .select('*')
       .eq('id', fieldId)
+      .eq('user_id', user.id)
       .single();
 
     if (fieldError) {
@@ -169,19 +176,32 @@ export const getCropRecommendations = async (fieldId: string): Promise<{
       throw new Error('Failed to fetch field data');
     }
 
-    // Try to get AI-powered recommendations from edge function
+    // Call the PRODUCTION-READY Edge Function
     const { data: aiRecommendations, error: aiError } = await supabase.functions.invoke('crop-recommendations', {
       body: { 
         fieldId,
         fieldData,
-        userId: (await supabase.auth.getUser()).data.user?.id
+        userId: user.id,
+        includeMarketData: true,
+        includeDiseaseRisk: true,
+        maxRecommendations: 5
       }
     });
 
     if (!aiError && aiRecommendations?.crops) {
-      return aiRecommendations;
+      // Transform the sophisticated Edge Function response to match our interface
+      return {
+        crops: aiRecommendations.crops.map((crop: any) => ({
+          name: crop.name,
+          confidence: crop.confidence / 100, // Convert percentage to decimal
+          description: crop.description,
+          rotationBenefit: crop.rotationBenefit
+        }))
+      };
     }
 
+    console.warn('Edge function failed, using fallback:', aiError);
+    
     // Fallback to intelligent recommendations based on field data
     const crops = generateIntelligentRecommendations(fieldData);
     
@@ -191,6 +211,8 @@ export const getCropRecommendations = async (fieldId: string): Promise<{
     return { crops };
   } catch (error) {
     console.error("Error getting crop recommendations:", error);
+    
+    // Return empty array instead of throwing to prevent component crashes
     return { crops: [] };
   }
 };

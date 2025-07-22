@@ -211,15 +211,30 @@ async function generateCropRecommendations(
   }
 ): Promise<CropRecommendation[]> {
   
-  // Extract field characteristics
+  // Extract field characteristics with enhanced intelligence
   const location = field.location || profile?.location || { lat: -1.2921, lng: 36.8219 };
-  const soilType = field.metadata?.soil_type || 'loamy';
+  const soilType = field.metadata?.soil_type || field.soil_type || 'loamy';
   const fieldSize = field.size || 1;
-  const currentCrop = field.crop_type_id;
+  const currentCrop = field.crop_type_id || field.crop_type;
   const plantedAt = field.planted_at;
   const harvestDate = field.harvest_date;
+  
+  // Enhanced location intelligence
+  const region = determineRegion(location);
+  const climateZone = determineClimateZone(location.lat);
+  const elevation = field.metadata?.elevation || estimateElevation(location);
+  
+  console.log('Generating recommendations for:', {
+    location,
+    soilType,
+    fieldSize,
+    currentCrop,
+    region,
+    climateZone,
+    elevation
+  });
 
-  // Base crop database with African focus
+  // Enhanced crop database with African focus and real intelligence
   const cropDatabase = [
     {
       name: 'Maize',
@@ -228,14 +243,19 @@ async function generateCropRecommendations(
       waterRequirement: 'medium',
       climateZones: ['tropical', 'subtropical'],
       growingPeriod: 120, // days
+      elevationRange: { min: 0, max: 2500 },
       marketData: {
         basePrice: 0.35,
         demand: 'high',
-        volatility: 'medium'
+        volatility: 'medium',
+        seasonalPricing: true
       },
-      diseaseRisks: ['Fall Armyworm', 'Maize Streak Virus', 'Gray Leaf Spot'],
+      diseaseRisks: ['Fall Armyworm', 'Maize Streak Virus', 'Gray Leaf Spot', 'Maize Lethal Necrosis'],
       yieldRange: { min: 2000, max: 4000, unit: 'kg/ha' },
-      investmentCost: 200
+      investmentCost: 200,
+      nutritionalValue: 'high',
+      storageLife: 'long',
+      processingOptions: ['flour', 'animal feed', 'direct consumption']
     },
     {
       name: 'Cassava',
@@ -319,38 +339,76 @@ async function generateCropRecommendations(
     }
   ];
 
-  // Calculate recommendations for each crop
+  // Calculate recommendations for each crop with enhanced intelligence
   const recommendations: CropRecommendation[] = [];
 
   for (const crop of cropDatabase) {
-    // Calculate confidence based on multiple factors
+    // Multi-factor confidence calculation with weighted scoring
     let confidence = crop.baseConfidence;
+    const factors = {
+      soil: 0,
+      climate: 0,
+      elevation: 0,
+      rotation: 0,
+      seasonal: 0,
+      economic: 0,
+      fieldSize: 0
+    };
 
-    // Soil compatibility
-    const soilMatch = crop.soilPreference.includes(soilType) ? 1.0 : 0.7;
-    confidence *= soilMatch;
+    // Soil compatibility (25% weight)
+    const soilMatch = crop.soilPreference.includes(soilType) ? 1.0 : 
+                     soilType === 'unknown' ? 0.8 : 0.6;
+    factors.soil = soilMatch;
+    confidence *= (0.75 + (soilMatch * 0.25));
 
-    // Climate zone compatibility
-    const climateZone = determineClimateZone(location.lat);
-    const climateMatch = crop.climateZones.includes(climateZone) ? 1.0 : 0.8;
-    confidence *= climateMatch;
+    // Climate zone compatibility (20% weight)
+    const climateMatch = crop.climateZones.includes(climateZone) ? 1.0 : 0.7;
+    factors.climate = climateMatch;
+    confidence *= (0.8 + (climateMatch * 0.2));
 
-    // Rotation benefit (avoid same crop)
-    if (currentCrop && currentCrop.toLowerCase().includes(crop.name.toLowerCase())) {
-      confidence *= 0.7; // Reduce confidence for same crop
+    // Elevation suitability (10% weight)
+    const elevationMatch = (elevation >= crop.elevationRange.min && elevation <= crop.elevationRange.max) ? 1.0 : 0.8;
+    factors.elevation = elevationMatch;
+    confidence *= (0.9 + (elevationMatch * 0.1));
+
+    // Crop rotation intelligence (15% weight)
+    let rotationBoost = 1.0;
+    if (currentCrop) {
+      const currentCropLower = currentCrop.toLowerCase();
+      const cropNameLower = crop.name.toLowerCase();
+      
+      if (currentCropLower.includes(cropNameLower)) {
+        rotationBoost = 0.6; // Penalize same crop heavily
+      } else if (isGoodRotation(currentCropLower, cropNameLower)) {
+        rotationBoost = 1.3; // Boost good rotation pairs
+      }
     }
+    factors.rotation = rotationBoost;
+    confidence *= (0.85 + (rotationBoost * 0.15));
 
-    // Field size consideration
-    if (fieldSize < 0.5 && crop.name === 'Tomato') {
-      confidence *= 1.2; // Boost high-value crops for small fields
-    }
-
-    // Seasonal timing
+    // Seasonal timing (15% weight)
     const seasonalBoost = calculateSeasonalSuitability(crop, location);
-    confidence *= seasonalBoost;
+    factors.seasonal = seasonalBoost;
+    confidence *= (0.85 + (seasonalBoost * 0.15));
+
+    // Economic viability (10% weight)
+    const economicScore = calculateEconomicScore(crop, fieldSize);
+    factors.economic = economicScore;
+    confidence *= (0.9 + (economicScore * 0.1));
+
+    // Field size optimization (5% weight)
+    const fieldSizeBoost = calculateFieldSizeBoost(crop, fieldSize);
+    factors.fieldSize = fieldSizeBoost;
+    confidence *= (0.95 + (fieldSizeBoost * 0.05));
 
     // Normalize confidence to 0-100 range
-    confidence = Math.min(100, Math.max(0, confidence));
+    confidence = Math.min(100, Math.max(20, confidence));
+
+    console.log(`${crop.name} confidence calculation:`, {
+      baseConfidence: crop.baseConfidence,
+      factors,
+      finalConfidence: confidence
+    });
 
     // Calculate suitability factors
     const suitabilityFactors = {
@@ -416,7 +474,7 @@ async function generateCropRecommendations(
 }
 
 /**
- * Helper functions
+ * Helper functions for enhanced intelligence
  */
 
 function determineClimateZone(latitude: number): string {
@@ -424,6 +482,35 @@ function determineClimateZone(latitude: number): string {
   if (lat >= 23.5) return 'temperate';
   if (lat >= 10) return 'subtropical';
   return 'tropical';
+}
+
+function determineRegion(location: any): string {
+  const lat = location.lat;
+  const lng = location.lng;
+  
+  // African regions based on coordinates
+  if (lat >= 0 && lat <= 15 && lng >= 15 && lng <= 50) return 'East Africa';
+  if (lat >= -10 && lat <= 5 && lng >= 8 && lng <= 25) return 'Central Africa';
+  if (lat >= 5 && lat <= 20 && lng >= -20 && lng <= 15) return 'West Africa';
+  if (lat >= -35 && lat <= -15 && lng >= 15 && lng <= 35) return 'Southern Africa';
+  if (lat >= 20 && lat <= 35 && lng >= -10 && lng <= 35) return 'North Africa';
+  
+  return 'Unknown Region';
+}
+
+function estimateElevation(location: any): number {
+  // Simplified elevation estimation based on known African geography
+  const lat = location.lat;
+  const lng = location.lng;
+  
+  // East African Highlands
+  if (lat >= -5 && lat <= 5 && lng >= 35 && lng <= 40) return 1800;
+  // Ethiopian Highlands
+  if (lat >= 5 && lat <= 15 && lng >= 35 && lng <= 45) return 2200;
+  // Coastal areas
+  if (Math.abs(lng - 39) < 2 || Math.abs(lng - 3) < 2) return 50;
+  
+  return 1200; // Default moderate elevation
 }
 
 function calculateSeasonalSuitability(crop: any, location: any): number {
@@ -507,4 +594,36 @@ function generateRotationBenefit(crop: any, currentCrop?: string): string {
   };
   
   return benefits[crop.name as keyof typeof benefits] || `${crop.name} provides good rotation benefits.`;
+}
+
+function isGoodRotation(currentCrop: string, newCrop: string): boolean {
+  const rotationPairs = {
+    'maize': ['groundnuts', 'beans', 'cassava'],
+    'groundnuts': ['maize', 'sweet potatoes', 'tomato'],
+    'beans': ['maize', 'sweet potatoes', 'tomato'],
+    'cassava': ['maize', 'groundnuts', 'beans'],
+    'tomato': ['beans', 'groundnuts', 'maize'],
+    'sweet potatoes': ['beans', 'groundnuts', 'maize']
+  };
+  
+  const goodRotations = rotationPairs[currentCrop as keyof typeof rotationPairs] || [];
+  return goodRotations.includes(newCrop);
+}
+
+function calculateEconomicScore(crop: any, fieldSize: number): number {
+  const roi = (crop.yieldRange.max * crop.marketData.basePrice - crop.investmentCost) / crop.investmentCost;
+  const demandMultiplier = crop.marketData.demand === 'high' ? 1.2 : 
+                          crop.marketData.demand === 'medium' ? 1.0 : 0.8;
+  const volatilityPenalty = crop.marketData.volatility === 'high' ? 0.9 : 1.0;
+  
+  return Math.min(1.0, (roi * demandMultiplier * volatilityPenalty) / 2);
+}
+
+function calculateFieldSizeBoost(crop: any, fieldSize: number): number {
+  // High-value crops get boost for small fields
+  if (fieldSize < 0.5 && crop.marketData.basePrice > 0.6) return 1.2;
+  // Staple crops get boost for large fields
+  if (fieldSize > 2 && ['Maize', 'Cassava'].includes(crop.name)) return 1.1;
+  
+  return 1.0;
 }

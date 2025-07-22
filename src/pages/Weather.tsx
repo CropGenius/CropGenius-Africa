@@ -28,6 +28,8 @@ import LiveWeatherPanel from "@/components/weather/LiveWeatherPanel";
 import ForecastPanel from "@/components/weather/ForecastPanel";
 import DisasterAlerts from "@/components/weather/DisasterAlerts";
 import SeasonalPredictions from "@/components/weather/SeasonalPredictions";
+import { WeatherIntelligenceWidget } from '@/components/mobile/WeatherIntelligenceWidget';
+import { WidgetErrorBoundary } from '@/components/error/EnhancedErrorBoundary';
 import MarketImpact from "@/components/weather/MarketImpact";
 import FarmActionsList from "@/components/weather/FarmActionsList";
 
@@ -152,6 +154,11 @@ export default function Weather() {
             </Button>
           </div>
         </header>
+
+        {/* Weather Intelligence Widget - NEWLY CONNECTED! 🔥 */}
+        <WidgetErrorBoundary errorBoundaryId="weather-intelligence-widget">
+          <WeatherIntelligenceWidget />
+        </WidgetErrorBoundary>
 
         {/* Current Weather Overview */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
