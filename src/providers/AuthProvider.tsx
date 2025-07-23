@@ -764,8 +764,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     );
   }
 
-  // 🌟 SUCCESS - RENDER CHILDREN
-  console.log('🚀 [AUTH PROVIDER] Rendering children with INFINITY IQ context');
+  // 🌟 SUCCESS - RENDER CHILDREN (optimized logging)
+  // Only log once when initialized to prevent spam
+  if (state.isInitializing) {
+    console.log('🚀 [AUTH PROVIDER] Rendering children with INFINITY IQ context');
+  }
   
   return (
     <AuthContext.Provider value={{ 

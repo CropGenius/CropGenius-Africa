@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Session, User, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { AppError, ErrorCode, reportError, reportWarning } from '@/lib/errors';
@@ -70,12 +70,36 @@ export const useAuth = (): AuthState & AuthActions => {
     hasProfile: false,
   });
 
-  // Memoized computed values for performance
+  // Prevent rapid state updates with debouncing
+  const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastUpdateRef = useRef<number>(0);
+
+  // Debounced setState to prevent infinite loops
+  const setStateDebounced = useCallback((updater: (prev: AuthState) => AuthState) => {
+    const now = Date.now();
+    
+    // If last update was less than 100ms ago, debounce it
+    if (now - lastUpdateRef.current < 100) {
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+      }
+      
+      updateTimeoutRef.current = setTimeout(() => {
+        setState(updater);
+        lastUpdateRef.current = Date.now();
+      }, 100);
+    } else {
+      setState(updater);
+      lastUpdateRef.current = now;
+    }
+  }, []);
+
+  // Memoized computed values for performance - OPTIMIZED TO PREVENT LOOPS
   const derivedState = useMemo(() => ({
     isAuthenticated: !!state.user,
     isOnboardingComplete: state.profile?.onboarding_completed ?? false,
     hasProfile: !!state.profile,
-  }), [state.user, state.profile]);
+  }), [state.user?.id, state.profile?.id, state.profile?.onboarding_completed]); // Only track specific values
 
   // Cache profile data for offline access
   const cacheProfile = useCallback((profile: UserProfile | null) => {
@@ -187,7 +211,7 @@ export const useAuth = (): AuthState & AuthActions => {
 
         if (mounted) {
           console.log('🔑 [useAuth] Setting session state:', !!session);
-          setState(prev => ({
+          setStateDebounced(prev => ({
             ...prev,
             session,
             user: session?.user || null,
@@ -197,20 +221,20 @@ export const useAuth = (): AuthState & AuthActions => {
           }));
 
           if (session?.user) {
-            setState(prev => ({ ...prev, isLoadingProfile: true }));
+            setStateDebounced(prev => ({ ...prev, isLoadingProfile: true }));
             try {
               const profile = await fetchProfile(session.user.id);
               
               if (mounted && profile) {
-                setState(prev => ({ ...prev, profile, isLoadingProfile: false }));
+                setStateDebounced(prev => ({ ...prev, profile, isLoadingProfile: false }));
                 cacheProfile(profile);
               } else if (mounted) {
-                setState(prev => ({ ...prev, isLoadingProfile: false }));
+                setStateDebounced(prev => ({ ...prev, isLoadingProfile: false }));
               }
             } catch (profileError) {
               console.warn('🔑 [useAuth] Profile fetch failed:', profileError);
               if (mounted) {
-                setState(prev => ({ ...prev, isLoadingProfile: false }));
+                setStateDebounced(prev => ({ ...prev, isLoadingProfile: false }));
               }
             }
           }
@@ -244,7 +268,7 @@ export const useAuth = (): AuthState & AuthActions => {
 
         reportWarning(`Auth event: ${event}`, { userId: session?.user?.id });
 
-        setState(prev => ({
+        setStateDebounced(prev => ({
           ...prev,
           session,
           user: session?.user || null,
@@ -322,6 +346,11 @@ export const useAuth = (): AuthState & AuthActions => {
       mounted = false;
       subscription.unsubscribe();
       if (profileChannel) profileChannel.unsubscribe();
+      
+      // Clean up debounce timeout
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+      }
     };
   }, [fetchProfile, cacheProfile, loadCachedProfile]);
 
@@ -591,17 +620,24 @@ export const useAuth = (): AuthState & AuthActions => {
     setState(prev => ({ ...prev, error: null, profileError: null }));
   }, []);
 
-  // Debug logging for authentication state
+  // Debug logging for authentication state - OPTIMIZED TO PREVENT LOOPS
   useEffect(() => {
-    console.log('🔍 [AUTH DEBUG] State changed:', {
+    // Only log significant state changes to prevent infinite loops
+    const significantState = {
       hasUser: !!state.user,
       userEmail: state.user?.email,
       isLoading: state.isLoading,
       isAuthenticated: !!state.user,
       session: !!state.session,
-      profile: !!state.profile
-    });
-  }, [state.user, state.session, state.profile, state.isLoading]);
+      profile: !!state.profile,
+      isInitialized: state.isInitialized
+    };
+    
+    // Only log if this is a meaningful change
+    if (state.isInitialized && (state.user || state.session || !state.isLoading)) {
+      console.log('🔍 [AUTH DEBUG] Significant state change:', significantState);
+    }
+  }, [state.user?.id, state.session?.access_token, state.isLoading, state.isInitialized]); // Only track specific values
 
   return {
     ...state,
