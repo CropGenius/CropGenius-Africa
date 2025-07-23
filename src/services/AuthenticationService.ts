@@ -312,21 +312,30 @@ export class AuthenticationService {
     }, 'Sign Out');
   }
 
-  // 🔍 GET CURRENT SESSION - NUCLEAR BYPASS FOR 100 MILLION FARMERS
+  // 🔍 GET CURRENT SESSION - PROPER SESSION CHECKING
   async getCurrentSession(): Promise<AuthResult<Session | null>> {
-    // 🚨 NUCLEAR BYPASS: Skip ALL Supabase auth calls during initialization
-    // Let the auth state change listener handle everything!
-    console.log('🚨 [NUCLEAR BYPASS] Skipping ALL session checks - auth state listener will handle it');
-
-    return {
-      success: true,
-      data: null, // Always return null - let auth state listener do the work
-      metadata: {
-        latency: 0,
-        attempts: 1,
-        instanceId: SupabaseManager.getInstanceId()
+    return this.executeWithRetry(async () => {
+      console.log('🔍 [AUTH SERVICE] Checking current session...');
+      
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('🚨 [AUTH SERVICE] Session check failed:', error);
+        throw error;
       }
-    };
+      
+      if (session) {
+        console.log('✅ [AUTH SERVICE] Valid session found:', {
+          userId: session.user.id,
+          email: session.user.email,
+          expiresAt: new Date(session.expires_at! * 1000).toISOString()
+        });
+      } else {
+        console.log('ℹ️ [AUTH SERVICE] No active session found');
+      }
+      
+      return session;
+    }, 'Get Current Session');
   }
 
   // 🔐 EXCHANGE CODE FOR SESSION (OAuth Callback)
