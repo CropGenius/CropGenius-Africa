@@ -11,6 +11,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { GrowthEngineProvider } from './providers/GrowthEngineProvider';
 import { FieldBrainProviderWrapper } from './providers/FieldBrainProviderWrapper';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { EmergencyErrorBoundary } from './components/error/EmergencyErrorBoundary';
 import { initAnalytics } from './analytics';
 import { register } from './utils/serviceWorkerRegistration';
 import { handleError } from './utils/errorHandler';
@@ -88,21 +89,23 @@ const root = createRoot(rootElement);
 // Render the application with all necessary providers.
 root.render(
   <StrictMode>
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <GrowthEngineProvider>
-            <FieldBrainProviderWrapper>
-              <App />
-            </FieldBrainProviderWrapper>
-          </GrowthEngineProvider>
-        </AuthProvider>
-        <Toaster />
-        <Suspense fallback={null}>
-          <Devtools initialIsOpen={false} />
-        </Suspense>
-      </QueryClientProvider>
-    </ErrorBoundary>
+    <EmergencyErrorBoundary>
+      <ErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <GrowthEngineProvider>
+              <FieldBrainProviderWrapper>
+                <App />
+              </FieldBrainProviderWrapper>
+            </GrowthEngineProvider>
+          </AuthProvider>
+          <Toaster />
+          <Suspense fallback={null}>
+            <Devtools initialIsOpen={false} />
+          </Suspense>
+        </QueryClientProvider>
+      </ErrorBoundary>
+    </EmergencyErrorBoundary>
   </StrictMode>
 );
 
@@ -125,12 +128,15 @@ try {
   handleError(error as Error, { source: 'analytics' });
 }
 
-// Initialize Agricultural Superintelligence Engine
-try {
-  initializeIntelligenceSystem();
-} catch (error) {
-  handleError(error as Error, { source: 'intelligence-system' });
-}
+// Initialize Agricultural Superintelligence Engine - ASYNC WITH ERROR HANDLING
+(async () => {
+  try {
+    await initializeIntelligenceSystem();
+  } catch (error) {
+    console.warn('Intelligence System initialization failed - continuing with degraded functionality:', error);
+    handleError(error as Error, { source: 'intelligence-system' });
+  }
+})();
 
 // Log environment status in development
 if (import.meta.env.DEV) {

@@ -40,12 +40,35 @@ export class IntelligenceSystem {
     try {
       console.log('🚀 Initializing Agricultural Superintelligence Engine...');
 
-      // Initialize satellite services
+      // Initialize satellite services with timeout
       console.log('🛰️ Initializing satellite services...');
-      await initializeSentinelHubAuth();
+      const satelliteTimeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Satellite initialization timeout')), 10000)
+      );
+      
+      try {
+        await Promise.race([
+          initializeSentinelHubAuth(),
+          satelliteTimeout
+        ]);
+      } catch (satelliteError) {
+        console.warn('Satellite services initialization failed, continuing without:', satelliteError);
+      }
 
-      // Register Field Intelligence Agent
-      await this.orchestrator.registerAgent(fieldIntelligenceAgent);
+      // Register Field Intelligence Agent with timeout
+      const agentTimeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Agent registration timeout')), 5000)
+      );
+      
+      try {
+        await Promise.race([
+          this.orchestrator.registerAgent(fieldIntelligenceAgent),
+          agentTimeout
+        ]);
+      } catch (agentError) {
+        console.warn('Field Intelligence Agent registration failed:', agentError);
+        // Continue without this agent
+      }
       
       // TODO: Register other agents as they're implemented
       // await this.orchestrator.registerAgent(weatherPredictionAgent);
@@ -54,38 +77,62 @@ export class IntelligenceSystem {
       // await this.orchestrator.registerAgent(cropOptimizationAgent);
       // await this.orchestrator.registerAgent(decisionSupportAgent);
 
-      // Perform system health check
-      const healthReport = await this.orchestrator.monitorAgentHealth();
-      
-      if (healthReport.activeAgents === 0) {
-        throw new Error('No active agents available');
+      // Perform system health check with fallback
+      let healthReport;
+      try {
+        healthReport = await this.orchestrator.monitorAgentHealth();
+      } catch (healthError) {
+        console.warn('Health check failed, using fallback:', healthError);
+        healthReport = {
+          totalAgents: 1,
+          activeAgents: 0,
+          errorAgents: 1,
+          systemLoad: 0.1,
+          avgResponseTime: 0
+        };
       }
 
+      // Don't fail if no agents are active - continue in degraded mode
       this.initialized = true;
 
       logSuccess('intelligence_system_initialized', {
         component: 'IntelligenceSystem',
-        totalAgents: healthReport.totalAgents,
-        activeAgents: healthReport.activeAgents,
-        systemLoad: healthReport.systemLoad
+        metadata: {
+          totalAgents: healthReport.totalAgents,
+          activeAgents: healthReport.activeAgents,
+          systemLoad: healthReport.systemLoad,
+          degradedMode: healthReport.activeAgents === 0
+        }
       });
 
       console.log('✅ Agricultural Superintelligence Engine initialized successfully');
       console.log(`📊 System Status: ${healthReport.activeAgents}/${healthReport.totalAgents} agents active`);
       
+      if (healthReport.activeAgents === 0) {
+        console.warn('⚠️ System running in degraded mode - no active agents');
+      }
+      
     } catch (error) {
       await logError(
         error as Error,
         ErrorCategory.SYSTEM,
-        ErrorSeverity.CRITICAL,
+        ErrorSeverity.HIGH, // Reduced from CRITICAL to allow continuation
         { 
           component: 'IntelligenceSystem',
-          action: 'initialize'
+          action: 'initialize',
+          metadata: {
+            degradedMode: true
+          }
         }
       );
       
       console.error('❌ Failed to initialize Intelligence System:', error);
-      throw error;
+      
+      // Set initialized to true anyway to prevent blocking the app
+      this.initialized = true;
+      
+      // Don't throw - allow app to continue in degraded mode
+      console.warn('🔄 Continuing in degraded mode without full Intelligence System');
     }
   }
 
@@ -180,7 +227,20 @@ export async function initializeIntelligenceSystem(): Promise<void> {
     await intelligenceSystem.initialize();
   } catch (error) {
     console.error('Failed to initialize Intelligence System:', error);
-    // Don't throw - allow app to continue with degraded functionality
+    
+    // Log the error but don't throw - allow app to continue with degraded functionality
+    await logError(
+      error as Error,
+      ErrorCategory.SYSTEM,
+      ErrorSeverity.HIGH,
+      { 
+        component: 'IntelligenceSystem',
+        action: 'auto-initialize',
+        degradedMode: true
+      }
+    );
+    
+    // Don't throw - allow app to continue
   }
 }
 
