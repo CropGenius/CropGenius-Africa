@@ -15,6 +15,7 @@ import { initAnalytics } from './analytics';
 import { register } from './utils/serviceWorkerRegistration';
 import { handleError } from './utils/errorHandler';
 import { env } from './config/environment';
+import { initializeIntelligenceSystem } from './services/IntelligenceSystem';
 
 // Create a single instance of QueryClient for the entire application.
 const queryClient = new QueryClient({
@@ -122,6 +123,13 @@ try {
   initAnalytics();
 } catch (error) {
   handleError(error as Error, { source: 'analytics' });
+}
+
+// Initialize Agricultural Superintelligence Engine
+try {
+  initializeIntelligenceSystem();
+} catch (error) {
+  handleError(error as Error, { source: 'intelligence-system' });
 }
 
 // Log environment status in development

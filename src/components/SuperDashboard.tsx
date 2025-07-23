@@ -12,6 +12,7 @@ import { MarketIntelligenceDashboard } from '@/components/market/MarketIntellige
 import { YieldPredictionPanel } from '@/components/ai/YieldPredictionPanel';
 import { IntelligenceHubDashboard } from '@/components/intelligence/IntelligenceHubDashboard';
 import { CreditManagementPanel } from '@/components/credits/CreditManagementPanel';
+import { FieldIntelligenceDashboard } from '@/components/intelligence/FieldIntelligenceDashboard';
 
 export const SuperDashboard = () => {
   const { features, activateAllFeatures } = useBackendFeatures();
@@ -34,7 +35,7 @@ export const SuperDashboard = () => {
     { key: 'intelligence_hub', name: 'Intelligence Hub', icon: '🧠', component: <IntelligenceHubDashboard /> },
     { key: 'credit_management', name: 'Credit System', icon: '💳', component: <CreditManagementPanel /> },
     { key: 'referral_system', name: 'Referral System', icon: '🎯', component: null },
-    { key: 'field_analysis', name: 'Field Analysis', icon: '🛰️', component: null },
+    { key: 'field_analysis', name: 'Field Intelligence', icon: '🛰️', component: <FieldIntelligenceDashboard fieldId="demo-field-001" /> },
     { key: 'disease_oracle', name: 'Disease Oracle', icon: '🔬', component: null },
     { key: 'ai_insights_cron', name: 'AI Insights', icon: '⚡', component: null }
   ];

@@ -23,7 +23,9 @@
         "SUPABASE_ACCESS_TOKEN": "sbp_fe9555dcbe70b2e0eea134c8a01b99605639c54f"
       },
       "disabled": false,
-      "autoApprove": []
+      "autoApprove": [
+        "apply_migration"
+      ]
     },
     "context7": {
       "command": "npx",

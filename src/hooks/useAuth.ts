@@ -105,37 +105,35 @@ export const useAuth = (): AuthState & AuthActions => {
   const fetchProfile = useCallback(async (userId: string): Promise<UserProfile | null> => {
     try {
       const operation = async () => {
-        const { data, error } = await supabase
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('User not authenticated');
+
+        let { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', userId)
           .single();
 
-        if (error) {
-          if (error.code === 'PGRST116') {
-            // No profile found - create default row
-            const { error: insertError } = await supabase
-              .from('profiles')
-              .insert({
-                id: userId,
-                onboarding_completed: false,
-                created_at: new Date().toISOString(),
-              });
-            if (insertError) {
-              throw insertError;
-            }
-            // Fetch the newly inserted profile
-            const { data: newProfile } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', userId)
-              .single();
-            return newProfile as UserProfile;
-          }
-          throw error;
+        if (profileError && profileError.code === 'PGRST116') {
+          // Profile does not exist, create it
+          const { data: newProfile, error: insertError } = await supabase
+            .from('profiles')
+            .insert({ 
+              id: userId, 
+              onboarding_completed: false,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+            .select()
+            .single();
+
+          if (insertError) throw insertError;
+          profileData = newProfile;
+        } else if (profileError) {
+          throw profileError;
         }
 
-        return data as UserProfile;
+        return { ...profileData, email: user.email } as UserProfile;
       };
 
       return await networkManager.executeWithRetry(operation, {
@@ -155,7 +153,6 @@ export const useAuth = (): AuthState & AuthActions => {
       setState(prev => ({ ...prev, profileError: appError }));
       reportError(appError);
       
-      // Return cached profile as fallback
       return loadCachedProfile();
     }
   }, [loadCachedProfile]);
@@ -169,13 +166,11 @@ export const useAuth = (): AuthState & AuthActions => {
       try {
         console.log('🔑 [useAuth] Initializing auth...');
         
-        // Load cached profile immediately for faster startup
         const cachedProfile = loadCachedProfile();
         if (cachedProfile) {
           setState(prev => ({ ...prev, profile: cachedProfile }));
         }
 
-        // Get current session with timeout
         const sessionPromise = supabase.auth.getSession();
         const timeoutPromise = new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Session timeout')), 10000)
@@ -188,7 +183,6 @@ export const useAuth = (): AuthState & AuthActions => {
         
         if (error) {
           console.warn('🔑 [useAuth] Session error:', error);
-          // Don't throw error, just continue without session
         }
 
         if (mounted) {
@@ -198,11 +192,10 @@ export const useAuth = (): AuthState & AuthActions => {
             session,
             user: session?.user || null,
             isLoading: false,
-            isInitialized: true, // Mark as initialized
+            isInitialized: true,
             error: null,
           }));
 
-          // Fetch fresh profile if user is authenticated
           if (session?.user) {
             setState(prev => ({ ...prev, isLoadingProfile: true }));
             try {
@@ -225,16 +218,14 @@ export const useAuth = (): AuthState & AuthActions => {
       } catch (error) {
         console.warn('🔑 [useAuth] Initialization error:', error);
         if (mounted) {
-          // Don't show error to user, just set loading to false
           setState(prev => ({ 
             ...prev, 
             isLoading: false,
             isLoadingProfile: false,
-            isInitialized: true, // Mark as initialized even on error
+            isInitialized: true,
           }));
 
-          // Retry with exponential backoff only for critical errors
-          if (retryCount < 2) { // Reduced retry count
+          if (retryCount < 2) {
             retryCount++;
             setTimeout(() => {
               if (mounted) {
@@ -247,7 +238,6 @@ export const useAuth = (): AuthState & AuthActions => {
       }
     };
 
-    // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
@@ -284,7 +274,6 @@ export const useAuth = (): AuthState & AuthActions => {
                 profileError: null,
               }));
               cacheProfile(null);
-              // Only show toast if not in OAuth flow
               if (!window.location.pathname.includes('/oauth/callback')) {
                 toast.info('You have been signed out');
               }
@@ -292,11 +281,9 @@ export const useAuth = (): AuthState & AuthActions => {
             break;
 
           case 'TOKEN_REFRESHED':
-            // Session is automatically updated, no additional action needed
             break;
 
           case 'USER_UPDATED':
-            // Refresh profile data
             if (session?.user && mounted) {
               const profile = await fetchProfile(session.user.id);
               if (mounted && profile) {
@@ -311,7 +298,6 @@ export const useAuth = (): AuthState & AuthActions => {
 
     initializeAuth();
 
-    // Subscribe to realtime updates on the user's profile
     let profileChannel: ReturnType<typeof supabase.channel> | null = null;
     const currentUserId = state.user?.id;
     if (mounted && currentUserId) {
@@ -333,7 +319,8 @@ export const useAuth = (): AuthState & AuthActions => {
 
     return () => {
       console.log('🔑 [useAuth] Cleaning up auth listeners...');
-      mounted = fa.unsubscribe();
+      mounted = false;
+      subscription.unsubscribe();
       if (profileChannel) profileChannel.unsubscribe();
     };
   }, [fetchProfile, cacheProfile, loadCachedProfile]);
@@ -356,8 +343,8 @@ export const useAuth = (): AuthState & AuthActions => {
     (async () => {
       try {
         const { error } = await supabase.rpc('process_referral', {
-          inviter_token: inviterToken,
-          invitee_user_id: userId,
+          p_referrer: inviterToken,
+          p_referred: userId,
         });
         if (error) throw error;
         localStorage.setItem(flagKey, 'true');
