@@ -9,6 +9,7 @@ import './styles/force-glass.css';
 import { AuthProvider } from './providers/AuthProvider';
 import { Toaster } from '@/components/ui/sonner';
 import { GrowthEngineProvider } from './providers/GrowthEngineProvider';
+import { FieldBrainProviderWrapper } from './providers/FieldBrainProviderWrapper';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { initAnalytics } from './analytics';
 import { register } from './utils/serviceWorkerRegistration';
@@ -36,16 +37,16 @@ const registerServiceWorker = () => {
       if (import.meta.env.DEV) {
         console.log('[Service Worker] Registered');
       }
-      
+
       // Check for updates every hour
       setInterval(() => {
-        registration.update().catch(() => {});
+        registration.update().catch(() => { });
       }, 60 * 60 * 1000);
     },
     onUpdate: (registration) => {
       // Dispatch update event silently
-      window.dispatchEvent(new CustomEvent('serviceWorkerUpdate', { 
-        detail: { registration } 
+      window.dispatchEvent(new CustomEvent('serviceWorkerUpdate', {
+        detail: { registration }
       }));
     },
     onError: (error) => {
@@ -74,10 +75,10 @@ if (!rootElement) {
 
 const Devtools = import.meta.env.DEV
   ? lazy(() =>
-      import('@tanstack/react-query-devtools').then((m) => ({
-        default: m.ReactQueryDevtools,
-      })),
-    )
+    import('@tanstack/react-query-devtools').then((m) => ({
+      default: m.ReactQueryDevtools,
+    })),
+  )
   // eslint-disable-next-line react/display-name
   : () => null;
 
@@ -90,7 +91,9 @@ root.render(
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <GrowthEngineProvider>
-            <App />
+            <FieldBrainProviderWrapper>
+              <App />
+            </FieldBrainProviderWrapper>
           </GrowthEngineProvider>
         </AuthProvider>
         <Toaster />

@@ -16,7 +16,9 @@ import {
   ArrowRight,
   Activity,
   AlertTriangle,
-  CheckCircle2
+  CheckCircle2,
+  Trophy,
+  Zap
 } from 'lucide-react';
 import { HealthOrb } from '@/components/dashboard/mobile/HealthOrb';
 import FieldIntelligence from '@/components/dashboard/FieldIntelligence';
@@ -114,7 +116,7 @@ export default function Index() {
       const { data: scans, error: scansError } = await supabase
         .from('scans')
         .select('id, crop, disease, confidence, created_at')
-        .eq('created_by', user!.id)
+        .eq('user_id', user!.id)
         .order('created_at', { ascending: false })
         .limit(5);
 

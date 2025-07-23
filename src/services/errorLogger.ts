@@ -180,11 +180,22 @@ class ErrorLogger {
   }
 
   private logToConsole(message: string, category: ErrorCategory, severity: ErrorSeverity, context: ErrorContext): void {
-    const emoji = severity === ErrorSeverity.CRITICAL ? '🚨' : 
-                  severity === ErrorSeverity.HIGH ? '⚠️' : 
-                  severity === ErrorSeverity.MEDIUM ? '⚡' : '📝';
-    
-    console.error(`${emoji} [${category.toUpperCase()}] ${message}`, context);
+    try {
+      const emoji = severity === ErrorSeverity.CRITICAL ? '🚨' : 
+                    severity === ErrorSeverity.HIGH ? '⚠️' : 
+                    severity === ErrorSeverity.MEDIUM ? '⚡' : '📝';
+      
+      // Safe string conversion with fallback
+      const categoryStr = typeof category === 'string' ? category : String(category);
+      const safeCategory = categoryStr.toUpperCase();
+      const safeMessage = typeof message === 'string' ? message : String(message);
+      
+      console.error(`${emoji} [${safeCategory}] ${safeMessage}`, context);
+    } catch (consoleError) {
+      // Fallback console logging if main logging fails
+      console.error('❌ [ErrorLogger] Console logging failed:', consoleError);
+      console.error('Original error:', message, category, severity, context);
+    }
   }
 
   private startBatchProcessor(): void {
@@ -210,29 +221,47 @@ class ErrorLogger {
   }
 
   private async storeBatch(errors: ErrorLog[]): Promise<void> {
-    const errorData = errors.map(error => ({
-      id: error.id,
-      message: error.message,
-      category: error.category,
-      severity: error.severity,
-      context: error.context,
-      count: error.count,
-      first_occurrence: error.firstOccurrence.toISOString(),
-      last_occurrence: error.lastOccurrence.toISOString(),
-      resolved: error.resolved,
-      tags: error.tags,
-      created_at: new Date().toISOString()
-    }));
+    try {
+      const errorData = errors.map(error => ({
+        id: error.id,
+        message: error.message || 'Unknown error',
+        category: error.category || ErrorCategory.UNKNOWN,
+        severity: error.severity || ErrorSeverity.MEDIUM,
+        context: error.context || {},
+        count: error.count || 1,
+        first_occurrence: error.firstOccurrence?.toISOString() || new Date().toISOString(),
+        last_occurrence: error.lastOccurrence?.toISOString() || new Date().toISOString(),
+        resolved: error.resolved || false,
+        tags: error.tags || [],
+        created_at: new Date().toISOString()
+      }));
 
-    await withRetry(async () => {
-      const { error } = await supabase
-        .from('error_logs')
-        .upsert(errorData, { onConflict: 'id' });
+      await withRetry(async () => {
+        const { error } = await supabase
+          .from('error_logs')
+          .upsert(errorData, { onConflict: 'id' });
 
-      if (error) {
-        throw new Error(`Failed to store error batch: ${error.message}`);
-      }
-    });
+        if (error) {
+          throw new Error(`Failed to store error batch: ${error.message || 'Unknown database error'}`);
+        }
+      }, 3);
+    } catch (storageError) {
+      console.error('❌ [ErrorLogger] Storage failed, falling back to local storage:', storageError);
+      // Fallback to local storage
+      this.storeErrorsLocally(errors);
+      throw storageError;
+    }
+  }
+
+  private storeErrorsLocally(errors: ErrorLog[]): void {
+    try {
+      const existingErrors = JSON.parse(localStorage.getItem('cropgenius_error_logs') || '[]');
+      const updatedErrors = [...existingErrors, ...errors].slice(-100); // Keep last 100 errors
+      localStorage.setItem('cropgenius_error_logs', JSON.stringify(updatedErrors));
+      console.log('📦 [ErrorLogger] Errors stored locally as fallback');
+    } catch (localStorageError) {
+      console.error('❌ [ErrorLogger] Local storage fallback failed:', localStorageError);
+    }
   }
 
   private setupErrorHandlers(): void {
