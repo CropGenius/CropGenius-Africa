@@ -74,6 +74,12 @@ class ErrorLogger {
   private readonly BATCH_SIZE = 10;
   private readonly BATCH_INTERVAL = 5000;
   private readonly CACHE_TTL = 60000;
+  
+  // Circuit breaker to prevent infinite loops
+  private failureCount = 0;
+  private readonly MAX_FAILURES = 5;
+  private circuitBreakerOpen = false;
+  private lastFailureTime = 0;
 
   private constructor() {
     this.startBatchProcessor();
@@ -167,7 +173,20 @@ class ErrorLogger {
 
   private generateErrorId(message: string, category: ErrorCategory, context: ErrorContext): string {
     const key = `${category}-${message}-${context.component || 'unknown'}`;
-    return btoa(key).replace(/[^a-zA-Z0-9]/g, '').substring(0, 16);
+    // Create a proper UUID v4 format instead of base64
+    const hash = this.simpleHash(key);
+    return `${hash.substring(0, 8)}-${hash.substring(8, 12)}-4${hash.substring(13, 16)}-8${hash.substring(17, 20)}-${hash.substring(20, 32)}`;
+  }
+
+  private simpleHash(str: string): string {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    // Convert to hex and pad to 32 characters
+    return Math.abs(hash).toString(16).padStart(8, '0').repeat(4).substring(0, 32);
   }
 
   private generateTags(message: string, category: ErrorCategory, context: ErrorContext): string[] {
@@ -221,6 +240,20 @@ class ErrorLogger {
   }
 
   private async storeBatch(errors: ErrorLog[]): Promise<void> {
+    // Circuit breaker check
+    if (this.circuitBreakerOpen) {
+      const now = Date.now();
+      if (now - this.lastFailureTime < 30000) { // 30 second cooldown
+        console.warn('🔒 [ErrorLogger] Circuit breaker open, skipping database storage');
+        this.storeErrorsLocally(errors);
+        return;
+      } else {
+        // Try to close circuit breaker
+        this.circuitBreakerOpen = false;
+        this.failureCount = 0;
+      }
+    }
+
     try {
       const errorData = errors.map(error => ({
         id: error.id,
@@ -244,8 +277,19 @@ class ErrorLogger {
         if (error) {
           throw new Error(`Failed to store error batch: ${error.message || 'Unknown database error'}`);
         }
-      }, 3);
+      }, 1); // Reduced retries to prevent loops
+
+      // Reset failure count on success
+      this.failureCount = 0;
     } catch (storageError) {
+      this.failureCount++;
+      this.lastFailureTime = Date.now();
+      
+      if (this.failureCount >= this.MAX_FAILURES) {
+        this.circuitBreakerOpen = true;
+        console.error('🔒 [ErrorLogger] Circuit breaker opened due to repeated failures');
+      }
+      
       console.error('❌ [ErrorLogger] Storage failed, falling back to local storage:', storageError);
       // Fallback to local storage
       this.storeErrorsLocally(errors);

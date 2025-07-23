@@ -113,24 +113,28 @@ export class FieldIntelligenceAgent extends SuperIntelligenceAgent {
 
       logSuccess('field_intelligence_analysis', {
         component: 'FieldIntelligenceAgent',
-        fieldId: context.fieldId,
-        processingTime,
-        confidence: confidence.value,
-        ndvi: intelligence.fieldAnalysis.ndviValue,
-        healthScore: intelligence.fieldAnalysis.fieldHealth
+        metadata: {
+          fieldId: context.fieldId,
+          processingTime,
+          confidence: confidence.value,
+          ndvi: intelligence.fieldAnalysis.ndviValue,
+          healthScore: intelligence.fieldAnalysis.fieldHealth
+        }
       });
 
       return response;
     } catch (error) {
       await logError(
         error as Error,
-        ErrorCategory.AI,
+        ErrorCategory.EXTERNAL_SERVICE,
         ErrorSeverity.HIGH,
         { 
           component: 'FieldIntelligenceAgent',
           action: 'process',
-          fieldId: context.fieldId,
-          userId: context.userId
+          metadata: {
+            fieldId: context.fieldId,
+            userId: context.userId
+          }
         }
       );
 
@@ -167,8 +171,10 @@ export class FieldIntelligenceAgent extends SuperIntelligenceAgent {
 
       logSuccess('field_agent_validation', {
         component: 'FieldIntelligenceAgent',
-        status: 'healthy',
-        satelliteServices: satelliteServicesAvailable
+        metadata: {
+          status: 'healthy',
+          satelliteServices: satelliteServicesAvailable
+        }
       });
     } catch (error) {
       // Don't fail validation for satellite service issues - use fallback
@@ -176,8 +182,10 @@ export class FieldIntelligenceAgent extends SuperIntelligenceAgent {
       
       logSuccess('field_agent_validation', {
         component: 'FieldIntelligenceAgent',
-        status: 'degraded',
-        warning: error.message
+        metadata: {
+          status: 'degraded',
+          warning: error.message
+        }
       });
     }
   }
@@ -266,7 +274,7 @@ export class FieldIntelligenceAgent extends SuperIntelligenceAgent {
     const moisture = 0.3 + ndvi * 0.4;
     
     const fieldHealth = ndvi;
-    const moistureStress = moisture < 0.3 ? 'high' : moisture < 0.5 ? 'moderate' : 'low';
+    const moistureStress = moisture < 0.3 ? 'high' : moisture < 0.5 ? 'medium' : 'low';
 
     return {
       fieldId: 'fallback-test',
@@ -597,22 +605,25 @@ export class FieldIntelligenceAgent extends SuperIntelligenceAgent {
    */
   private async storeFieldAnalysis(context: AgentContext, intelligence: SatelliteIntelligence): Promise<void> {
     try {
-      await supabase.from('field_intelligence_results').insert({
-        field_id: context.fieldId,
+      // Store in a generic table or skip if table doesn't exist
+      const { error } = await supabase.from('ai_interaction_logs').insert({
         user_id: context.userId,
-        agent_id: this.id,
+        agent_type: 'field-intelligence',
         session_id: context.sessionId,
-        analysis_data: {
+        input_data: { fieldId: context.fieldId },
+        output_data: {
           fieldAnalysis: intelligence.fieldAnalysis,
           precisionAgriculture: intelligence.precisionAgriculture,
           confidence: intelligence.confidence,
           processingTime: intelligence.processingTime
         },
         confidence_score: intelligence.confidence.value,
-        recommendations_count: intelligence.fieldAnalysis.recommendations.length,
-        alerts_count: intelligence.fieldAnalysis.alerts.length,
         created_at: new Date().toISOString()
       });
+      
+      if (error) {
+        console.warn('Failed to store field analysis results:', error);
+      }
     } catch (error) {
       console.warn('Failed to store field analysis results:', error);
     }
