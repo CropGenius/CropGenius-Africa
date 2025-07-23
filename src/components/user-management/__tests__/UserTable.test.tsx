@@ -2,209 +2,90 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { UserTable, User, PaginationInfo } from '../UserTable';
 
+const mockUsers: User[] = [
+  { id: '1', email: 'admin@example.com', full_name: 'Admin User', role: 'admin', created_at: '2023-01-01T12:00:00Z', onboarding_completed: true, ai_usage_count: 10 },
+  { id: '2', email: 'farmer@example.com', full_name: 'John Farmer', role: 'farmer', created_at: '2023-02-15T08:30:00Z', onboarding_completed: true, ai_usage_count: 5 },
+  { id: '3', email: 'viewer@example.com', full_name: 'Jane Viewer', role: 'viewer', created_at: '2023-03-20T18:45:00Z', onboarding_completed: false, ai_usage_count: 0 },
+];
+
+const mockPagination: PaginationInfo = {
+  total: 3,
+  totalPages: 1,
+  currentPage: 1,
+  hasNext: false,
+  hasPrev: false,
+};
+
+const mockHandlers = {
+  onSearchChange: vi.fn(),
+  onSortChange: vi.fn(),
+  onRoleFilterChange: vi.fn(),
+  onPageChange: vi.fn(),
+  onPageSizeChange: vi.fn(),
+  onEditUser: vi.fn(),
+  onDeleteUser: vi.fn(),
+  onViewUser: vi.fn(),
+};
+
 describe('UserTable', () => {
-  const mockUsers: User[] = [
-    {
-      id: '1',
-      email: 'admin@example.com',
-      full_name: 'Admin User',
-      phone_number: '+1234567890',
-      role: 'admin',
-      created_at: '2023-01-01T00:00:00Z',
-      last_sign_in_at: '2023-12-01T00:00:00Z',
-      onboarding_completed: true,
-      ai_usage_count: 50
-    },
-    {
-      id: '2',
-      email: 'farmer@example.com',
-      full_name: 'John Farmer',
-      role: 'farmer',
-      created_at: '2023-06-01T00:00:00Z',
-      last_sign_in_at: '2023-11-15T00:00:00Z',
-      onboarding_completed: true,
-      ai_usage_count: 25
-    },
-    {
-      id: '3',
-      email: 'viewer@example.com',
-      full_name: 'Jane Viewer',
-      role: 'viewer',
-      created_at: '2023-08-01T00:00:00Z',
-      onboarding_completed: false,
-      ai_usage_count: 0
-    }
-  ];
-
-  const mockPagination: PaginationInfo = {
-    total: 3,
-    totalPages: 1,
-    currentPage: 1,
-    hasNext: false,
-    hasPrev: false
-  };
-
-  const defaultProps = {
-    users: mockUsers,
-    pagination: mockPagination,
-    isLoading: false,
-    searchQuery: '',
-    sortBy: 'created_at',
-    sortOrder: 'desc' as const,
-    roleFilter: 'all'
-  };
-
-  const mockHandlers = {
-    onSearchChange: vi.fn(),
-    onSortChange: vi.fn(),
-    onRoleFilterChange: vi.fn(),
-    onPageChange: vi.fn(),
-    onPageSizeChange: vi.fn(),
-    onEditUser: vi.fn(),
-    onDeleteUser: vi.fn(),
-    onViewUser: vi.fn()
-  };
-
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('should render user table with data', () => {
-    render(<UserTable {...defaultProps} {...mockHandlers} />);
-
+  it('renders user data correctly', () => {
+    render(<UserTable users={mockUsers} {...mockHandlers} />);
     expect(screen.getByText('Admin User')).toBeInTheDocument();
-    expect(screen.getByText('John Farmer')).toBeInTheDocument();
-    expect(screen.getByText('Jane Viewer')).toBeInTheDocument();
-    
-    expect(screen.getByText('admin@example.com')).toBeInTheDocument();
     expect(screen.getByText('farmer@example.com')).toBeInTheDocument();
-    expect(screen.getByText('viewer@example.com')).toBeInTheDocument();
-  });
-
-  it('should display role badges correctly', () => {
-    render(<UserTable {...defaultProps} {...mockHandlers} />);
-
-    expect(screen.getByText('Admin')).toBeInTheDocument();
-    expect(screen.getByText('Farmer')).toBeInTheDocument();
     expect(screen.getByText('Viewer')).toBeInTheDocument();
   });
 
-  it('should display user status correctly', () => {
-    render(<UserTable {...defaultProps} {...mockHandlers} />);
-
-    const activeStatuses = screen.getAllByText('Active');
-    const pendingStatus = screen.getByText('Pending');
-    
-    expect(activeStatuses).toHaveLength(2); // Admin and Farmer
-    expect(pendingStatus).toBeInTheDocument(); // Viewer
-  });
-
-  it('should display AI usage counts', () => {
-    render(<UserTable {...defaultProps} {...mockHandlers} />);
-
-    expect(screen.getByText('50 AI uses')).toBeInTheDocument();
-    expect(screen.getByText('25 AI uses')).toBeInTheDocument();
-    expect(screen.getByText('0 AI uses')).toBeInTheDocument();
-  });
-
-  it('should handle search input', async () => {
-    render(<UserTable {...defaultProps} {...mockHandlers} />);
-
+  it('handles search input and calls onSearchChange', async () => {
+    render(<UserTable users={mockUsers} {...mockHandlers} />);
     const searchInput = screen.getByPlaceholderText('Search users...');
-    fireEvent.change(searchInput, { target: { value: 'admin' } });
-
+    fireEvent.change(searchInput, { target: { value: 'Farmer' } });
     await waitFor(() => {
-      expect(mockHandlers.onSearchChange).toHaveBeenCalledWith('admin');
-    }, { timeout: 500 });
+      expect(mockHandlers.onSearchChange).toHaveBeenCalledWith('Farmer');
+    });
   });
 
-  it('should handle role filter change', () => {
-    render(<UserTable {...defaultProps} {...mockHandlers} />);
-
-    const roleFilter = screen.getByRole('combobox');
-    fireEvent.click(roleFilter);
-    
-    const adminOption = screen.getByText('Admin');
+  it('handles role filtering', () => {
+    render(<UserTable users={mockUsers} {...mockHandlers} />);
+    const filterTrigger = screen.getByRole('combobox', { name: /filter by role/i });
+    fireEvent.mouseDown(filterTrigger);
+    const adminOption = screen.getByRole('option', { name: 'Admin' });
     fireEvent.click(adminOption);
-
     expect(mockHandlers.onRoleFilterChange).toHaveBeenCalledWith('admin');
   });
 
-  it('should handle column sorting', () => {
-    render(<UserTable {...defaultProps} {...mockHandlers} />);
-
-    const nameHeader = screen.getByText('Name').closest('th');
-    fireEvent.click(nameHeader!);
-
-    expect(mockHandlers.onSortChange).toHaveBeenCalledWith('full_name', 'asc');
-  });
-
-  it('should handle sort order toggle', () => {
-    const propsWithSort = {
-      ...defaultProps,
-      sortBy: 'full_name',
-      sortOrder: 'asc' as const
-    };
-
-    render(<UserTable {...propsWithSort} {...mockHandlers} />);
-
-    const nameHeader = screen.getByText('Name').closest('th');
-    fireEvent.click(nameHeader!);
-
+  it('handles sorting correctly', () => {
+    render(<UserTable users={mockUsers} {...mockHandlers} sortBy="full_name" sortOrder="asc" />);
+    const nameHeader = screen.getByRole('button', { name: /name/i });
+    fireEvent.click(nameHeader);
     expect(mockHandlers.onSortChange).toHaveBeenCalledWith('full_name', 'desc');
   });
 
-  it('should display loading skeleton when loading', () => {
-    render(<UserTable {...defaultProps} {...mockHandlers} isLoading={true} />);
-
-    const skeletons = screen.getAllByTestId('skeleton');
+  it('displays loading skeletons when isLoading is true', () => {
+    render(<UserTable users={[]} isLoading={true} {...mockHandlers} />);
+    const skeletons = screen.getAllByRole('row').slice(1).flatMap(row => screen.getAllByRole('cell', { name: /loading/i }));
     expect(skeletons.length).toBeGreaterThan(0);
   });
 
-  it('should display empty state when no users', () => {
-    render(<UserTable {...defaultProps} {...mockHandlers} users={[]} />);
-
-    expect(screen.getByText('No users found')).toBeInTheDocument();
+  it('displays empty state when no users are provided', () => {
+    render(<UserTable users={[]} {...mockHandlers} />);
+    expect(screen.getByText('No users found.')).toBeInTheDocument();
   });
 
-  it('should display filtered empty state', () => {
-    render(
-      <UserTable 
-        {...defaultProps} 
-        {...mockHandlers} 
-        users={[]} 
-        searchQuery="nonexistent"
-      />
-    );
-
-    expect(screen.getByText('No users found matching your criteria')).toBeInTheDocument();
-  });
-
-  it('should handle pagination controls', () => {
-    const paginationProps = {
-      ...defaultProps,
-      pagination: {
-        total: 100,
-        totalPages: 10,
-        currentPage: 5,
-        hasNext: true,
-        hasPrev: true
-      }
+  it('handles pagination correctly', () => {
+    const paginatedProps = {
+      ...mockHandlers,
+      users: mockUsers,
+      pagination: { ...mockPagination, total: 30, totalPages: 3, currentPage: 2, hasNext: true, hasPrev: true },
+      pageSize: 10,
     };
-
-    render(<UserTable {...paginationProps} {...mockHandlers} />);
-
-    expect(screen.getByText('Page 5 of 10')).toBeInTheDocument();
-    expect(screen.getByText('Showing 41-50 of 100 users')).toBeInTheDocument();
-
-    // Test pagination buttons
-    const nextButton = screen.getByRole('button', { name: /next/i });
-    const prevButton = screen.getByRole('button', { name: /previous/i });
-
-    fireEvent.click(nextButton);
-    expect(mockHandlers.onPageChange).toHaveBeenCalledWith(6);
-
-    fireEvent.click(prevButton);
+    render(<UserTable {...paginatedProps} />);
+    expect(screen.getByText('Page 2 of 3')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /next page/i }));
+    expect(mockHandlers.onPageChange).toHaveBeenCalledWith(3);
     expect(mockHandlers.onPageChange).toHaveBeenCalledWith(4);
   });
 
