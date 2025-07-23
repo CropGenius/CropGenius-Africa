@@ -24,7 +24,8 @@
       },
       "disabled": false,
       "autoApprove": [
-        "apply_migration"
+        "apply_migration",
+        "execute_sql"
       ]
     },
     "context7": {

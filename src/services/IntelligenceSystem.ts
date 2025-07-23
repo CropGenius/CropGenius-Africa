@@ -7,6 +7,7 @@
 import { AgentOrchestrator } from './AgentOrchestrator';
 import { fieldIntelligenceAgent } from '@/agents/FieldIntelligenceAgent';
 import { logSuccess, logError, ErrorCategory, ErrorSeverity } from './errorLogger';
+import { initializeSentinelHubAuth } from '@/utils/sentinelHubAuth';
 
 /**
  * INTELLIGENCE SYSTEM - Central coordinator
@@ -38,6 +39,10 @@ export class IntelligenceSystem {
 
     try {
       console.log('🚀 Initializing Agricultural Superintelligence Engine...');
+
+      // Initialize satellite services
+      console.log('🛰️ Initializing satellite services...');
+      await initializeSentinelHubAuth();
 
       // Register Field Intelligence Agent
       await this.orchestrator.registerAgent(fieldIntelligenceAgent);

@@ -143,7 +143,7 @@ export function FieldIntelligenceDashboard({ fieldId, className = '' }: FieldInt
 
             {/* Main Dashboard Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-4 glass-morphism">
+                <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-md border border-white/20">
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="analysis">Analysis</TabsTrigger>
                     <TabsTrigger value="recommendations">Actions</TabsTrigger>
