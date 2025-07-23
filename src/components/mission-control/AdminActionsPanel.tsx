@@ -278,7 +278,7 @@ export const AdminActionsPanel: React.FC<AdminActionsPanelProps> = ({
                                                         setNewAction(prev => ({ ...prev, details: e.target.value }));
                                                     }
                                                 }}
-                                                placeholder="{ \" key\": \"value\" }"
+                                                placeholder="{ 'key': 'value' }"
                                             rows={5}
                                             className="font-mono text-sm"
                       />

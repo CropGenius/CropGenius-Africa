@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useContext, createContext, ReactNode, useRef } from 'react';
 import FieldBrainAgent from '@/agents/FieldBrainAgent';
-import { useToast as useSonner } from 'sonner';
+import { toast } from 'sonner';
 import { FieldInsight } from '@/types/supabase';
 import { useNavigate } from 'react-router-dom';
 import { useCredits } from '@/hooks/useCredits';
@@ -28,7 +28,7 @@ const FieldBrainContext = createContext<FieldBrainContextType | null>(null);
 // Provider component
 export const FieldBrainProvider = ({ children, userId }: { children: ReactNode; userId: string }) => {
   const agent = FieldBrainAgent.getInstance();
-  const { toast } = useSonner();
+  // Using toast directly from sonner
   const { balance: creditBalance, deductCredits, restoreCredits, isDeducting } = useCredits();
   const navigate = useNavigate();
   const isAskingRef = useRef(false);
