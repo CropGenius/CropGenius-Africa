@@ -1,11 +1,10 @@
 /**
  * 🔥💪 USER MANAGEMENT PANEL - INFINITY GOD MODE ACTIVATED!
- * REAL user management with REAL-TIME updates
+ * REAL user management with REAL Supabase integration
  * Built for 100 million African farmers with military-grade security!
  */
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import { 
   Users, 
   Search, 
@@ -13,17 +12,16 @@ import {
   MoreHorizontal,
   Edit,
   Trash2,
-  Shield,
-  Mail,
-  Phone,
-  MapPin,
-  Calendar,
-  Activity,
+  Eye,
+  RefreshCw,
   ChevronLeft,
   ChevronRight,
-  RefreshCw,
-  Download,
-  UserPlus
+  UserCheck,
+  UserX,
+  MapPin,
+  Phone,
+  Mail,
+  Calendar
 } from 'lucide-react';
 
 // 🚀 PRODUCTION-READY COMPONENTS
@@ -40,23 +38,32 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 // 🔥 MISSION CONTROL TYPES
 import { FarmerUser } from '@/services/missionControlApi';
@@ -77,18 +84,12 @@ interface UserManagementPanelProps {
     sortDirection?: 'asc' | 'desc';
     filter?: Record<string, any>;
   };
-  setOptions: (options: Partial<{
-    page?: number;
-    limit?: number;
-    sortBy?: string;
-    sortDirection?: 'asc' | 'desc';
-    filter?: Record<string, any>;
-  }>) => void;
+  setOptions: (options: any) => void;
 }
 
 /**
  * 🔥 INFINITY GOD MODE USER MANAGEMENT PANEL
- * Real-time user management with military-grade security
+ * Real user management with military-grade security
  */
 export const UserManagementPanel: React.FC<UserManagementPanelProps> = ({
   users,
@@ -104,16 +105,42 @@ export const UserManagementPanel: React.FC<UserManagementPanelProps> = ({
 }) => {
   // 🚀 STATE MANAGEMENT
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedRole, setSelectedRole] = useState<string>('all');
   const [selectedUser, setSelectedUser] = useState<FarmerUser | null>(null);
-  const [showUserDetails, setShowUserDetails] = useState(false);
+  const [showUserDialog, setShowUserDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<FarmerUser | null>(null);
+  const [editingUser, setEditingUser] = useState<Partial<FarmerUser>>({});
 
-  // 🔥 PAGINATION CALCULATIONS
-  const currentPage = options.page || 1;
-  const pageSize = options.limit || 10;
-  const totalPages = Math.ceil(count / pageSize);
-  const startIndex = (currentPage - 1) * pageSize + 1;
-  const endIndex = Math.min(currentPage * pageSize, count);
+  // 🔥 GET SUBSCRIPTION TIER COLOR
+  const getSubscriptionColor = (tier: string) => {
+    switch (tier) {
+      case 'premium': return 'text-purple-600 bg-purple-50 border-purple-200';
+      case 'basic': return 'text-blue-600 bg-blue-50 border-blue-200';
+      case 'enterprise': return 'text-orange-600 bg-orange-50 border-orange-200';
+      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+    }
+  };
+
+  // 🚀 GET STATUS COLOR
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'text-green-600 bg-green-50 border-green-200';
+      case 'expired': return 'text-red-600 bg-red-50 border-red-200';
+      case 'trial': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+      case 'cancelled': return 'text-gray-600 bg-gray-50 border-gray-200';
+      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+    }
+  };
+
+  // 🔥 FORMAT DATE
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'Never';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
 
   // 🚀 HANDLE SEARCH
   const handleSearch = (query: string) => {
@@ -123,25 +150,12 @@ export const UserManagementPanel: React.FC<UserManagementPanelProps> = ({
       page: 1,
       filter: {
         ...options.filter,
-        search: query || undefined
+        full_name: query ? `%${query}%` : undefined
       }
     });
   };
 
-  // 🔥 HANDLE ROLE FILTER
-  const handleRoleFilter = (role: string) => {
-    setSelectedRole(role);
-    setOptions({
-      ...options,
-      page: 1,
-      filter: {
-        ...options.filter,
-        role: role === 'all' ? undefined : role
-      }
-    });
-  };
-
-  // 🚀 HANDLE SORT
+  // 🔥 HANDLE SORT
   const handleSort = (column: string) => {
     const newDirection = options.sortBy === column && options.sortDirection === 'asc' ? 'desc' : 'asc';
     setOptions({
@@ -151,99 +165,52 @@ export const UserManagementPanel: React.FC<UserManagementPanelProps> = ({
     });
   };
 
-  // 🔥 HANDLE PAGE CHANGE
-  const handlePageChange = (page: number) => {
+  // 🚀 HANDLE PAGE CHANGE
+  const handlePageChange = (newPage: number) => {
     setOptions({
       ...options,
-      page
+      page: newPage
     });
   };
 
-  // 🚀 HANDLE PAGE SIZE CHANGE
-  const handlePageSizeChange = (size: string) => {
-    setOptions({
-      ...options,
-      page: 1,
-      limit: parseInt(size)
-    });
-  };
-
-  // 🔥 GET ROLE COLOR
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'admin': return 'text-red-600 bg-red-50 border-red-200';
-      case 'agronomist': return 'text-blue-600 bg-blue-50 border-blue-200';
-      case 'farmer': return 'text-green-600 bg-green-50 border-green-200';
-      case 'viewer': return 'text-gray-600 bg-gray-50 border-gray-200';
-      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+  // 🔥 HANDLE VIEW USER
+  const handleViewUser = async (user: FarmerUser) => {
+    const fullUser = await getUser(user.id);
+    if (fullUser) {
+      setSelectedUser(fullUser);
+      setEditingUser(fullUser);
+      setShowUserDialog(true);
     }
   };
 
-  // 🚀 GET SUBSCRIPTION COLOR
-  const getSubscriptionColor = (tier: string) => {
-    switch (tier) {
-      case 'enterprise': return 'text-purple-600 bg-purple-50 border-purple-200';
-      case 'premium': return 'text-blue-600 bg-blue-50 border-blue-200';
-      case 'basic': return 'text-green-600 bg-green-50 border-green-200';
-      case 'free': return 'text-gray-600 bg-gray-50 border-gray-200';
-      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+  // 🚀 HANDLE UPDATE USER
+  const handleUpdateUser = async () => {
+    if (!selectedUser || !editingUser) return;
+    
+    const success = await updateUser(selectedUser.id, editingUser);
+    if (success) {
+      setShowUserDialog(false);
+      setSelectedUser(null);
+      setEditingUser({});
+      onRefresh();
     }
   };
 
-  // 🔥 FORMAT DATE
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
-  // 🚀 HANDLE USER ACTION
-  const handleUserAction = async (action: string, user: FarmerUser) => {
-    switch (action) {
-      case 'view':
-        setSelectedUser(user);
-        setShowUserDetails(true);
-        break;
-      case 'edit':
-        // TODO: Implement edit user modal
-        console.log('Edit user:', user.id);
-        break;
-      case 'delete':
-        if (confirm(`Are you sure you want to delete user ${user.full_name}?`)) {
-          await deleteUser(user.id);
-          await onRefresh();
-        }
-        break;
-      case 'suspend':
-        // TODO: Implement suspend user
-        console.log('Suspend user:', user.id);
-        break;
+  // 🔥 HANDLE DELETE USER
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+    
+    const success = await deleteUser(userToDelete.id);
+    if (success) {
+      setShowDeleteDialog(false);
+      setUserToDelete(null);
+      onRefresh();
     }
   };
 
-  // 🔥 ERROR STATE
-  if (error) {
-    return (
-      <Alert variant="destructive">
-        <AlertTriangle className="h-4 w-4" />
-        <AlertTitle>Error loading users</AlertTitle>
-        <AlertDescription>
-          {error.message}
-          <Button
-            onClick={onRefresh}
-            variant="outline"
-            size="sm"
-            className="mt-2"
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Retry
-          </Button>
-        </AlertDescription>
-      </Alert>
-    );
-  }
+  // 🔥 CALCULATE PAGINATION
+  const totalPages = Math.ceil(count / (options.limit || 10));
+  const currentPage = options.page || 1;
 
   return (
     <div className="space-y-6">
@@ -252,27 +219,18 @@ export const UserManagementPanel: React.FC<UserManagementPanelProps> = ({
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-xl">User Management</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                User Management
+              </CardTitle>
               <CardDescription>
                 Manage {count.toLocaleString()} registered farmers across Africa
               </CardDescription>
             </div>
-            <div className="flex items-center space-x-2">
-              <Button
-                onClick={onRefresh}
-                variant="outline"
-                size="sm"
-                disabled={isLoading}
-                className="gap-2"
-              >
-                <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
-              <Button variant="default" size="sm" className="gap-2">
-                <UserPlus className="h-4 w-4" />
-                Add User
-              </Button>
-            </div>
+            <Button onClick={onRefresh} variant="outline" size="sm" className="gap-2">
+              <RefreshCw className="h-4 w-4" />
+              Refresh
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -282,106 +240,120 @@ export const UserManagementPanel: React.FC<UserManagementPanelProps> = ({
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search users by name, email, or phone..."
+                  placeholder="Search users by name..."
                   value={searchQuery}
                   onChange={(e) => handleSearch(e.target.value)}
                   className="pl-10"
                 />
               </div>
             </div>
-            <Select value={selectedRole} onValueChange={handleRoleFilter}>
-              <SelectTrigger className="w-[180px]">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Filter by role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Roles</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="agronomist">Agronomist</SelectItem>
-                <SelectItem value="farmer">Farmer</SelectItem>
-                <SelectItem value="viewer">Viewer</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={pageSize.toString()} onValueChange={handlePageSizeChange}>
-              <SelectTrigger className="w-[100px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="25">25</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-                <SelectItem value="100">100</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2">
+              <Select
+                value={options.filter?.subscription_tier || 'all'}
+                onValueChange={(value) => setOptions({
+                  ...options,
+                  filter: {
+                    ...options.filter,
+                    subscription_tier: value === 'all' ? undefined : value
+                  }
+                })}
+              >
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Subscription" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Tiers</SelectItem>
+                  <SelectItem value="free">Free</SelectItem>
+                  <SelectItem value="basic">Basic</SelectItem>
+                  <SelectItem value="premium">Premium</SelectItem>
+                  <SelectItem value="enterprise">Enterprise</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select
+                value={options.filter?.subscription_status || 'all'}
+                onValueChange={(value) => setOptions({
+                  ...options,
+                  filter: {
+                    ...options.filter,
+                    subscription_status: value === 'all' ? undefined : value
+                  }
+                })}
+              >
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="trial">Trial</SelectItem>
+                  <SelectItem value="expired">Expired</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+
+          {/* Error State */}
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertDescription>{error.message}</AlertDescription>
+            </Alert>
+          )}
 
           {/* Users Table */}
           <div className="border rounded-lg">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[300px]">
-                    <Button 
-                      variant="ghost" 
-                      onClick={() => handleSort('full_name')}
-                      className="h-auto p-0 font-semibold"
-                    >
-                      User
-                    </Button>
+                  <TableHead>User</TableHead>
+                  <TableHead 
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => handleSort('subscription_tier')}
+                  >
+                    Subscription
                   </TableHead>
-                  <TableHead>
-                    <Button 
-                      variant="ghost" 
-                      onClick={() => handleSort('role')}
-                      className="h-auto p-0 font-semibold"
-                    >
-                      Role
-                    </Button>
+                  <TableHead 
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => handleSort('created_at')}
+                  >
+                    Joined
                   </TableHead>
-                  <TableHead>Subscription</TableHead>
+                  <TableHead 
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => handleSort('last_login')}
+                  >
+                    Last Active
+                  </TableHead>
                   <TableHead>Location</TableHead>
-                  <TableHead>
-                    <Button 
-                      variant="ghost" 
-                      onClick={() => handleSort('created_at')}
-                      className="h-auto p-0 font-semibold"
-                    >
-                      Joined
-                    </Button>
-                  </TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   // Loading skeletons
-                  Array.from({ length: pageSize }).map((_, index) => (
-                    <TableRow key={index}>
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
                       <TableCell>
                         <div className="flex items-center space-x-3">
                           <Skeleton className="h-10 w-10 rounded-full" />
-                          <div className="space-y-2">
-                            <Skeleton className="h-4 w-[200px]" />
-                            <Skeleton className="h-3 w-[150px]" />
+                          <div>
+                            <Skeleton className="h-4 w-32 mb-1" />
+                            <Skeleton className="h-3 w-24" />
                           </div>
                         </div>
                       </TableCell>
                       <TableCell><Skeleton className="h-6 w-16" /></TableCell>
-                      <TableCell><Skeleton className="h-6 w-20" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                      <TableCell><Skeleton className="h-6 w-16" /></TableCell>
-                      <TableCell><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-8 w-8" /></TableCell>
                     </TableRow>
                   ))
                 ) : users.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8">
-                      <div className="flex flex-col items-center space-y-2">
-                        <Users className="h-8 w-8 text-muted-foreground" />
-                        <p className="text-muted-foreground">No users found</p>
-                      </div>
+                    <TableCell colSpan={6} className="text-center py-8">
+                      <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                      <p className="text-muted-foreground">No users found</p>
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -396,64 +368,38 @@ export const UserManagementPanel: React.FC<UserManagementPanelProps> = ({
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <div className="font-medium">{user.full_name || 'Unknown'}</div>
-                            <div className="text-sm text-muted-foreground flex items-center">
-                              <Mail className="h-3 w-3 mr-1" />
-                              {user.email}
-                            </div>
-                            {user.phone_number && (
-                              <div className="text-sm text-muted-foreground flex items-center">
-                                <Phone className="h-3 w-3 mr-1" />
-                                {user.phone_number}
-                              </div>
-                            )}
+                            <p className="font-medium">{user.full_name || 'Unknown'}</p>
+                            <p className="text-sm text-muted-foreground">{user.email}</p>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge 
-                          variant="outline" 
-                          className={getRoleColor(user.subscription_tier)}
-                        >
-                          {user.subscription_tier?.toUpperCase()}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant="outline" 
-                          className={getSubscriptionColor(user.subscription_tier)}
-                        >
-                          {user.subscription_tier?.toUpperCase()}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {user.location ? (
-                          <div className="flex items-center text-sm text-muted-foreground">
-                            <MapPin className="h-3 w-3 mr-1" />
-                            {user.location.country}, {user.location.region}
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <Calendar className="h-3 w-3 mr-1" />
-                          {formatDate(user.created_at)}
+                        <div className="space-y-1">
+                          <Badge 
+                            variant="outline" 
+                            className={getSubscriptionColor(user.subscription_tier)}
+                          >
+                            {user.subscription_tier.toUpperCase()}
+                          </Badge>
+                          <Badge 
+                            variant="outline" 
+                            className={getStatusColor(user.subscription_status)}
+                            size="sm"
+                          >
+                            {user.subscription_status}
+                          </Badge>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant="outline" 
-                          className={user.subscription_status === 'active' 
-                            ? 'text-green-600 bg-green-50 border-green-200' 
-                            : 'text-red-600 bg-red-50 border-red-200'
-                          }
-                        >
-                          {user.subscription_status?.toUpperCase()}
-                        </Badge>
+                      <TableCell className="text-sm">
+                        {formatDate(user.created_at)}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-sm">
+                        {formatDate(user.last_login)}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {user.location ? `${user.location.country}, ${user.location.region}` : 'Unknown'}
+                      </TableCell>
+                      <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm">
@@ -462,25 +408,25 @@ export const UserManagementPanel: React.FC<UserManagementPanelProps> = ({
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => handleUserAction('view', user)}>
-                              <Activity className="h-4 w-4 mr-2" />
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleViewUser(user)}>
+                              <Eye className="h-4 w-4 mr-2" />
                               View Details
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleUserAction('edit', user)}>
+                            <DropdownMenuItem onClick={() => handleViewUser(user)}>
                               <Edit className="h-4 w-4 mr-2" />
                               Edit User
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => handleUserAction('suspend', user)}>
-                              <Shield className="h-4 w-4 mr-2" />
-                              Suspend
-                            </DropdownMenuItem>
                             <DropdownMenuItem 
-                              onClick={() => handleUserAction('delete', user)}
+                              onClick={() => {
+                                setUserToDelete(user);
+                                setShowDeleteDialog(true);
+                              }}
                               className="text-red-600"
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
+                              Delete User
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -493,55 +439,29 @@ export const UserManagementPanel: React.FC<UserManagementPanelProps> = ({
           </div>
 
           {/* Pagination */}
-          {!isLoading && users.length > 0 && (
+          {totalPages > 1 && (
             <div className="flex items-center justify-between mt-4">
-              <div className="text-sm text-muted-foreground">
-                Showing {startIndex} to {endIndex} of {count.toLocaleString()} users
-              </div>
+              <p className="text-sm text-muted-foreground">
+                Showing {((currentPage - 1) * (options.limit || 10)) + 1} to {Math.min(currentPage * (options.limit || 10), count)} of {count} users
+              </p>
               <div className="flex items-center space-x-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
+                  disabled={currentPage <= 1}
                 >
                   <ChevronLeft className="h-4 w-4" />
                   Previous
                 </Button>
-                <div className="flex items-center space-x-1">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    const page = i + 1;
-                    return (
-                      <Button
-                        key={page}
-                        variant={currentPage === page ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => handlePageChange(page)}
-                        className="w-8 h-8 p-0"
-                      >
-                        {page}
-                      </Button>
-                    );
-                  })}
-                  {totalPages > 5 && (
-                    <>
-                      <span className="text-muted-foreground">...</span>
-                      <Button
-                        variant={currentPage === totalPages ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => handlePageChange(totalPages)}
-                        className="w-8 h-8 p-0"
-                      >
-                        {totalPages}
-                      </Button>
-                    </>
-                  )}
-                </div>
+                <span className="text-sm">
+                  Page {currentPage} of {totalPages}
+                </span>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
+                  disabled={currentPage >= totalPages}
                 >
                   Next
                   <ChevronRight className="h-4 w-4" />
@@ -551,6 +471,160 @@ export const UserManagementPanel: React.FC<UserManagementPanelProps> = ({
           )}
         </CardContent>
       </Card>
+
+      {/* 🔥 USER DETAILS DIALOG */}
+      <Dialog open={showUserDialog} onOpenChange={setShowUserDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>User Details</DialogTitle>
+            <DialogDescription>
+              View and edit user information
+            </DialogDescription>
+          </DialogHeader>
+          {selectedUser && (
+            <div className="space-y-6">
+              {/* User Info */}
+              <div className="flex items-center space-x-4">
+                <Avatar className="h-16 w-16">
+                  <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${selectedUser.full_name}`} />
+                  <AvatarFallback>
+                    {selectedUser.full_name?.split(' ').map(n => n[0]).join('') || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h3 className="text-lg font-semibold">{selectedUser.full_name}</h3>
+                  <p className="text-muted-foreground">{selectedUser.email}</p>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <Badge className={getSubscriptionColor(selectedUser.subscription_tier)}>
+                      {selectedUser.subscription_tier}
+                    </Badge>
+                    <Badge className={getStatusColor(selectedUser.subscription_status)}>
+                      {selectedUser.subscription_status}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              {/* Edit Form */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="full_name">Full Name</Label>
+                  <Input
+                    id="full_name"
+                    value={editingUser.full_name || ''}
+                    onChange={(e) => setEditingUser(prev => ({ ...prev, full_name: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="phone_number">Phone Number</Label>
+                  <Input
+                    id="phone_number"
+                    value={editingUser.phone_number || ''}
+                    onChange={(e) => setEditingUser(prev => ({ ...prev, phone_number: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="country">Country</Label>
+                  <Input
+                    id="country"
+                    value={editingUser.location?.country || ''}
+                    onChange={(e) => setEditingUser(prev => ({ 
+                      ...prev, 
+                      location: { ...prev.location, country: e.target.value, region: prev.location?.region || '' }
+                    }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="region">Region</Label>
+                  <Input
+                    id="region"
+                    value={editingUser.location?.region || ''}
+                    onChange={(e) => setEditingUser(prev => ({ 
+                      ...prev, 
+                      location: { ...prev.location, region: e.target.value, country: prev.location?.country || '' }
+                    }))}
+                  />
+                </div>
+              </div>
+
+              {/* Usage Stats */}
+              <div>
+                <h4 className="font-medium mb-3">Usage Statistics</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center p-3 border rounded-lg">
+                    <p className="text-2xl font-bold text-blue-600">
+                      {selectedUser.usage_stats?.disease_scans || 0}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Disease Scans</p>
+                  </div>
+                  <div className="text-center p-3 border rounded-lg">
+                    <p className="text-2xl font-bold text-green-600">
+                      {selectedUser.usage_stats?.weather_checks || 0}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Weather Checks</p>
+                  </div>
+                  <div className="text-center p-3 border rounded-lg">
+                    <p className="text-2xl font-bold text-purple-600">
+                      {selectedUser.usage_stats?.ai_chat_messages || 0}
+                    </p>
+                    <p className="text-xs text-muted-foreground">AI Messages</p>
+                  </div>
+                  <div className="text-center p-3 border rounded-lg">
+                    <p className="text-2xl font-bold text-orange-600">
+                      {selectedUser.usage_stats?.market_queries || 0}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Market Queries</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowUserDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateUser}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 🔥 DELETE CONFIRMATION DIALOG */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete User</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this user? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          {userToDelete && (
+            <div className="py-4">
+              <div className="flex items-center space-x-3">
+                <Avatar>
+                  <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${userToDelete.full_name}`} />
+                  <AvatarFallback>
+                    {userToDelete.full_name?.split(' ').map(n => n[0]).join('') || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium">{userToDelete.full_name}</p>
+                  <p className="text-sm text-muted-foreground">{userToDelete.email}</p>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteUser}>
+              Delete User
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

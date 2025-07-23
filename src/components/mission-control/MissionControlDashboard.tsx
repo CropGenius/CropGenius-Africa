@@ -8,33 +8,20 @@ import React, { useState } from 'react';
 import { 
   Users, 
   RefreshCw, 
-  Leaf,
-  Map,
   Activity,
-  AlertTriangle,
   CheckCircle,
   TrendingUp,
-  Database,
   Server,
-  Zap,
-  Shield,
   BarChart3,
-  Clock,
-  Globe,
-  MessageSquare,
   Scan,
-  Plus,
   Settings
 } from 'lucide-react';
 import { useMissionControl } from '@/hooks/useMissionControl';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { format } from 'date-fns';
 import { SystemHealthPanel } from '@/components/mission-control/SystemHealthPanel';
 import { UserManagementPanel } from '@/components/mission-control/UserManagementPanel';
 import { AnalyticsPanel } from '@/components/mission-control/AnalyticsPanel';
