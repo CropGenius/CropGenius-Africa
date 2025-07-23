@@ -1,3 +1,9 @@
+/**
+ * 🔥💪 RESPONSIVE LAYOUT - INFINITY GOD MODE ACTIVATED!
+ * Legacy responsive layout - now enhanced with orchestrator integration
+ * Automatically detects device type and serves perfect layouts
+ */
+
 import React, { ReactNode, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -9,16 +15,61 @@ import {
   Settings, 
   MessageCircle,
   Plus,
-  ChevronRight
+  ChevronRight,
+  Smartphone,
+  Monitor,
+  Tablet
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// 🚀 IMPORT LAYOUT ORCHESTRATOR
+import { LayoutOrchestrator } from './LayoutOrchestrator';
+
 interface ResponsiveLayoutProps {
   children: ReactNode;
-  isMobile: boolean;
+  isMobile?: boolean; // Made optional for backward compatibility
+  forceLayout?: 'auto' | 'mobile' | 'desktop' | 'tablet';
+  enableLayoutSwitcher?: boolean;
 }
 
-const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({ children, isMobile }) => {
+/**
+ * 🔥 INFINITY GOD MODE RESPONSIVE LAYOUT
+ * Now powered by the Layout Orchestrator for ultimate responsiveness
+ */
+const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({ 
+  children, 
+  isMobile, 
+  forceLayout = 'auto',
+  enableLayoutSwitcher = false 
+}) => {
+  // 🚀 If isMobile is explicitly provided, use legacy behavior for backward compatibility
+  if (isMobile !== undefined) {
+    return (
+      <LegacyResponsiveLayout isMobile={isMobile}>
+        {children}
+      </LegacyResponsiveLayout>
+    );
+  }
+
+  // 🔥 Use the new Layout Orchestrator for automatic device detection
+  return (
+    <LayoutOrchestrator 
+      forceLayout={forceLayout}
+      enableLayoutSwitcher={enableLayoutSwitcher}
+    >
+      {children}
+    </LayoutOrchestrator>
+  );
+};
+
+/**
+ * 🔥 LEGACY RESPONSIVE LAYOUT
+ * Maintains backward compatibility for existing code
+ */
+const LegacyResponsiveLayout: React.FC<{ children: ReactNode; isMobile: boolean }> = ({ 
+  children, 
+  isMobile 
+}) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [showMobileNav, setShowMobileNav] = useState(false);
