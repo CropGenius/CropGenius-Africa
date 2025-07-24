@@ -47,21 +47,35 @@
   // Monitor for blank screens
   function monitorBlankScreens() {
     let blankScreenCount = 0;
+    let hasShownContent = false;
     
     const checkBlankScreen = () => {
       const root = document.getElementById('root');
       const body = document.body;
       
+      // Check if we've ever shown content
+      if (root && root.children.length > 0 && root.innerHTML.trim() !== '') {
+        hasShownContent = true;
+        blankScreenCount = 0; // Reset counter if we have content
+        return;
+      }
+      
+      // Only check for blank screens after we've had content before
+      if (!hasShownContent) {
+        return; // Don't trigger during initial loading
+      }
+      
       // Check for blank or problematic states
       const isBlank = !root || root.children.length === 0 || root.innerHTML.trim() === '';
       const hasErrorColors = body.style.backgroundColor.includes('purple') ||
-                            body.style.backgroundColor.includes('rgb(128, 0, 128)');
+                            body.style.backgroundColor.includes('rgb(128, 0, 128)') ||
+                            document.documentElement.style.backgroundColor.includes('purple');
       
       if (isBlank || hasErrorColors) {
         blankScreenCount++;
         console.warn(`🚨 [EmergencyProtection] Blank/error screen detected (${blankScreenCount})`);
         
-        if (blankScreenCount >= 3) {
+        if (blankScreenCount >= 5) { // Increased threshold
           showEmergencyFallback();
         }
       } else {
@@ -69,8 +83,8 @@
       }
     };
     
-    // Check every second
-    setInterval(checkBlankScreen, 1000);
+    // Check every 2 seconds (less aggressive)
+    setInterval(checkBlankScreen, 2000);
   }
   
   // Show emergency fallback UI
@@ -195,10 +209,10 @@
     preventPurpleScreens();
     setupGlobalErrorHandlers();
     
-    // Start monitoring after a short delay
+    // Start monitoring after app has had time to load
     setTimeout(() => {
       monitorBlankScreens();
-    }, 2000);
+    }, 5000); // Give more time for app to load
     
     console.log('✅ [EmergencyProtection] Zero-error protection active');
   }
