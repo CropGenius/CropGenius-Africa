@@ -1,89 +1,80 @@
+import { vi } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import { MapboxFieldMap } from '@/components/fields/MapboxFieldMap';
+import MapboxFieldMap from '@/components/fields/MapboxFieldMap';
 import { useComponentLifecycle } from '@/utils/componentLifecycleManager';
 import ErrorBoundary from '@/components/error/ErrorBoundary';
 import { MapFallback } from '@/components/fallback/FallbackComponents';
 import { errorLogger } from '@/services/errorLogger';
 
 // Mock mapboxgl
-jest.mock('mapbox-gl', () => ({
-  Map: jest.fn().mockImplementation(() => ({
-    on: jest.fn((event, callback) => {
+vi.mock('mapbox-gl', () => ({
+  Map: vi.fn().mockImplementation(() => ({
+    on: vi.fn((event, callback) => {
       if (event === 'load' && !global.mockMapLoadError) {
         setTimeout(() => callback(), 0);
       }
     }),
-    remove: jest.fn(),
-    getContainer: jest.fn().mockReturnValue(document.createElement('div')),
-    addControl: jest.fn(),
-    flyTo: jest.fn(),
-    getCanvasContainer: jest.fn().mockReturnValue({ id: 'test-map' }),
-    getStyle: jest.fn().mockReturnValue({ name: 'test-style' }),
-    getCenter: jest.fn().mockReturnValue({ lat: 0, lng: 0 }),
-    getZoom: jest.fn().mockReturnValue(10),
-    addSource: jest.fn(),
-    addLayer: jest.fn(),
-    getSource: jest.fn().mockReturnValue(true),
-    removeLayer: jest.fn(),
-    removeSource: jest.fn()
+    remove: vi.fn(),
+    getContainer: vi.fn().mockReturnValue(document.createElement('div')),
+    addControl: vi.fn(),
+    flyTo: vi.fn(),
+    getCanvasContainer: vi.fn().mockReturnValue({ id: 'test-map' }),
+    getStyle: vi.fn().mockReturnValue({ name: 'test-style' }),
+    getCenter: vi.fn().mockReturnValue({ lat: 0, lng: 0 }),
+    getZoom: vi.fn().mockReturnValue(10),
+    addSource: vi.fn(),
+    addLayer: vi.fn(),
+    getSource: vi.fn().mockReturnValue(true),
+    removeLayer: vi.fn(),
+    removeSource: vi.fn()
   })),
-  NavigationControl: jest.fn(),
-  ScaleControl: jest.fn(),
-  GeolocateControl: jest.fn(),
-  Marker: jest.fn().mockImplementation(() => ({
-    setLngLat: jest.fn().mockReturnThis(),
-    addTo: jest.fn().mockReturnThis(),
-    remove: jest.fn()
+  NavigationControl: vi.fn(),
+  ScaleControl: vi.fn(),
+  GeolocateControl: vi.fn(),
+  Marker: vi.fn().mockImplementation(() => ({
+    setLngLat: vi.fn().mockReturnThis(),
+    addTo: vi.fn().mockReturnThis(),
+    remove: vi.fn()
   })),
-  LngLatBounds: jest.fn().mockImplementation(() => ({
-    extend: jest.fn(),
-    toArray: jest.fn().mockReturnValue([[0, 0], [1, 1]])
+  LngLatBounds: vi.fn().mockImplementation(() => ({
+    extend: vi.fn(),
+    toArray: vi.fn().mockReturnValue([[0, 0], [1, 1]])
   }))
 }));
 
 // Mock component lifecycle manager
-jest.mock('@/utils/componentLifecycleManager', () => {
-  const originalModule = jest.requireActual('@/utils/componentLifecycleManager');
-  
+vi.mock('@/utils/componentLifecycleManager', async () => {
+  const original = await vi.importActual<typeof import('@/utils/componentLifecycleManager')>('@/utils/componentLifecycleManager');
+  const manager = original.componentLifecycleManager;
+  vi.spyOn(manager, 'safeCleanup');
+
   return {
-    ...originalModule,
-    useComponentLifecycle: jest.fn().mockImplementation((componentId) => {
-      const cleanupFns: Record<string, () => void> = {};
-      
-      return {
-        registerCleanup: jest.fn((key, fn) => {
-          cleanupFns[key] = fn;
-        }),
-        executeCleanup: jest.fn((key) => {
-          if (cleanupFns[key]) {
-            cleanupFns[key]();
-          }
-        }),
-        executeAllCleanup: jest.fn(() => {
-          Object.values(cleanupFns).forEach(fn => fn());
-        }),
-        isComponentMounted: jest.fn().mockReturnValue(true),
-        createSafeStateSetter: jest.fn((setter) => setter),
-        createSafeAsyncOperation: jest.fn((fn) => fn)
-      };
-    })
+    ...original,
+    useComponentLifecycle: vi.fn().mockImplementation((componentId) => ({
+      registerCleanup: (cleanupFn: any) => manager.registerCleanup(componentId, cleanupFn),
+      isComponentMounted: () => manager.isComponentMounted(componentId),
+      createSafeAsyncOperation: <T,>(operation: () => Promise<T>) => manager.createSafeAsyncOperation(componentId, operation),
+      createSafeStateSetter: <T,>(setter: (value: T | ((prev: T) => T)) => void) => manager.createSafeStateSetter(componentId, setter),
+    })),
+    componentLifecycleManager: manager,
   };
 });
 
 // Mock error logger
-jest.mock('@/services/errorLogger', () => ({
+vi.mock('@/services/errorLogger', () => ({
   errorLogger: {
-    logError: jest.fn(),
-    logSuccess: jest.fn()
+    logError: vi.fn(),
+    logSuccess: vi.fn()
   },
-  logError: jest.fn(),
-  logSuccess: jest.fn(),
+  logError: vi.fn(),
+  logSuccess: vi.fn(),
   ErrorCategory: {
     COMPONENT: 'component'
   },
   ErrorSeverity: {
-    HIGH: 'high'
+    HIGH: 'high',
+    LOW: 'low'
   }
 }));
 
@@ -107,7 +98,7 @@ Object.defineProperty(window, 'localStorage', { value: localStorageMock });
 
 describe('Component Lifecycle Error Handling Integration Tests', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     global.mockMapLoadError = false;
     
     // Mock environment variable
@@ -148,8 +139,7 @@ describe('Component Lifecycle Error Handling Integration Tests', () => {
       unmount();
       
       // Verify cleanup was executed
-      const lifecycle = useComponentLifecycle('test');
-      expect(lifecycle.executeAllCleanup).toHaveBeenCalled();
+      expect(require('@/utils/componentLifecycleManager').componentLifecycleManager.safeCleanup).toHaveBeenCalledWith('MapboxFieldMap');
     });
     
     test('handles map initialization errors gracefully', async () => {

@@ -1,21 +1,22 @@
+import { vi } from 'vitest';
 import { supabase } from '@/integrations/supabase/client';
 import { retryManager, withRetry } from '@/utils/retryManager';
 import { offlineDataManager } from '@/utils/offlineDataManager';
 import { errorLogger, ErrorCategory, ErrorSeverity } from '@/services/errorLogger';
 
 // Mock fetch
-global.fetch = jest.fn();
+global.fetch = vi.fn();
 
 // Mock supabase client
-jest.mock('@/integrations/supabase/client', () => ({
+vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
-    from: jest.fn().mockReturnThis(),
-    select: jest.fn().mockReturnThis(),
-    eq: jest.fn().mockReturnThis(),
-    single: jest.fn().mockReturnThis(),
-    then: jest.fn().mockResolvedValue({ data: null, error: null }),
+    from: vi.fn().mockReturnThis(),
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    single: vi.fn().mockReturnThis(),
+    then: vi.fn().mockResolvedValue({ data: null, error: null }),
     functions: {
-      invoke: jest.fn().mockImplementation((functionName, options) => {
+      invoke: vi.fn().mockImplementation((functionName, options) => {
         // Simulate different API responses based on the mock state
         if (functionName === 'field-ai-insights') {
           switch (global.mockApiState) {
@@ -49,55 +50,32 @@ jest.mock('@/integrations/supabase/client', () => ({
   }
 }));
 
-// Mock retry manager
-jest.mock('@/utils/retryManager', () => {
-  const original = jest.requireActual('@/utils/retryManager');
-  return {
-    ...original,
-    retryManager: {
-      ...original.retryManager,
-      isCircuitOpen: jest.fn().mockReturnValue(false),
-      openCircuit: jest.fn(),
-      closeCircuit: jest.fn(),
-      recordSuccess: jest.fn(),
-      recordFailure: jest.fn(),
-      getMetrics: jest.fn().mockReturnValue({
-        totalCalls: 10,
-        successCount: 8,
-        failureCount: 2,
-        errorRate: 0.2,
-        averageResponseTime: 150,
-        lastSuccess: new Date(),
-        lastError: new Error('Test error')
-      })
-    }
-  };
-});
+// We will use the actual retryManager to test its behavior
 
 // Mock offline data manager
-jest.mock('@/utils/offlineDataManager', () => ({
+vi.mock('@/utils/offlineDataManager', () => ({
   offlineDataManager: {
-    getData: jest.fn().mockImplementation((key, fn, maxAge, fallbackData) => {
+    getData: vi.fn().mockImplementation((key, fn, maxAge, fallbackData) => {
       if (global.mockApiState === 'offline') {
         return Promise.resolve(fallbackData || { healthScore: 0.5 });
       }
       return fn();
     }),
-    setData: jest.fn(),
-    getCachedData: jest.fn().mockImplementation((key) => {
+    setData: vi.fn(),
+    getCachedData: vi.fn().mockImplementation((key) => {
       if (global.mockApiState === 'offline') {
         return { healthScore: 0.5 };
       }
       return null;
     }),
-    getCacheStats: jest.fn().mockReturnValue({ totalItems: 10 })
+    getCacheStats: vi.fn().mockReturnValue({ totalItems: 10 })
   },
-  getCachedData: jest.fn(),
-  setCachedData: jest.fn()
+  getCachedData: vi.fn(),
+  setCachedData: vi.fn()
 }));
 
 // Mock error logger
-jest.mock('@/services/errorLogger', () => ({
+vi.mock('@/services/errorLogger', () => ({
   errorLogger: {
     logError: jest.fn(),
     logSuccess: jest.fn()
@@ -176,42 +154,19 @@ describe('API Error Recovery Integration Tests', () => {
       }));
     });
     
-    test('implements circuit breaker pattern for persistent failures', async () => {
-      // Mock server error
-      global.mockApiState = 'server_error';
-      
-      // Mock circuit breaker
-      jest.spyOn(retryManager, 'isCircuitOpen').mockReturnValueOnce(false);
-      
-      // Make API call that will trigger circuit breaker
-      const apiCall = async () => {
-        if (retryManager.isCircuitOpen('field-ai-insights')) {
-          throw new Error('Circuit open');
-        }
-        
-        const result = await supabase.functions.invoke('field-ai-insights', {
-          body: { field_id: '123' }
-        });
-        
-        if (result.error) {
-          retryManager.recordFailure('field-ai-insights', new Error(result.error.message));
-          retryManager.openCircuit('field-ai-insights');
-          throw new Error(result.error.message);
-        }
-        
-        return result.data;
-      };
-      
-      // First call should fail and open circuit
-      await expect(apiCall()).rejects.toThrow();
-      expect(retryManager.recordFailure).toHaveBeenCalled();
-      expect(retryManager.openCircuit).toHaveBeenCalledWith('field-ai-insights');
-      
-      // Mock circuit now open
-      jest.spyOn(retryManager, 'isCircuitOpen').mockReturnValueOnce(true);
-      
-      // Second call should fail fast with circuit open
-      await expect(apiCall()).rejects.toThrow('Circuit open');
+        test('implements circuit breaker pattern for persistent failures', async () => {
+      global.mockApiState = 'server_error'; // Make the API always fail
+
+      const failingApiCall = () => supabase.functions.invoke('field-ai-insights', { body: { field_id: '123' } });
+      const circuitBreakerKey = 'test-circuit';
+
+      // The default failureThreshold is 5. Let's make 5 calls to open the circuit.
+      for (let i = 0; i < 5; i++) {
+        await expect(withRetry(failingApiCall, { maxRetries: 0 }, circuitBreakerKey)).rejects.toThrow();
+      }
+
+      // The 6th call should fail immediately because the circuit is open.
+      await expect(withRetry(failingApiCall, { maxRetries: 0 }, circuitBreakerKey)).rejects.toThrow('Circuit breaker is OPEN');
     });
   });
   

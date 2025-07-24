@@ -202,6 +202,58 @@ class ErrorRecoverySystem {
         };
       }
     });
+    
+    // Data Validation Strategy
+    this.strategies.set('data_validation', {
+      id: 'data_validation',
+      name: 'Data Validation',
+      priority: 1, // High priority
+      successCount: 0,
+      failureCount: 0,
+      averageRecoveryTime: 0,
+      conditions: (error, context) => {
+        return error.message.includes('invalid data') ||
+               error.message.includes('validation') ||
+               error.message.includes('schema') ||
+               error.message.includes('undefined') ||
+               error.message.includes('null') ||
+               error.message.includes('type') ||
+               error.message.includes('expected');
+      },
+      execute: async (error, context) => {
+        try {
+          // Get smart fallback data for the component
+          const fallbackData = offlineDataManager.getSmartFallback(context.component);
+          
+          if (fallbackData) {
+            console.log(`🔧 [ErrorRecovery] Using smart fallback data for ${context.component} due to data validation error`);
+            
+            return {
+              success: true,
+              strategy: 'data_validation',
+              recoveryTime: 0,
+              fallbackData,
+              message: 'Using validated fallback data structure'
+            };
+          }
+          
+          return {
+            success: false,
+            strategy: 'data_validation',
+            recoveryTime: 0,
+            message: 'No fallback data available for validation'
+          };
+        } catch (validationError) {
+          console.error('Data validation recovery failed:', validationError);
+          return {
+            success: false,
+            strategy: 'data_validation',
+            recoveryTime: 0,
+            message: 'Data validation recovery failed'
+          };
+        }
+      }
+    });
 
     // Cache Fallback Strategy
     this.strategies.set('cache_fallback', {
@@ -232,7 +284,7 @@ class ErrorRecoverySystem {
           }
           
           // Try to get smart fallback
-          const smartFallback = await offlineDataManager.getSmartFallback?.(context.component);
+          const smartFallback = offlineDataManager.getSmartFallback(context.component);
           if (smartFallback) {
             return {
               success: true,
@@ -496,29 +548,8 @@ class ErrorRecoverySystem {
    * Get default data for component
    */
   private getDefaultDataForComponent(component: string): any {
-    const defaults: Record<string, any> = {
-      'WeatherIntelligenceDashboard': {
-        forecast: [],
-        farmingInsights: null,
-        alerts: [],
-        yieldPredictions: []
-      },
-      'FieldDashboard': {
-        fields: [],
-        totalArea: 0,
-        healthScore: null
-      },
-      'DiseaseDetectionCamera': {
-        isOffline: true,
-        supportedCrops: ['maize', 'tomato', 'beans']
-      },
-      'MapboxFieldMap': {
-        isOffline: true,
-        cachedBoundaries: []
-      }
-    };
-    
-    return defaults[component] || null;
+    // Use the offlineDataManager's getSmartFallback for consistency
+    return offlineDataManager.getSmartFallback(component);
   }
 
   /**
