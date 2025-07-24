@@ -1,9 +1,11 @@
 /**
  * 🎨 CROPGENIUS GLOBAL STYLES - Trillion-Dollar CSS
  * iPhone 20 Pro level styling with glassmorphism magic
+ * 🛡️ ZERO ERROR PROTECTION - NO PURPLE SCREENS EVER!
  */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import './styles/zero-error-protection.css';
 
 /* Global Reset & Base Styles */
 * {

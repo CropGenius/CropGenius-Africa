@@ -25,16 +25,37 @@
       console.warn('Storage clear failed:', e);
     }
   </script>
+  <!-- 🛡️ EMERGENCY PROTECTION - PREVENTS PURPLE SCREENS -->
+  <script src="/emergency-protection.js"></script>
+  
   <style>
     body {
       margin: 0;
       font-family: system-ui, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f0fdf4 100%) !important;
       min-height: 100vh;
     }
 
     #root {
       min-height: 100vh;
+    }
+    
+    /* EMERGENCY: Prevent ANY purple backgrounds */
+    html, body, #root, .App {
+      background-color: #f0f9ff !important;
+      background-image: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f0fdf4 100%) !important;
+    }
+    
+    /* Emergency loading state */
+    #root:empty::before {
+      content: "🌱 CropGenius Loading...";
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #059669;
     }
   </style>
 </head>

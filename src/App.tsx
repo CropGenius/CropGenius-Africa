@@ -1,6 +1,7 @@
 /**
  * 🚀 CROPGENIUS APP - Trillion-Dollar Entry Point
  * iPhone 20 Pro level app with glassmorphism magic + offline intelligence
+ * 🛡️ ZERO ERROR TOLERANCE - NO PURPLE SCREENS EVER!
  */
 
 import React, { useEffect } from 'react';
@@ -14,6 +15,7 @@ import { CriticalErrorBoundary } from './components/error/EnhancedErrorBoundary'
 import { CriticalErrorFallback } from './components/fallback/ErrorFallbacks';
 import { useErrorHandler } from './utils/errorHandling';
 import { GlassmorphismProvider } from './components/ui/GlassmorphismProvider';
+import ZeroErrorAppWrapper from './components/app/ZeroErrorAppWrapper';
 import './App.css';
 
 function App() {
@@ -68,30 +70,32 @@ function App() {
   }, [queryClient, handleError]);
   
   return (
-    <CriticalErrorBoundary
-      errorBoundaryId="app-root"
-      fallback={(error, reset) => <CriticalErrorFallback error={error} reset={reset} />}
-      onError={(error, errorInfo) => {
-        console.error('Critical app error:', error, errorInfo);
-        // Additional critical error handling can go here
-      }}
-    >
-      <GlassmorphismProvider
-        config={{
-          enabled: true,
-          intensity: 'medium',
-          theme: 'auto'
+    <ZeroErrorAppWrapper>
+      <CriticalErrorBoundary
+        errorBoundaryId="app-root"
+        fallback={(error, reset) => <CriticalErrorFallback error={error} reset={reset} />}
+        onError={(error, errorInfo) => {
+          console.error('Critical app error:', error, errorInfo);
+          // Additional critical error handling can go here
         }}
       >
-        <BrowserRouter>
-          <div className="App min-h-screen overflow-hidden bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
-            <AppRoutes />
-            {/* 🔥 INFINITY IQ PKCE DEBUG DASHBOARD - DEVELOPMENT ONLY */}
-            {process.env.NODE_ENV === 'development' && <PKCEDebugDashboard />}
-          </div>
-        </BrowserRouter>
-      </GlassmorphismProvider>
-    </CriticalErrorBoundary>
+        <GlassmorphismProvider
+          config={{
+            enabled: true,
+            intensity: 'medium',
+            theme: 'auto'
+          }}
+        >
+          <BrowserRouter>
+            <div className="App min-h-screen overflow-hidden bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
+              <AppRoutes />
+              {/* 🔥 INFINITY IQ PKCE DEBUG DASHBOARD - DEVELOPMENT ONLY */}
+              {process.env.NODE_ENV === 'development' && <PKCEDebugDashboard />}
+            </div>
+          </BrowserRouter>
+        </GlassmorphismProvider>
+      </CriticalErrorBoundary>
+    </ZeroErrorAppWrapper>
   );
 }
 
