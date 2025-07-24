@@ -60,12 +60,15 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { toast } from 'sonner';// 
-🔥 INFINITY IQ HOOKS AND SERVICES
+import { toast } from 'sonner';
+
+// 🔥 INFINITY IQ HOOKS AND SERVICES
 import { useMissionControl } from '@/hooks/useMissionControl';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { useErrorHandler } from '@/utils/errorHandling';
 import { useOfflineStatus } from '@/hooks/useOfflineStatus';
+import { useAuditSystem } from '@/hooks/useAuditSystem';
+import { FrontendPerformanceDashboard } from '@/components/performance/FrontendPerformanceDashboard';
 import { PageErrorBoundary, WidgetErrorBoundary } from '@/components/error/EnhancedErrorBoundary';
 import { OfflineWrapper } from '@/components/offline/OfflineWrapper';
 
@@ -113,6 +116,17 @@ export const EnhancedMissionControlDashboard: React.FC = () => {
   const { user } = useAuthContext();
   const { handleError } = useErrorHandler();
   const { isOnline } = useOfflineStatus();
+  
+  // 🚀 AUDIT SYSTEM HOOK
+  const {
+    currentAudit,
+    isRunning: isAuditRunning,
+    executeAudit,
+    cancelAudit,
+    auditHistory,
+    isLoadingHistory,
+    refreshHistory
+  } = useAuditSystem();
   
   // 🚀 MISSION CONTROL HOOK
   const {
@@ -372,11 +386,19 @@ export const EnhancedMissionControlDashboard: React.FC = () => {
 
         {/* 🔥 MAIN CONTENT TABS */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-4 w-full">
+          <TabsList className="grid grid-cols-6 w-full">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="users">User Management</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="activity">Activity</TabsTrigger>
+            <TabsTrigger value="audit" className="gap-2">
+              <Shield className="h-4 w-4" />
+              Platform Audit
+            </TabsTrigger>
+            <TabsTrigger value="performance" className="gap-2">
+              <Zap className="h-4 w-4" />
+              Performance
+            </TabsTrigger>
           </TabsList>
 
           {/* 🚀 OVERVIEW TAB */}
@@ -678,6 +700,238 @@ export const EnhancedMissionControlDashboard: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* 🚀 PLATFORM AUDIT TAB */}
+          <TabsContent value="audit" className="space-y-6">
+            
+            {/* Audit Control Panel */}
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-xl flex items-center gap-2">
+                      <Shield className="h-6 w-6 text-blue-600" />
+                      Platform Audit System
+                    </CardTitle>
+                    <CardDescription>
+                      Comprehensive 4-phase audit for health, intelligence, security, and verification
+                    </CardDescription>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    {isAuditRunning ? (
+                      <Button
+                        onClick={cancelAudit}
+                        variant="destructive"
+                        size="sm"
+                        className="gap-2"
+                      >
+                        <AlertTriangle className="h-4 w-4" />
+                        Cancel Audit
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={executeAudit}
+                        variant="default"
+                        size="sm"
+                        className="gap-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
+                      >
+                        <Zap className="h-4 w-4" />
+                        Start Audit
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardHeader>
+              
+              {/* Current Audit Status */}
+              {(currentAudit || isAuditRunning) && (
+                <CardContent>
+                  <div className="space-y-4">
+                    
+                    {/* Audit Progress */}
+                    {isAuditRunning && (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">Audit in Progress</span>
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                            <Activity className="h-3 w-3 mr-1 animate-pulse" />
+                            Running
+                          </Badge>
+                        </div>
+                        <Progress value={65} className="w-full" />
+                        <p className="text-xs text-muted-foreground">
+                          Analyzing system health and performance...
+                        </p>
+                      </div>
+                    )}
+                    
+                    {/* Current Audit Results */}
+                    {currentAudit && !isAuditRunning && (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                          <div className="text-center p-3 border rounded-lg">
+                            <div className="text-2xl font-bold text-blue-600">
+                              {currentAudit.overallScore}
+                            </div>
+                            <div className="text-xs text-muted-foreground">Overall Score</div>
+                          </div>
+                          <div className="text-center p-3 border rounded-lg">
+                            <div className="text-2xl font-bold text-orange-600">
+                              {currentAudit.totalFindings}
+                            </div>
+                            <div className="text-xs text-muted-foreground">Total Findings</div>
+                          </div>
+                          <div className="text-center p-3 border rounded-lg">
+                            <div className="text-2xl font-bold text-red-600">
+                              {currentAudit.criticalFindings}
+                            </div>
+                            <div className="text-xs text-muted-foreground">Critical Issues</div>
+                          </div>
+                          <div className="text-center p-3 border rounded-lg">
+                            <div className="text-2xl font-bold text-green-600">
+                              {currentAudit.resolvedFindings}
+                            </div>
+                            <div className="text-xs text-muted-foreground">Resolved</div>
+                          </div>
+                        </div>
+                        
+                        {/* Audit Summary */}
+                        <Alert>
+                          <CheckCircle className="h-4 w-4" />
+                          <AlertTitle>Audit Summary</AlertTitle>
+                          <AlertDescription>
+                            {currentAudit.summary}
+                          </AlertDescription>
+                        </Alert>
+                        
+                        {/* Phase Results */}
+                        <div className="space-y-3">
+                          <h4 className="font-medium">Phase Results</h4>
+                          {currentAudit.phases.map((phase, index) => (
+                            <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                              <div className="flex items-center space-x-3">
+                                <div className={`w-3 h-3 rounded-full ${
+                                  phase.status === 'completed' ? 'bg-green-500' : 
+                                  phase.status === 'failed' ? 'bg-red-500' : 'bg-yellow-500'
+                                }`} />
+                                <div>
+                                  <p className="text-sm font-medium capitalize">
+                                    {phase.phase.replace('_', ' ')}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {phase.findings.length} findings
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-sm font-bold">{phase.score}/100</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {Math.round((phase.duration || 0) / 1000)}s
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* Recommendations */}
+                        {currentAudit.recommendations.length > 0 && (
+                          <div className="space-y-2">
+                            <h4 className="font-medium">Key Recommendations</h4>
+                            <ul className="space-y-1">
+                              {currentAudit.recommendations.slice(0, 5).map((rec, index) => (
+                                <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
+                                  <Target className="h-3 w-3 mt-0.5 text-blue-600 flex-shrink-0" />
+                                  {rec}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              )}
+            </Card>
+            
+            {/* Audit History */}
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">Audit History</CardTitle>
+                  <Button
+                    onClick={refreshHistory}
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    Refresh
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {isLoadingHistory ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="flex items-center space-x-3 p-3 border rounded-lg animate-pulse">
+                        <div className="w-3 h-3 bg-gray-300 rounded-full" />
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 bg-gray-300 rounded w-1/4" />
+                          <div className="h-3 bg-gray-300 rounded w-1/2" />
+                        </div>
+                        <div className="h-6 bg-gray-300 rounded w-16" />
+                      </div>
+                    ))}
+                  </div>
+                ) : auditHistory.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium mb-2">No Audit History</h3>
+                    <p className="text-muted-foreground">
+                      Run your first platform audit to see results here
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {auditHistory.slice(0, 10).map((audit) => (
+                      <div key={audit.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-3 h-3 rounded-full ${
+                            audit.status === 'completed' ? 'bg-green-500' : 
+                            audit.status === 'failed' ? 'bg-red-500' : 'bg-yellow-500'
+                          }`} />
+                          <div>
+                            <p className="text-sm font-medium">
+                              Audit {format(new Date(audit.startTime), 'MMM dd, yyyy HH:mm')}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {audit.totalFindings} findings • {audit.phases.length} phases
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <Badge variant="outline" className={
+                            audit.overallScore >= 90 ? 'bg-green-50 text-green-700 border-green-200' :
+                            audit.overallScore >= 70 ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                            'bg-red-50 text-red-700 border-red-200'
+                          }>
+                            {audit.overallScore}/100
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* 🚀 FRONTEND PERFORMANCE TAB */}
+          <TabsContent value="performance" className="space-y-6">
+            <FrontendPerformanceDashboard />
           </TabsContent>
         </Tabs>
 

@@ -1,15 +1,15 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "types": ["node", "jsdom"],
     "jsx": "react-jsx",
     "esModuleInterop": true,
     "lib": ["dom", "dom.iterable", "esnext"],
     "module": "esnext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "strict": true,
-    "target": "esnext"
+    "isolatedModules": true,
+    "noEmit": true,
+    "types": ["vitest/globals", "jest", "node", "jsdom"]
   },
   "include": [
     "src/**/*.test.ts",

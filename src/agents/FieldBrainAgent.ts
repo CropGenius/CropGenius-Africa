@@ -29,6 +29,10 @@ export class FieldBrainAgent {
     return FieldBrainAgent.instance;
   }
 
+  public getIsInitialized(): boolean {
+    return this.isInitialized;
+  }
+
   private constructor() {
     // Initialize online status tracking
     window.addEventListener('online', this.handleOnline);

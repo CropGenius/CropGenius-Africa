@@ -15,7 +15,7 @@ describe('FieldBrainAgent', () => {
   it('should initialize correctly', async () => {
     const result = await agent.initialize('test-user');
     expect(result).toBe(true);
-    expect(agent.isInitialized).toBe(true);
+    expect(agent.getIsInitialized()).toBe(true);
   });
 
   it('should add a memory', () => {

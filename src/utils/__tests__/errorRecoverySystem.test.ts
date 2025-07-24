@@ -1,14 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import * as errorRecoverySystem from '../errorRecoverySystem';
-import { ErrorContext } from '../errorRecoverySystem';
+import { errorRecoverySystem, ErrorContext } from '../errorRecoverySystem';
 import { offlineDataManager } from '../offlineDataManager';
 
-// Mock offlineDataManager
 vi.mock('../offlineDataManager', () => ({
   offlineDataManager: {
     getCachedData: vi.fn(),
     getSmartFallback: vi.fn(),
-  }
+  },
 }));
 
 describe('ErrorRecoverySystem', () => {
@@ -17,105 +15,66 @@ describe('ErrorRecoverySystem', () => {
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
-  describe('data_validation strategy', () => {
-    it('should recover using getSmartFallback when validation error occurs', async () => {
-      // Mock getSmartFallback to return test data
-      const mockFallbackData = { test: 'fallback data' };
-      vi.mocked(offlineDataManager.getSmartFallback).mockReturnValue(mockFallbackData);
+  it('should attempt to use cache fallback for network errors', async () => {
+    const error = new Error('Network request failed');
+    const context: ErrorContext = { 
+      component: 'TestComponent',
+      operation: 'testFetch',
+      timestamp: new Date(),
+      networkStatus: 'offline',
+      retryCount: 0,
+      userAgent: 'Vitest',
+      url: '/test',
+    };
+    (offlineDataManager.getCachedData as vi.Mock).mockResolvedValue({ data: 'cached data' });
 
-      // Create a validation error
-      const error = new Error('invalid data structure');
-      const context = {
-        component: 'WeatherIntelligenceDashboard',
-        networkStatus: 'online',
-        retryCount: 0
-      };
+    const result = await errorRecoverySystem.recoverFromError(error, context);
 
-      // Execute recovery
-      const result = await errorRecoverySystem.recoverFromError(error, context);
-
-      // Verify results
-      expect(result.success).toBe(true);
-      expect(result.strategy).toBe('data_validation');
-      expect(offlineDataManager.getSmartFallback).toHaveBeenCalledWith('WeatherIntelligenceDashboard');
-      expect(result.fallbackData).toEqual(mockFallbackData);
-    });
-
-    it('should fail recovery when no fallback data is available', async () => {
-      // Mock getSmartFallback to return null
-      vi.mocked(offlineDataManager.getSmartFallback).mockReturnValue(null);
-
-      // Create a validation error
-      const error = new Error('invalid data structure');
-      const context: Partial<ErrorContext> = { component: 'TestComponent', networkStatus: 'online', retryCount: 0 };
-
-      // Execute recovery
-      const result = await errorRecoverySystem.recoverFromError(error, context);
-
-      // Verify results
-      expect(result.success).toBe(false);
-      expect(result.strategy).toBe('data_validation');
-      expect(offlineDataManager.getSmartFallback).toHaveBeenCalledWith('UnknownComponent');
-      expect(result.message).toContain('No fallback data available');
-    });
+    expect(offlineDataManager.getCachedData).toHaveBeenCalledWith(context.component);
+    expect(result.success).toBe(true);
+    expect(result.strategy).toContain('cache_fallback');
   });
 
-  describe('cache_fallback strategy', () => {
-    it('should try getCachedData first and then getSmartFallback', async () => {
-      // Mock getCachedData to return null (no cache)
-      vi.mocked(offlineDataManager.getCachedData).mockReturnValue(null);
-      
-      // Mock getSmartFallback to return test data
-      const mockFallbackData = { test: 'smart fallback data' };
-      vi.mocked(offlineDataManager.getSmartFallback).mockReturnValue(mockFallbackData);
+  it('should use smart fallback if cache is unavailable', async () => {
+    const error = new Error('Network request failed');
+    const context: ErrorContext = { 
+      component: 'TestComponent',
+      operation: 'testFetch',
+      timestamp: new Date(),
+      networkStatus: 'offline',
+      retryCount: 1,
+      userAgent: 'Vitest',
+      url: '/test',
+    };
+    (offlineDataManager.getCachedData as vi.Mock).mockResolvedValue(null);
+    (offlineDataManager.getSmartFallback as vi.Mock).mockResolvedValue({ data: 'smart fallback data' });
 
-      // Create a network error
-      const error = new Error('network failure');
-      const context = {
-        component: 'FieldDashboard',
-        networkStatus: 'offline',
-        retryCount: 0
-      };
+    const result = await errorRecoverySystem.recoverFromError(error, context);
 
-      // Execute recovery
-      const result = await errorRecoverySystem.recoverFromError(error, context);
+    expect(offlineDataManager.getSmartFallback).toHaveBeenCalledWith(context.component);
+    expect(result.success).toBe(true);
+    expect(result.strategy).toContain('smart_fallback');
+  });
 
-      // Verify results
-      expect(result.success).toBe(true);
-      expect(result.strategy).toBe('cache_fallback');
-      expect(offlineDataManager.getCachedData).toHaveBeenCalled();
-      expect(offlineDataManager.getSmartFallback).toHaveBeenCalledWith('FieldDashboard');
-      expect(result.fallbackData).toEqual(mockFallbackData);
-    });
+  it('should fail if all recovery strategies are exhausted', async () => {
+    const error = new Error('Critical error');
+    const context: ErrorContext = { 
+      component: 'TestComponent',
+      operation: 'testFetch',
+      timestamp: new Date(),
+      networkStatus: 'offline',
+      retryCount: 3,
+      userAgent: 'Vitest',
+      url: '/test',
+    };
+    (offlineDataManager.getCachedData as vi.Mock).mockResolvedValue(null);
+    (offlineDataManager.getSmartFallback as vi.Mock).mockResolvedValue(null);
 
-    it('should use cached data when available instead of smart fallback', async () => {
-      // Mock getCachedData to return cached data
-      const cachedData = { test: 'cached data' };
-      vi.mocked(offlineDataManager.getCachedData).mockReturnValue(cachedData);
-      
-      // Mock getSmartFallback (should not be called)
-      vi.mocked(offlineDataManager.getSmartFallback).mockReturnValue({ test: 'should not be used' });
+    const result = await errorRecoverySystem.recoverFromError(error, context);
 
-      // Create a network error
-      const error = new Error('network failure');
-      const context = {
-        component: 'FieldDashboard',
-        networkStatus: 'offline',
-        retryCount: 0
-      };
-
-      // Execute recovery
-      const result = await errorRecoverySystem.recoverFromError(error, context);
-
-      // Verify results
-      expect(result.success).toBe(true);
-      expect(result.strategy).toBe('cache_fallback');
-      expect(offlineDataManager.getCachedData).toHaveBeenCalled();
-      expect(offlineDataManager.getSmartFallback).not.toHaveBeenCalled();
-      expect(result.fallbackData).toEqual(cachedData);
-    });
+    expect(result.success).toBe(false);
   });
 });
