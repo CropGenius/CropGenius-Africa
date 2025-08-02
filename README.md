@@ -1,7 +1,7 @@
 # 🌾 CROPGENIUS - AGRICULTURAL SUPERINTELLIGENCE PLATFORM
 
 ## 🌍 INTRODUCTION
-no giving up
+
 **CropGenius** is a precision agriculture platform designed to provide smallholder farmers in Africa with real-time, AI-powered intelligence. Our mission is to make every farmer feel like they have a dedicated team of agronomists, meteorologists, and market analysts in their pocket.
 
 ### Target Users
