@@ -437,4 +437,8 @@ export const devMemoryOverride = async (overrides: Partial<UserMemory>) => {
   }
   
   return true;
+} catch (error) {
+  console.error('Failed to update user memory:', error);
+  return false;
+}
 };

@@ -55,7 +55,7 @@ ${content.steps ? '📋 Steps:\n' + content.steps.map((step: string, i: number) 
         .replace(/"title":/g, '"t":')
         .replace(/"description":/g, '"d":')
         .replace(/"ingredients":/g, '"i":')
-        .replace(/"instructions":/g, '"s":");
+        .replace(/"instructions":/g, '"s":');
       
       return compressed;
     } catch (error) {

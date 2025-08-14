@@ -175,7 +175,7 @@ export const FarmFutureOrb: React.FC<FarmFutureOrbProps> = ({
           <View style={styles.centerContent}>
             <Text style={styles.profitLabel}>Profit Potential</Text>
             <Text style={styles.profitAmount}>{formatCurrency(profitPotential)}</Text>
-            <Text style={styles.healthIndicator}>Health: {healthScore}%</Text
+            <Text style={styles.healthIndicator}>Health: {healthScore}%</Text>
             <Text style={styles.intensityLabel}>{getOrbIntensity()} potential</Text>
           </View>
 
