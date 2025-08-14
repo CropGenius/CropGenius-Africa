@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CropGenius Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .error { color: red; background: #ffe6e6; padding: 10px; margin: 10px 0; }
+        .success { color: green; background: #e6ffe6; padding: 10px; margin: 10px 0; }
+        .info { color: blue; background: #e6f3ff; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🚨 CropGenius Debug Console</h1>
+    <div id="debug-output"></div>
+    
+    <script>
+        const output = document.getElementById('debug-output');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            output.appendChild(div);
+            console.log(message);
+        }
+        
+        // Test environment variables
+        log('🔍 Testing Environment Variables:', 'info');
+        
+        // Check if we can access the main app
+        try {
+            log('✅ Basic JavaScript working', 'success');
+            
+            // Test fetch to Supabase
+            const supabaseUrl = 'https://bapqlyvfwxsichlyjxpd.supabase.co';
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJhcHFseXZmd3hzaWNobHlqeHBkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MDgyMzIsImV4cCI6MjA1NzI4NDIzMn0.hk2D1tvqIM7id40ajPE9_2xtAIC7_thqQN9m0b_4m5g';
+            
+            fetch(`${supabaseUrl}/rest/v1/profiles?limit=1`, {
+                headers: {
+                    'apikey': supabaseKey,
+                    'Authorization': `Bearer ${supabaseKey}`
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    log('✅ Supabase connection working', 'success');
+                } else {
+                    log(`❌ Supabase error: ${response.status}`, 'error');
+                }
+            })
+            .catch(error => {
+                log(`❌ Supabase fetch failed: ${error.message}`, 'error');
+            });
+            
+        } catch (error) {
+            log(`❌ JavaScript error: ${error.message}`, 'error');
+        }
+        
+        // Check if React app loads
+        setTimeout(() => {
+            const root = document.querySelector('#root');
+            if (root && root.children.length > 0) {
+                log('✅ React app rendered successfully', 'success');
+            } else {
+                log('❌ React app failed to render', 'error');
+                log('Root element content: ' + (root ? root.innerHTML : 'No root element'), 'error');
+            }
+        }, 3000);
+        
+        // Capture all console errors
+        window.addEventListener('error', (event) => {
+            log(`❌ Global error: ${event.error?.message || event.message}`, 'error');
+        });
+        
+        window.addEventListener('unhandledrejection', (event) => {
+            log(`❌ Unhandled promise rejection: ${event.reason}`, 'error');
+        });
+    </script>
+    
+    <!-- Include the main app -->
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>

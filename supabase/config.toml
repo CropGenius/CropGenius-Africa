@@ -1,0 +1,20 @@
+project_id = "bapqlyvfwxsichlyjxpd"
+
+[api]
+enabled = true
+port = 54321
+
+[db]
+port = 54322
+
+[functions.weather]
+verify_jwt = false
+
+[functions.crop-scan]
+verify_jwt = true
+
+[functions.field-analysis]
+verify_jwt = true
+
+[functions.fn-crop-disease]
+verify_jwt = true

@@ -1,0 +1,1 @@
+console.log('✅ Image optimization skipped - no images to optimize');

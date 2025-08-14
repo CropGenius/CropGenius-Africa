@@ -1,0 +1,60 @@
+{
+  "mcpServers": {
+    "puppeteer": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "puppeteer-mcp-server"
+      ],
+      "env": {},
+      "disabled": false,
+      "autoApprove": []
+    },
+    "supabase": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@supabase/mcp-server-supabase@latest",
+        "--project-ref=bapqlyvfwxsichlyjxpd"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "sbp_fe9555dcbe70b2e0eea134c8a01b99605639c54f"
+      },
+      "disabled": false,
+      "autoApprove": []
+    },
+    "context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp"
+      ],
+      "disabled": false,
+      "autoApprove": []
+    },
+    "TestSprite": {
+      "command": "npx",
+      "args": [
+        "@testsprite/testsprite-mcp@latest"
+      ],
+      "env": {
+        "APIKEY": "sk-user-53YoSvjgLjTcxWXGPs23oGJKDb7bxysog393p213j5MC1MQwFCFNWHLo2pqdiQGmPFhXSWTrEIJkC4-aOKYJGMyHxXzPVagnMMmug-YPtZtL0VQdrJ1SySQhocJVx_hrAp0"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "testsprite_bootstrap_tests",
+        "testsprite_generate_code_summary"
+      ]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest"
+      ],
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}

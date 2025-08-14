@@ -1,0 +1,343 @@
+/* 
+ * Mobile-First CSS Optimizations for African Farmers
+ * Budget Android devices (1GB RAM, Android 6+)
+ * iPhone SE → iPhone 15 Pro compatibility
+ */
+
+/* Reset for mobile performance */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  
+  /* Prevent text size adjustment on orientation change */
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Allow text selection on input fields */
+input, textarea, select {
+  -webkit-user-select: auto;
+  user-select: auto;
+}
+
+/* Perfect scrolling performance */
+html, body {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Safe area support for iPhone X+ */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .safe-area-left {
+    padding-left: env(safe-area-inset-left);
+  }
+  
+  .safe-area-right {
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* Touch target sizing - 44x44px minimum */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px;
+}
+
+.touch-target-lg {
+  min-width: 48px;
+  min-height: 48px;
+  padding: 12px;
+}
+
+/* Touch manipulation for better scrolling */
+.touch-manipulation {
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Prevent horizontal scrolling */
+.prevent-horizontal-scroll {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Responsive font sizing */
+html {
+  font-size: 16px;
+}
+
+@media (max-width: 320px) {
+  html {
+    font-size: 14px; /* Ultra-budget phones */
+  }
+}
+
+@media (min-width: 321px) and (max-width: 375px) {
+  html {
+    font-size: 15px; /* iPhone SE */
+  }
+}
+
+@media (min-width: 376px) and (max-width: 768px) {
+  html {
+    font-size: 16px; /* Most phones */
+  }
+}
+
+@media (min-width: 769px) {
+  html {
+    font-size: 18px; /* Tablets and desktop */
+  }
+}
+
+/* Viewport units fix for mobile */
+:root {
+  --vh: 1vh;
+  --vw: 1vw;
+}
+
+/* Low-end device optimizations */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Performance optimizations */
+.performance-optimized {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Image optimization */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.lazy-image {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.lazy-image.loaded {
+  opacity: 1;
+}
+
+/* Button optimizations */
+button, [role="button"] {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+  tap-highlight-color: rgba(0, 0, 0, 0.1);
+}
+
+button:active, [role="button"]:active {
+  transform: scale(0.98);
+  transition: transform 0.1s ease;
+}
+
+/* Loading states */
+.loading-skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Reduced motion for low-end devices */
+@media (max-width: 480px) and (prefers-reduced-motion: reduce) {
+  .loading-skeleton {
+    animation: none;
+  }
+}
+
+/* Scroll performance */
+.scroll-container {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.scroll-container::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 2px;
+}
+
+/* Card optimizations */
+.card-mobile {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.card-mobile:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Text optimizations */
+.text-mobile {
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.text-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Grid optimizations */
+.grid-mobile {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 375px) {
+  .grid-mobile {
+    gap: 16px;
+  }
+}
+
+@media (min-width: 768px) {
+  .grid-mobile {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
+/* Flexbox optimizations */
+.flex-mobile {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 640px) {
+  .flex-mobile {
+    flex-direction: row;
+  }
+}
+
+/* Spacing optimizations */
+.spacing-mobile {
+  padding: 12px;
+}
+
+@media (min-width: 375px) {
+  .spacing-mobile {
+    padding: 16px;
+  }
+}
+
+@media (min-width: 768px) {
+  .spacing-mobile {
+    padding: 24px;
+  }
+}
+
+/* Network-aware styles */
+@media (prefers-reduced-data: reduce) {
+  .data-heavy {
+    display: none !important;
+  }
+  
+  .bg-gradient {
+    background: #f9fafb !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .card-mobile {
+    border: 2px solid #000;
+  }
+  
+  button {
+    border: 2px solid #000;
+  }
+}
+
+/* Dark mode optimizations */
+@media (prefers-color-scheme: dark) {
+  .scroll-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+  }
+  
+  .loading-skeleton {
+    background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  * {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+}
+
+/* Orientation support */
+@media (orientation: landscape) and (max-height: 500px) {
+  .hide-landscape {
+    display: none !important;
+  }
+}
+
+@media (orientation: portrait) and (max-width: 500px) {
+  .hide-portrait {
+    display: none !important;
+  }
+}

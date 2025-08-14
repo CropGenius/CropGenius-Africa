@@ -1,0 +1,611 @@
+@import './styles/chat-design-tokens.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import CropGenius Chat Design Tokens */
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 142.1 70.6% 45.3%;
+    --primary-foreground: 144 70% 97%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 142.1 70.6% 45.3%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 142.1 70.6% 45.3%;
+    --primary-foreground: 144 70% 97%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 142.1 70.6% 45.3%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply text-foreground;
+  }
+}
+
+/* Custom animation keyframes */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+  }
+
+  70% {
+    transform: scale(1.05);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes confetti {
+  0% {
+    transform: translateY(0) rotate(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(100px) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+
+  70% {
+    transform: scale(0.9);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.5s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out forwards;
+}
+
+.animate-pulse-once {
+  animation: pulse 0.6s ease-in-out;
+}
+
+.animate-scroll-slow {
+  animation: scroll 20s linear infinite;
+}
+
+.animate-bounce-in {
+  animation: bounceIn 0.6s ease-out forwards;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.5s ease-out forwards;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.5s ease-out forwards;
+}
+
+.animate-slide-in-up {
+  animation: slideInUp 0.5s ease-out forwards;
+}
+
+.animate-zoom-in {
+  animation: zoomIn 0.4s ease-out forwards;
+}
+
+/* Shimmer effect for loading states */
+.animate-shimmer {
+  background: linear-gradient(90deg,
+      rgba(255, 255, 255, 0),
+      rgba(255, 255, 255, 0.2),
+      rgba(255, 255, 255, 0));
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Gradient mask for scrolling ticker */
+.mask-gradient-right {
+  mask-image: linear-gradient(to right, black 80%, transparent 100%);
+}
+
+/* Custom field wizard styles */
+.field-wizard-container {
+  @apply relative overflow-hidden;
+}
+
+.field-wizard-step {
+  @apply absolute inset-0 transition-all duration-300 ease-in-out;
+}
+
+/* Mobile-optimized input styles */
+.mobile-input {
+  @apply text-lg py-4 rounded-xl;
+}
+
+.hover-card-effect {
+  @apply transition-all duration-300 hover:shadow-md hover:-translate-y-1;
+}
+
+/* Confetti animation for celebrations */
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  opacity: 0;
+  animation: confetti 1.5s ease-out forwards;
+}
+
+/* Remove scrollbar but keep functionality */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari and Opera */
+}
+
+/* Wizard progress indicator */
+.wizard-progress-dot {
+  @apply w-2 h-2 rounded-full transition-all duration-300;
+}
+
+.wizard-progress-dot.active {
+  @apply w-2.5 h-2.5 bg-primary;
+}
+
+.wizard-progress-dot.completed {
+  @apply bg-primary/70;
+}
+
+.wizard-progress-dot.incomplete {
+  @apply bg-gray-200 dark:bg-gray-700;
+}
+
+/* Crop selection grid styles */
+.crop-grid {
+  @apply grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5;
+}
+
+.crop-card {
+  @apply p-3 text-center cursor-pointer hover:bg-primary/5 transition-colors border-dashed;
+}
+
+.crop-card.selected {
+  @apply bg-primary/10 border-primary;
+}
+
+.crop-icon-container {
+  @apply w-12 h-12 mx-auto bg-primary/5 rounded-full flex items-center justify-center mb-1;
+}
+
+/* Voice input animation */
+.voice-pulse {
+  @apply relative;
+}
+
+.voice-pulse::after {
+  content: '';
+  @apply absolute inset-0 rounded-full bg-primary opacity-70;
+  animation: pulse 1.5s infinite;
+}
+
+/* Success animations */
+.success-checkmark {
+  @apply text-primary text-5xl mx-auto animate-bounce-in;
+}
+
+/* Progress bar animation */
+.progress-bar {
+  @apply h-1.5 bg-primary rounded-full transition-all duration-500 ease-out;
+}
+
+/* Card transitions */
+.card-transition-enter {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+.card-transition-enter-active {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.card-transition-exit {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.card-transition-exit-active {
+  opacity: 0;
+  transform: translateX(-30px);
+  transition: opacity 300ms, transform 300ms;
+}
+
+/* CropGenius specific styles */
+.glass-card {
+  @apply bg-white/10 backdrop-blur-xl border border-white/20 shadow-lg;
+}
+
+.glass-btn {
+  @apply backdrop-blur-sm transition-all duration-300;
+}
+
+.shadow-glow-green {
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
+}
+
+.shadow-glow-green-lg {
+  box-shadow: 0 10px 40px rgba(16, 185, 129, 0.4);
+}
+
+.animate-glow-pulse {
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.6);
+  }
+}
+
+/* 🚀 PREMIUM NAVBAR UPGRADE - 2030 GLASSMORPHISM EFFECT */
+nav.premium-navbar {
+  /* Gradient Background - Green to Transparent (Diffused Effect) */
+  background: linear-gradient(
+    to bottom, 
+    rgba(76, 175, 80, 0.95) 0%,
+    rgba(76, 175, 80, 0.8) 70%,
+    rgba(76, 175, 80, 0) 100%
+  ) !important;
+  
+  /* Glassmorphism Effect - Backdrop Blur */
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  
+  /* Enhanced Shadow for Visual Depth */
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.1),
+    0 1px 4px rgba(0, 0, 0, 0.05) !important;
+  
+  /* Rounded Bottom Corners - Organic Feel */
+  border-radius: 0 0 16px 16px !important;
+  
+  /* Remove Hard Border */
+  border: none !important;
+  
+  /* Smooth Transitions */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  nav.premium-navbar {
+    border-radius: 0 0 12px 12px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+}
+
+/* Safari Compatibility */
+@supports (-webkit-backdrop-filter: blur(12px)) {
+  nav.premium-navbar {
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
+/* Fallback for Older Browsers */
+@supports not (backdrop-filter: blur(12px)) {
+  nav.premium-navbar {
+    background: rgba(76, 175, 80, 0.9);
+  }
+}
+
+/* Performance - Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  nav.premium-navbar {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    transition: none;
+  }
+}
+
+
+
+/* Color classes for CropGenius theme */
+.text-crop-green-700 {
+  color: #047857;
+}
+
+.text-crop-green-600 {
+  color: #059669;
+}
+
+.text-crop-green-500 {
+  color: #10b981;
+}
+
+.bg-crop-green-50 {
+  background-color: #ecfdf5;
+}
+
+.bg-crop-green-600 {
+  background-color: #059669;
+}
+
+.bg-crop-green-700 {
+  background-color: #047857;
+}
+
+.hover\:bg-crop-green-700:hover {
+  background-color: #047857;
+}
+
+.text-soil-brown-500 {
+  color: #92400e;
+}
+
+.text-soil-brown-600 {
+  color: #78350f;
+}
+
+.text-soil-brown-700 {
+  color: #78350f;
+}
+
+.bg-soil-brown-600 {
+  background-color: #92400e;
+}
+
+.bg-soil-brown-700 {
+  background-color: #78350f;
+}
+
+.hover\:bg-soil-brown-700:hover {
+  background-color: #78350f;
+}
+
+.border-soil-brown-200 {
+  border-color: #fde68a;
+}
+
+.text-sky-blue-600 {
+  color: #0284c7;
+}
+
+.text-sky-blue-700 {
+  color: #0369a1;
+}
+
+.text-sky-blue-800 {
+  color: #075985;
+}
+
+.bg-sky-blue-50 {
+  background-color: #f0f9ff;
+}
+
+.text-green-primary {
+  color: #10b981;
+}
+
+.bg-green-primary {
+  background-color: #10b981;
+}
+
+.from-green-primary {
+  --tw-gradient-from: #10b981;
+}
+
+.to-green-primary {
+  --tw-gradient-to: #10b981;
+}
+
+/* 🚀 PREMIUM BOTTOM NAVIGATION - MINIMAL CODE */
+.premium-bottom-nav {
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(12px) !important;
+  border-radius: 16px 16px 0 0 !important;
+}
+
+/* 🔮 PREMIUM GLASSMORPHISM CARDS - DASHBOARD ONLY */
+.premium-glass-card {
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+}

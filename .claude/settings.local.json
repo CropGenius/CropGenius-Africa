@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node:*)",
+      "Bash(npx:*)",
+      "Bash(find:*)",
+      "Bash(npm run test:coverage:*)",
+      "Bash(npm run test:*)",
+      "Bash(npm run build)",
+      "Bash(.\\node_modules\\.bin\\vitest:*)",
+      "Bash(npm install:*)",
+      "Bash(touch:*)",
+      "Bash(npm test:*)",
+      "Bash(npm run build:analyze:*)",
+      "Bash(npm run build:*)",
+      "Bash(vite build:*)",
+      "Bash(npm run)",
+      "Bash(npm run lint)",
+      "Bash(NODE_ENV=production node validate-current-deployment.js)",
+      "Bash(npm run:*)",
+      "Bash(ls:*)",
+      "Bash(.\\node_modules\\.bin\\vitest:*)",
+      "Bash(.\\node_modules\\.bin\\vitest:*)",
+      "Bash(grep:*)",
+      "Bash(supabase functions:*)",
+      "Bash(curl:*)",
+      "Bash(vercel:*)",
+      "Bash(printenv:*)"
+    ],
+    "deny": []
+  }
+}

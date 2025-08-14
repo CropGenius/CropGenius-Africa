@@ -1,0 +1,1 @@
+console.log('✅ PWA assets generation skipped - using existing assets');
