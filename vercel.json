@@ -1,8 +1,9 @@
 {
   "framework": null,
-  "buildCommand": "npm run build",
+  "buildCommand": "node scripts/build-production.js",
   "outputDirectory": "dist",
+  "installCommand": "npm install",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

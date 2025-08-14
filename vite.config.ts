@@ -29,24 +29,16 @@ export default defineConfig(({ mode }) => {
       port: 8080,
       open: true
     },
+    esbuild: {
+      logOverride: { 'this-is-undefined-in-esm': 'silent' },
+      target: 'es2020'
+    },
     build: {
       chunkSizeWarningLimit: 3000,
       target: 'es2020',
-      minify: 'terser',
-      terserOptions: {
-        compress: {
-          drop_console: false,
-          drop_debugger: false,
-          pure_funcs: [],
-          passes: 1,
-          global_defs: {
-            '@@process.env.NODE_ENV': '"production"'
-          }
-        },
-        mangle: false
-      },
+      minify: 'esbuild',
       cssCodeSplit: true,
-      cssMinify: false,
+      cssMinify: true,
       rollupOptions: {
         output: {
           format: 'es',
@@ -59,13 +51,14 @@ export default defineConfig(({ mode }) => {
             'ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select']
           }
         },
-        treeshake: false
+        treeshake: true
       },
       sourcemap: false,
       reportCompressedSize: true
     },
     define: {
-      'process.env': env
+      'process.env': env,
+      global: 'globalThis'
     },
     optimizeDeps: {
       include: ['react', 'react-dom'],
