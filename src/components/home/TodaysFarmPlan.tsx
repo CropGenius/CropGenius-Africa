@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
+import { supabase } from '@/integrations/supabase/client';
 
 interface Task {
   id: string;
@@ -34,9 +35,96 @@ export default function TodaysFarmPlan() {
   const [showAnimation, setShowAnimation] = useState(false);
 
   useEffect(() => {
-    // In a production app, this would fetch from Supabase
-    // For now, we'll use sample data that simulates AI farm recommendations
-    setTimeout(() => {
+    // 🚀 NOW CALLING REAL GEMINI AI - NO MORE PLACEHOLDERS!
+    const loadRealAITasks = async () => {
+      setLoading(true);
+      
+      try {
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          console.log('No authenticated user, showing demo tasks');
+          showDemoTasks();
+          return;
+        }
+
+        console.log('🧠 Loading REAL AI-generated tasks from Gemini 2.5 Flash...');
+        
+        // Try to get today's real AI tasks
+        const { data: existingTasks } = await supabase
+          .from('daily_genius_tasks')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('task_date', new Date().toISOString().split('T')[0])
+          .eq('status', 'pending');
+
+        if (existingTasks && existingTasks.length > 0) {
+          console.log(`✅ Found ${existingTasks.length} existing AI tasks`);
+          const mappedTasks = existingTasks.map(mapDatabaseTaskToUITask);
+          setTasks(mappedTasks);
+          calculateFarmScore(mappedTasks);
+        } else {
+          console.log('🚀 No existing tasks, generating new ones with Gemini AI...');
+          
+          // Generate new AI tasks using our Edge Function
+          const { data, error } = await supabase.functions.invoke('generate-daily-tasks', {
+            body: { userId: user.id }
+          });
+
+          if (error) {
+            console.error('❌ AI task generation failed:', error);
+            showDemoTasks();
+            return;
+          }
+
+          if (data?.tasks && data.tasks.length > 0) {
+            console.log(`🎯 Generated ${data.tasks.length} REAL AI tasks!`);
+            const mappedTasks = data.tasks.map(mapDatabaseTaskToUITask);
+            setTasks(mappedTasks);
+            calculateFarmScore(mappedTasks);
+          } else {
+            console.log('⚠️ No tasks generated, showing demo tasks');
+            showDemoTasks();
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error loading AI tasks:', error);
+        showDemoTasks();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Helper function to map database task to UI task format
+    const mapDatabaseTaskToUITask = (dbTask: any): Task => ({
+      id: dbTask.id,
+      title: dbTask.title,
+      priority: dbTask.priority === '1' ? 'high' : dbTask.priority === '2' ? 'medium' : 'low',
+      completed: dbTask.status === 'completed',
+      dueDate: 'Today',
+      dueTime: dbTask.estimated_duration ? `${dbTask.estimated_duration} min` : undefined,
+      type: mapTaskTypeToUIType(dbTask.task_type),
+      completionPercentage: dbTask.status === 'completed' ? 100 : 0,
+      weather: {
+        affectedBy: `${dbTask.crop_type || 'Field'} conditions`,
+        recommendation: dbTask.description
+      },
+      aiImportance: Math.round((dbTask.fpsi_impact_points || 10) / 5),
+      impact: `FPSI Impact: +${dbTask.fpsi_impact_points || 10} points`,
+      isOverdue: false
+    });
+
+    const mapTaskTypeToUIType = (taskType: string) => {
+      switch (taskType) {
+        case 'IRRIGATION': return 'irrigation';
+        case 'PEST_CONTROL': return 'pest';
+        case 'FERTILIZATION': return 'fertilizer';
+        case 'HARVESTING': return 'harvest';
+        default: return 'other';
+      }
+    };
+
+    const showDemoTasks = () => {
       const todaysTasks: Task[] = [
         {
           id: "1",
@@ -106,7 +194,6 @@ export default function TodaysFarmPlan() {
         },
       ];
       setTasks(todaysTasks);
-      setLoading(false);
       calculateFarmScore(todaysTasks);
       
       // Simulate an AI-generated alert after a few seconds
@@ -139,8 +226,9 @@ export default function TodaysFarmPlan() {
           }
         });
       }, 8000);
-      
-    }, 1000);
+    };
+
+    loadRealAITasks();
   }, []);
 
   const calculateFarmScore = (taskList: Task[]) => {

@@ -160,24 +160,32 @@ export class DailyTaskManager {
   }
 
   private async generateTasksFromContext(context: TaskGenerationContext): Promise<GeniusTask[]> {
-    // 🔥 REAL GEMINI AI MAGIC - EXACTLY LIKE FIELD INSIGHTS!
-    const tasks: GeniusTask[] = [];
+    // 🔥 REAL GEMINI AI MAGIC - NO MORE PLACEHOLDERS!
+    console.log('🚀 Calling REAL Gemini API for daily task generation...');
+    
+    try {
+      // Call our new Gemini-powered Edge Function
+      const { data, error } = await supabase.functions.invoke('generate-daily-tasks', {
+        body: { userId: context.user.id }
+      });
 
-    // Get REAL AI insights for ALL user's fields using GEMINI-2.5-FLASH
-    for (const field of context.fields) {
-      if (field.id && field.crop_type) {
-        const aiInsights = await this.getFieldAIInsights(field);
-        const aiTasks = this.convertAIInsightsToTasks(aiInsights, field);
-        tasks.push(...aiTasks);
+      if (error) {
+        console.error('❌ Gemini API call failed:', error);
+        return this.generateIntelligentFallbackTasks(context);
       }
-    }
 
-    // If no fields or AI insights, generate intelligent fallback
-    if (tasks.length === 0) {
-      tasks.push(...this.generateIntelligentFallbackTasks(context));
-    }
+      if (data?.tasks && data.tasks.length > 0) {
+        console.log(`✅ REAL AI generated ${data.tasks.length} intelligent tasks via Gemini 2.5 Flash!`);
+        return data.tasks.map((dbTask: any) => this.mapDatabaseToGeniusTask(dbTask));
+      }
 
-    return tasks.slice(0, 6); // Top 6 most relevant AI-generated tasks
+      console.log('⚠️ No tasks from Gemini, using intelligent fallback...');
+      return this.generateIntelligentFallbackTasks(context);
+      
+    } catch (error) {
+      console.error('❌ Real AI task generation failed:', error);
+      return this.generateIntelligentFallbackTasks(context);
+    }
   }
 
   private async getFieldAIInsights(field: any): Promise<any> {
