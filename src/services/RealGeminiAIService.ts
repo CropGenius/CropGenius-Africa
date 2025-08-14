@@ -238,12 +238,19 @@ class RealGeminiAIService {
                 }
 
                 const data: GeminiResponse = await response.json();
+                console.log('🔍 Gemini API response structure:', JSON.stringify(data, null, 2));
 
                 if (!data.candidates || data.candidates.length === 0) {
                     throw new Error('No candidates returned from Gemini API');
                 }
 
-                const text = data.candidates[0].content.parts[0].text;
+                // Safe access to nested response structure
+                const candidate = data.candidates[0];
+                if (!candidate?.content?.parts || candidate.content.parts.length === 0) {
+                    throw new Error('Invalid response structure from Gemini API');
+                }
+
+                const text = candidate.content.parts[0]?.text;
                 if (!text) {
                     throw new Error('No text content in Gemini API response');
                 }
@@ -352,12 +359,19 @@ class RealGeminiAIService {
                 }
 
                 const data: GeminiResponse = await response.json();
+                console.log('🔍 Gemini image analysis response structure:', JSON.stringify(data, null, 2));
 
                 if (!data.candidates || data.candidates.length === 0) {
                     throw new Error('No candidates returned from Gemini API');
                 }
 
-                const text = data.candidates[0].content.parts[0].text;
+                // Safe access to nested response structure
+                const candidate = data.candidates[0];
+                if (!candidate?.content?.parts || candidate.content.parts.length === 0) {
+                    throw new Error('Invalid response structure from Gemini API');
+                }
+
+                const text = candidate.content.parts[0]?.text;
                 if (!text) {
                     throw new Error('No text content in Gemini API response');
                 }
