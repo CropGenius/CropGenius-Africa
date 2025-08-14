@@ -108,7 +108,7 @@ class RealGeminiAIService {
             timeToResults: string;
             organicCompliance: number;
         };
-        urgency: 'immediate' | 'today' | 'this_week';
+        urgency: 'high' | 'medium' | 'low';
         category: string;
         reasoning: string;
     }> {
@@ -240,19 +240,29 @@ class RealGeminiAIService {
                 const data: GeminiResponse = await response.json();
                 console.log('🔍 Gemini API response structure:', JSON.stringify(data, null, 2));
 
-                if (!data.candidates || data.candidates.length === 0) {
-                    throw new Error('No candidates returned from Gemini API');
+                // Handle different response structures safely
+                let text: string;
+                
+                if (data.candidates && data.candidates.length > 0) {
+                    // Standard structure: data.candidates[0].content.parts[0].text
+                    const candidate = data.candidates[0];
+                    if (candidate?.content?.parts && candidate.content.parts.length > 0) {
+                        text = candidate.content.parts[0]?.text;
+                    } else {
+                        throw new Error('Invalid candidate structure from Gemini API');
+                    }
+                } else if (data.content?.parts && data.content.parts.length > 0) {
+                    // Alternative structure: data.content.parts[0].text
+                    text = data.content.parts[0]?.text;
+                } else if (typeof data === 'string') {
+                    // Direct text response
+                    text = data;
+                } else {
+                    throw new Error('No valid response structure found from Gemini API');
                 }
 
-                // Safe access to nested response structure
-                const candidate = data.candidates[0];
-                if (!candidate?.content?.parts || candidate.content.parts.length === 0) {
-                    throw new Error('Invalid response structure from Gemini API');
-                }
-
-                const text = candidate.content.parts[0]?.text;
-                if (!text) {
-                    throw new Error('No text content in Gemini API response');
+                if (!text || text.trim().length === 0) {
+                    throw new Error('Empty text content in Gemini API response');
                 }
 
                 // Success - reset circuit breaker
@@ -361,19 +371,29 @@ class RealGeminiAIService {
                 const data: GeminiResponse = await response.json();
                 console.log('🔍 Gemini image analysis response structure:', JSON.stringify(data, null, 2));
 
-                if (!data.candidates || data.candidates.length === 0) {
-                    throw new Error('No candidates returned from Gemini API');
+                // Handle different response structures safely
+                let text: string;
+                
+                if (data.candidates && data.candidates.length > 0) {
+                    // Standard structure: data.candidates[0].content.parts[0].text
+                    const candidate = data.candidates[0];
+                    if (candidate?.content?.parts && candidate.content.parts.length > 0) {
+                        text = candidate.content.parts[0]?.text;
+                    } else {
+                        throw new Error('Invalid candidate structure from Gemini API');
+                    }
+                } else if (data.content?.parts && data.content.parts.length > 0) {
+                    // Alternative structure: data.content.parts[0].text
+                    text = data.content.parts[0]?.text;
+                } else if (typeof data === 'string') {
+                    // Direct text response
+                    text = data;
+                } else {
+                    throw new Error('No valid response structure found from Gemini API');
                 }
 
-                // Safe access to nested response structure
-                const candidate = data.candidates[0];
-                if (!candidate?.content?.parts || candidate.content.parts.length === 0) {
-                    throw new Error('Invalid response structure from Gemini API');
-                }
-
-                const text = candidate.content.parts[0]?.text;
-                if (!text) {
-                    throw new Error('No text content in Gemini API response');
+                if (!text || text.trim().length === 0) {
+                    throw new Error('Empty text content in Gemini API response');
                 }
 
                 // Success - reset circuit breaker
@@ -447,7 +467,7 @@ RESPONSE FORMAT (JSON):
     "timeToResults": "[X days/weeks]",
     "organicCompliance": 100
   },
-  "urgency": "[immediate/today/this_week]",
+  "urgency": "[high/medium/low]",
   "category": "[pest_control/soil_health/growth_booster/disease_prevention]",
   "reasoning": "[Why this action is perfect for today's conditions]"
 }
@@ -537,8 +557,23 @@ Provide realistic predictions based on agricultural science. Respond with valid 
      */
     private parseOrganicActionResponse(response: string): any {
         try {
-            // Clean response and extract JSON
-            const cleanResponse = response.replace(/```json\n?|\n?```/g, '').trim();
+            console.log('🔍 Raw Gemini response to parse:', response);
+            
+            // Clean response and extract JSON - handle truncated responses
+            let cleanResponse = response.replace(/```json\n?|\n?```/g, '').trim();
+            
+            // Fix common JSON truncation issues
+            if (!cleanResponse.endsWith('}')) {
+                // Try to find the last complete object
+                const lastCompleteObject = cleanResponse.lastIndexOf('}');
+                if (lastCompleteObject > 0) {
+                    cleanResponse = cleanResponse.substring(0, lastCompleteObject + 1);
+                    console.log('🔧 Fixed truncated JSON response');
+                } else {
+                    throw new Error('Response appears to be truncated beyond repair');
+                }
+            }
+            
             const parsed = JSON.parse(cleanResponse);
 
             // Validate required fields
@@ -556,9 +591,13 @@ Provide realistic predictions based on agricultural science. Respond with valid 
                 parsed.steps = ['Follow the organic farming instructions'];
             }
 
-            // Validate urgency
-            if (!['immediate', 'today', 'this_week'].includes(parsed.urgency)) {
-                parsed.urgency = 'today';
+            // Validate urgency - map to database values
+            if (!['high', 'medium', 'low'].includes(parsed.urgency)) {
+                // Map old values to new ones
+                if (parsed.urgency === 'immediate') parsed.urgency = 'high';
+                else if (parsed.urgency === 'today') parsed.urgency = 'medium';
+                else if (parsed.urgency === 'this_week') parsed.urgency = 'low';
+                else parsed.urgency = 'medium'; // default
             }
 
             console.log('✅ Organic action response parsed successfully');
