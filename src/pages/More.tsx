@@ -81,9 +81,9 @@ const More = () => {
     },
     {
       icon: Scan,
-      label: 'Crop Disease Detection',
-      path: '/crop-disease-detection',
-      description: 'AI disease diagnosis',
+      label: 'AI Crop Scanner',
+      path: '/scan',
+      description: 'Revolutionary AI that instantly identifies nutrient deficiencies, pests, diseases & provides organic solutions - the world\'s first complete crop health analyzer!',
       category: 'farming',
       badge: userStats.scans > 0 ? `${userStats.scans} scans` : undefined
     },
@@ -111,9 +111,10 @@ const More = () => {
     {
       icon: HelpCircle,
       label: 'Help & Support',
-      path: '/help',
-      description: 'Get assistance',
-      category: 'support'
+      path: 'https://discord.gg/gBMNVV9Q',
+      description: 'Join our exclusive Discord community! Chat directly with CropGenius developers, report issues, and share your farming challenges for us to solve!',
+      category: 'support',
+      isExternal: true
     }
   ];
 
@@ -165,11 +166,17 @@ const More = () => {
                   <h2 className="text-lg font-semibold text-gray-800">{categoryInfo.label}</h2>
                 </div>
                 <div className="space-y-3">
-                  {items.map(({ icon: Icon, label, path, description, badge, isNew }) => (
+                  {items.map(({ icon: Icon, label, path, description, badge, isNew, isExternal }) => (
                     <Card
                       key={path}
                       className="hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.02]"
-                      onClick={() => navigate(path)}
+                      onClick={() => {
+                        if (isExternal) {
+                          window.open(path, '_blank');
+                        } else {
+                          navigate(path);
+                        }
+                      }}
                     >
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between">
