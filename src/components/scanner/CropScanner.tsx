@@ -327,7 +327,7 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
               <div className="w-full mb-4 p-3 rounded-md bg-amber-50 text-amber-800 text-sm">
                 Free plan allows 15 scans per month. Upgrade to Pro to continue scanning.
                 <div className="mt-2 flex gap-2 justify-center">
-                  <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => navigate('/credits')}>Upgrade to Pro</Button>
+                  <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => navigate('/upgrade')}>Upgrade to Pro</Button>
                   <Button size="sm" variant="outline" onClick={() => setIsGated(false)}>Dismiss</Button>
                 </div>
               </div>

@@ -461,7 +461,7 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
           Free plan allows 1 field per user. Upgrade to Pro to add up to 50 fields and unlock advanced features.
         </p>
         <div className="flex gap-3 mt-2">
-          <Button onClick={() => navigate('/credits')} className="bg-green-600 hover:bg-green-700">
+          <Button onClick={() => navigate('/upgrade')} className="bg-green-600 hover:bg-green-700">
             Upgrade to Pro
           </Button>
           <Button variant="outline" onClick={() => onCancel ? onCancel() : navigate('/fields')}>

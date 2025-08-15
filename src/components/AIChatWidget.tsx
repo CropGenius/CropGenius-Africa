@@ -85,7 +85,7 @@ const AIChatWidget = () => {
             <div>
               Free plan allows 5 chat messages per day. Upgrade to Pro for unlimited conversations.
               <div className="mt-2">
-                <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => navigate('/credits')}>Upgrade to Pro</Button>
+                <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => navigate('/upgrade')}>Upgrade to Pro</Button>
               </div>
             </div>
           </div>
