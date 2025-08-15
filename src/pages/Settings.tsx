@@ -6,16 +6,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import {
   Settings as SettingsIcon,
-  User,
   Bell,
   Shield,
-  HelpCircle,
   LogOut,
   Save,
   Download,
@@ -23,12 +22,23 @@ import {
   AlertTriangle,
   CheckCircle2,
   Loader2,
-  Bug
+  Smartphone,
+  Mail,
+  MessageCircle,
+  Clock,
+  Volume2,
+  VolumeX,
+  Zap,
+  TestTube,
+  Phone,
+  Check,
+  X,
+  Wifi,
+  WifiOff
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-
-// AuthDebugDashboard removed - simplified auth system doesn't need debug UI
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface UserProfile {
   id: string;
@@ -38,58 +48,39 @@ interface UserProfile {
   onboarding_completed: boolean;
 }
 
-interface NotificationSettings {
-  email_notifications: boolean;
-  push_notifications: boolean;
-  weather_alerts: boolean;
-  market_alerts: boolean;
-  task_reminders: boolean;
-  weekly_reports: boolean;
-}
-
 const Settings: React.FC = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuthContext();
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [notifications, setNotifications] = useState<NotificationSettings>({
-    email_notifications: true,
-    push_notifications: true,
-    weather_alerts: true,
-    market_alerts: true,
-    task_reminders: true,
-    weekly_reports: false
-  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [showDebugDashboard, setShowDebugDashboard] = useState(false);
+  const [whatsappPhone, setWhatsappPhone] = useState('');
+  const [whatsappCode, setWhatsappCode] = useState('');
+  const [showWhatsappVerification, setShowWhatsappVerification] = useState(false);
+  
+  // Use the powerful notification hook
+  const {
+    preferences,
+    isLoading: notificationsLoading,
+    isPermissionGranted,
+    isPushSubscribed,
+    isWhatsAppVerified,
+    unreadCount,
+    updatePreferences,
+    requestPushPermission,
+    subscribeToPush,
+    unsubscribeFromPush,
+    initiateWhatsAppVerification,
+    verifyWhatsAppCode,
+    sendTestNotification
+  } = useNotifications();
 
   useEffect(() => {
     if (user) {
       loadUserProfile();
-      loadNotificationSettings();
     }
   }, [user]);
-
-  const loadNotificationSettings = async () => {
-    const { data } = await supabase
-      .from('user_memory')
-      .select('memory_data')
-      .eq('user_id', user!.id)
-      .single();
-
-    if (data?.memory_data) {
-      const savedNotifications = {
-        email_notifications: data.memory_data.email_notifications ?? true,
-        push_notifications: data.memory_data.push_notifications ?? true,
-        weather_alerts: data.memory_data.weather_alerts ?? true,
-        market_alerts: data.memory_data.market_alerts ?? true,
-        task_reminders: data.memory_data.task_reminders ?? true,
-        weekly_reports: data.memory_data.weekly_reports ?? false
-      };
-      setNotifications(savedNotifications);
-    }
-  };
 
   const loadUserProfile = async () => {
     setLoading(true);
@@ -146,6 +137,45 @@ const Settings: React.FC = () => {
     setSaving(false);
   };
 
+  // Handle push notification toggle
+  const handlePushToggle = async (enabled: boolean) => {
+    if (enabled) {
+      const permissionGranted = await requestPushPermission();
+      if (permissionGranted) {
+        await subscribeToPush();
+      }
+    } else {
+      await unsubscribeFromPush();
+    }
+  };
+
+  // Handle WhatsApp verification
+  const handleWhatsAppVerification = async () => {
+    if (!whatsappPhone) {
+      toast.error('Please enter your WhatsApp phone number');
+      return;
+    }
+
+    const success = await initiateWhatsAppVerification(whatsappPhone);
+    if (success) {
+      setShowWhatsappVerification(true);
+      toast.success('Verification code sent to your WhatsApp!');
+    }
+  };
+
+  const handleWhatsAppCodeVerification = async () => {
+    if (!whatsappCode) {
+      toast.error('Please enter the verification code');
+      return;
+    }
+
+    const success = await verifyWhatsAppCode(whatsappCode);
+    if (success) {
+      setShowWhatsappVerification(false);
+      setWhatsappCode('');
+    }
+  };
+
   const handleSignOut = async () => {
     await signOut();
     navigate('/auth');
@@ -164,7 +194,7 @@ const Settings: React.FC = () => {
 
     const userData = {
       profile,
-      notifications,
+      notification_preferences: preferences,
       farms: farmsData.data || [],
       fields: fieldsData.data || [],
       crop_scans: scansData.data || [],
@@ -201,11 +231,14 @@ const Settings: React.FC = () => {
     setSaving(false);
   };
 
-  if (loading) {
+  if (loading || notificationsLoading) {
     return (
       <div className="container py-6">
         <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="text-center space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
+            <p className="text-gray-600">Loading your notification settings...</p>
+          </div>
         </div>
       </div>
     );
@@ -256,10 +289,8 @@ const Settings: React.FC = () => {
                   </div>
                   <Switch
                     id="email-notifications"
-                    checked={notifications.email_notifications}
-                    onCheckedChange={(checked) =>
-                      setNotifications(prev => ({ ...prev, email_notifications: checked }))
-                    }
+                    checked={preferences?.email_enabled || false}
+                    onCheckedChange={(checked) => updatePreferences({ email_enabled: checked })}
                   />
                 </div>
 
@@ -272,10 +303,8 @@ const Settings: React.FC = () => {
                   </div>
                   <Switch
                     id="push-notifications"
-                    checked={notifications.push_notifications}
-                    onCheckedChange={(checked) =>
-                      setNotifications(prev => ({ ...prev, push_notifications: checked }))
-                    }
+                    checked={isPushSubscribed}
+                    onCheckedChange={handlePushToggle}
                   />
                 </div>
 
@@ -288,10 +317,8 @@ const Settings: React.FC = () => {
                   </div>
                   <Switch
                     id="weather-alerts"
-                    checked={notifications.weather_alerts}
-                    onCheckedChange={(checked) =>
-                      setNotifications(prev => ({ ...prev, weather_alerts: checked }))
-                    }
+                    checked={preferences?.weather_alerts || false}
+                    onCheckedChange={(checked) => updatePreferences({ weather_alerts: checked })}
                   />
                 </div>
 
@@ -302,10 +329,8 @@ const Settings: React.FC = () => {
                   </div>
                   <Switch
                     id="market-alerts"
-                    checked={notifications.market_alerts}
-                    onCheckedChange={(checked) =>
-                      setNotifications(prev => ({ ...prev, market_alerts: checked }))
-                    }
+                    checked={preferences?.market_alerts || false}
+                    onCheckedChange={(checked) => updatePreferences({ market_alerts: checked })}
                   />
                 </div>
 
@@ -316,10 +341,8 @@ const Settings: React.FC = () => {
                   </div>
                   <Switch
                     id="task-reminders"
-                    checked={notifications.task_reminders}
-                    onCheckedChange={(checked) =>
-                      setNotifications(prev => ({ ...prev, task_reminders: checked }))
-                    }
+                    checked={preferences?.task_reminders || false}
+                    onCheckedChange={(checked) => updatePreferences({ task_reminders: checked })}
                   />
                 </div>
 
@@ -330,33 +353,16 @@ const Settings: React.FC = () => {
                   </div>
                   <Switch
                     id="weekly-reports"
-                    checked={notifications.weekly_reports}
-                    onCheckedChange={(checked) =>
-                      setNotifications(prev => ({ ...prev, weekly_reports: checked }))
-                    }
+                    checked={preferences?.weekly_reports || false}
+                    onCheckedChange={(checked) => updatePreferences({ weekly_reports: checked })}
                   />
                 </div>
               </div>
 
               <div className="pt-4 border-t">
-                <Button onClick={async () => {
-                  setSaving(true);
-
-                  await supabase
-                    .from('user_memory')
-                    .upsert({
-                      user_id: user!.id,
-                      memory_data: {
-                        ...notifications,
-                        updated_at: new Date().toISOString()
-                      }
-                    });
-
-                  toast.success('Notification preferences saved');
-                  setSaving(false);
-                }} disabled={saving}>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Preferences
+                <Button onClick={sendTestNotification} variant="outline">
+                  <Zap className="h-4 w-4 mr-2" />
+                  Send Test Notification
                 </Button>
               </div>
             </CardContent>
