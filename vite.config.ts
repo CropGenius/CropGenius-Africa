@@ -31,7 +31,17 @@ export default defineConfig(({ mode }) => {
     },
     esbuild: {
       logOverride: { 'this-is-undefined-in-esm': 'silent' },
-      target: 'es2020'
+      target: 'es2020',
+      ...(mode === 'production' && {
+        tsconfigRaw: {
+          compilerOptions: {
+            skipLibCheck: true,
+            noUnusedLocals: false,
+            noUnusedParameters: false,
+            strict: false
+          }
+        }
+      })
     },
     build: {
       chunkSizeWarningLimit: 3000,

@@ -108,7 +108,7 @@ class RealGeminiAIService {
             timeToResults: string;
             organicCompliance: number;
         };
-        urgency: 'high' | 'medium' | 'low';
+        urgency: 'high' | 'medium' | 'low'; // MUST be one of these exact values for database
         category: string;
         reasoning: string;
     }> {
@@ -245,6 +245,20 @@ class RealGeminiAIService {
                 
                 if (data.candidates && data.candidates.length > 0) {
                     const candidate = data.candidates[0];
+                    console.log('🔍 Candidate structure:', candidate);
+                    
+                    // Handle MAX_TOKENS finish reason - response was truncated
+                    if (candidate.finishReason === 'MAX_TOKENS') {
+                        console.warn('⚠️ Gemini response truncated due to MAX_TOKENS - reducing prompt complexity');
+                        throw new Error('Response truncated due to token limit - try shorter prompt');
+                    }
+                    
+                    // Handle safety filter blocks
+                    if (candidate.finishReason === 'SAFETY') {
+                        console.warn('🛡️ Gemini response blocked by safety filter');
+                        throw new Error('Response blocked by safety filter - try different content');
+                    }
+                    
                     if (candidate && candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
                         text = candidate.content.parts[0].text;
                         if (!text) {
@@ -252,7 +266,7 @@ class RealGeminiAIService {
                         }
                     } else {
                         console.log('🔍 Candidate structure:', JSON.stringify(candidate, null, 2));
-                        throw new Error('Invalid candidate structure from Gemini API');
+                        throw new Error('Invalid candidate structure from Gemini API - missing content.parts');
                     }
                 } else {
                     console.log('🔍 Full response structure:', JSON.stringify(data, null, 2));
@@ -374,6 +388,20 @@ class RealGeminiAIService {
                 
                 if (data.candidates && data.candidates.length > 0) {
                     const candidate = data.candidates[0];
+                    console.log('🔍 Image analysis candidate structure:', candidate);
+                    
+                    // Handle MAX_TOKENS finish reason
+                    if (candidate.finishReason === 'MAX_TOKENS') {
+                        console.warn('⚠️ Image analysis response truncated due to MAX_TOKENS');
+                        throw new Error('Image analysis response truncated - try smaller image or shorter prompt');
+                    }
+                    
+                    // Handle safety filter blocks
+                    if (candidate.finishReason === 'SAFETY') {
+                        console.warn('🛡️ Image analysis blocked by safety filter');
+                        throw new Error('Image analysis blocked by safety filter');
+                    }
+                    
                     if (candidate && candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
                         text = candidate.content.parts[0].text;
                         if (!text) {
@@ -381,7 +409,7 @@ class RealGeminiAIService {
                         }
                     } else {
                         console.log('🔍 Image analysis candidate structure:', JSON.stringify(candidate, null, 2));
-                        throw new Error('Invalid candidate structure from Gemini API');
+                        throw new Error('Invalid candidate structure from Gemini API - missing content.parts');
                     }
                 } else {
                     console.log('🔍 Image analysis full response:', JSON.stringify(data, null, 2));
@@ -441,15 +469,17 @@ FARMER CONTEXT:
 - Soil Type: ${userContext.soilType || 'Unknown'}
 - Previous Actions: ${userContext.previousActions?.join(', ') || 'None'}
 
+CRITICAL: Keep your response under 1500 tokens to avoid MAX_TOKENS errors.
+
 REQUIREMENTS:
 1. Provide ONE specific organic action for TODAY
 2. Use only natural, organic ingredients available locally
 3. Include exact quantities and costs in USD
 4. Provide step-by-step instructions
 5. Calculate realistic yield increase and money saved
-6. Determine urgency level based on seasonal timing
+6. Determine urgency level: ONLY use "high", "medium", or "low"
 
-RESPONSE FORMAT (JSON):
+RESPONSE FORMAT (JSON ONLY):
 {
   "title": "Today's Organic Action: [Specific Action Name]",
   "description": "[2-3 sentence description of what this action does and why it's needed now]",
@@ -468,7 +498,7 @@ RESPONSE FORMAT (JSON):
   "reasoning": "[Why this action is perfect for today's conditions]"
 }
 
-Generate the response as valid JSON only.`;
+Generate ONLY valid JSON.`;
     }  /**
   
  * 🏗️ BUILD DISEASE ANALYSIS PROMPT
