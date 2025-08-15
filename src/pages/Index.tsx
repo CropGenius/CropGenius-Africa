@@ -17,7 +17,7 @@ const Index = memo(function Index() {
   const dashboard = useDashboardManager(user?.id);
   const { referralStats } = useReferralSystem();
   const { plans } = useFarmPlanning();
-  
+
   // Real backend data states
   const [realData, setRealData] = useState({
     farmPlans: { active: 0, tasksThisWeek: 0, nextTask: null },
@@ -193,13 +193,12 @@ const Index = memo(function Index() {
         </Card>
 
         {/* 🚀 AI FARM PLANNING - THE GENIUS BRAIN */}
-        <div className="bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 rounded-2xl p-0 overflow-hidden relative">
+        <div className="bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-indigo-500/20 backdrop-filter backdrop-blur-xl rounded-2xl p-0 overflow-hidden relative border border-white/10">
           {/* Animated Background Pattern */}
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-400 to-purple-400 animate-pulse"></div>
-            <div className="absolute top-4 left-4 w-8 h-8 bg-white rounded-full animate-bounce delay-100"></div>
-            <div className="absolute top-8 right-8 w-6 h-6 bg-yellow-300 rounded-full animate-bounce delay-300"></div>
-            <div className="absolute bottom-6 left-12 w-4 h-4 bg-green-300 rounded-full animate-bounce delay-500"></div>
+          <div className="absolute inset-0 opacity-5">
+            <div className="absolute top-4 left-4 w-8 h-8 bg-white/30 rounded-full animate-bounce delay-100"></div>
+            <div className="absolute top-8 right-8 w-6 h-6 bg-yellow-300/40 rounded-full animate-bounce delay-300"></div>
+            <div className="absolute bottom-6 left-12 w-4 h-4 bg-green-300/40 rounded-full animate-bounce delay-500"></div>
           </div>
 
           {/* Header */}
@@ -210,13 +209,13 @@ const Index = memo(function Index() {
                   <Calendar className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white mb-1">AI Farm Planning</h3>
-                  <p className="text-blue-200 text-sm">Your intelligent farming assistant</p>
+                  <h3 className="text-xl font-bold text-gray-800 mb-1">AI Farm Planning</h3>
+                  <p className="text-gray-600 text-sm">Your intelligent farming assistant</p>
                 </div>
               </div>
               <Button
                 onClick={() => navigate('/farm-planning')}
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
+                className="bg-white/10 hover:bg-white/20 text-gray-800 border-white/20 backdrop-blur-sm"
                 size="sm"
               >
                 Plan Now
@@ -227,39 +226,39 @@ const Index = memo(function Index() {
           {/* Content */}
           <div className="relative z-10 px-6 pb-6">
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
-                <div className="text-2xl font-bold text-white mb-1">
+              <div className="bg-white/5 backdrop-blur-md rounded-lg p-4 border border-white/10">
+                <div className="text-2xl font-bold text-gray-800 mb-1">
                   {realData.farmPlans.active}
                 </div>
-                <div className="text-xs text-blue-200">Active Plans</div>
+                <div className="text-xs text-gray-600">Active Plans</div>
                 <div className="w-full bg-white/20 rounded-full h-1 mt-2">
                   <div className="bg-gradient-to-r from-green-400 to-blue-400 h-1 rounded-full animate-pulse" style={{ width: `${Math.min(100, realData.farmPlans.active * 25)}%` }}></div>
                 </div>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
-                <div className="text-2xl font-bold text-white mb-1">
+              <div className="bg-white/5 backdrop-blur-md rounded-lg p-4 border border-white/10">
+                <div className="text-2xl font-bold text-gray-800 mb-1">
                   {realData.farmPlans.tasksThisWeek}
                 </div>
-                <div className="text-xs text-blue-200">Tasks This Week</div>
+                <div className="text-xs text-gray-600">Tasks This Week</div>
                 <div className="w-full bg-white/20 rounded-full h-1 mt-2">
                   <div className="bg-gradient-to-r from-yellow-400 to-orange-400 h-1 rounded-full animate-pulse" style={{ width: `${Math.min(100, realData.farmPlans.tasksThisWeek * 5)}%` }}></div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+            <div className="bg-white/5 backdrop-blur-md rounded-lg p-4 border border-white/10">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-sm font-medium text-white">Next Task</div>
-                  <div className="text-xs text-blue-200">
+                  <div className="text-sm font-medium text-gray-800">Next Task</div>
+                  <div className="text-xs text-gray-600">
                     {realData.farmPlans.nextTask ? realData.farmPlans.nextTask.title : 'No upcoming tasks'}
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-xs text-blue-200">
+                  <div className="text-xs text-gray-600">
                     {realData.farmPlans.nextTask ? realData.farmPlans.nextTask.dueDate : ''}
                   </div>
-                  <div className="text-sm font-medium text-white">
+                  <div className="text-sm font-medium text-gray-800">
                     {realData.farmPlans.nextTask ? realData.farmPlans.nextTask.time : ''}
                   </div>
                 </div>
@@ -269,11 +268,11 @@ const Index = memo(function Index() {
         </div>
 
         {/* 🎯 YIELD PREDICTOR - THE CRYSTAL BALL */}
-        <div className="bg-gradient-to-br from-emerald-800 via-teal-800 to-cyan-800 rounded-2xl p-0 overflow-hidden relative">
+        <div className="bg-gradient-to-br from-emerald-500/20 via-teal-500/20 to-cyan-500/20 backdrop-filter backdrop-blur-xl rounded-2xl p-0 overflow-hidden relative border border-white/10">
           {/* Animated Background */}
-          <div className="absolute inset-0 opacity-20">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-300 to-blue-300 rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-yellow-300 to-green-300 rounded-full blur-2xl animate-pulse delay-1000"></div>
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-300/30 to-blue-300/30 rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-yellow-300/30 to-green-300/30 rounded-full blur-2xl animate-pulse delay-1000"></div>
           </div>
 
           <div className="relative z-10 p-6">
@@ -283,13 +282,13 @@ const Index = memo(function Index() {
                   <TrendingUp className="h-6 w-6 text-white animate-bounce" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white mb-1">AI Yield Predictor</h3>
-                  <p className="text-emerald-200 text-sm">Predict your harvest with 95% accuracy</p>
+                  <h3 className="text-xl font-bold text-gray-800 mb-1">AI Yield Predictor</h3>
+                  <p className="text-gray-600 text-sm">Predict your harvest with 95% accuracy</p>
                 </div>
               </div>
               <Button
                 onClick={() => navigate('/yield-predictor')}
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
+                className="bg-white/10 hover:bg-white/20 text-gray-800 border-white/20 backdrop-blur-sm"
                 size="sm"
               >
                 Predict
@@ -297,28 +296,28 @@ const Index = memo(function Index() {
             </div>
 
             <div className="grid grid-cols-3 gap-3 mb-4">
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20 text-center">
-                <div className="text-lg font-bold text-white">
+              <div className="bg-white/5 backdrop-blur-md rounded-lg p-3 border border-white/10 text-center">
+                <div className="text-lg font-bold text-gray-800">
                   {realData.yieldPredictions.expectedYield || '0.0'}t
                 </div>
-                <div className="text-xs text-emerald-200">Expected Yield</div>
+                <div className="text-xs text-gray-600">Expected Yield</div>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20 text-center">
-                <div className="text-lg font-bold text-white">{Math.round(realData.yieldPredictions.confidence) || 0}%</div>
-                <div className="text-xs text-emerald-200">Confidence</div>
+              <div className="bg-white/5 backdrop-blur-md rounded-lg p-3 border border-white/10 text-center">
+                <div className="text-lg font-bold text-gray-800">{Math.round(realData.yieldPredictions.confidence) || 0}%</div>
+                <div className="text-xs text-gray-600">Confidence</div>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20 text-center">
-                <div className="text-lg font-bold text-white">
+              <div className="bg-white/5 backdrop-blur-md rounded-lg p-3 border border-white/10 text-center">
+                <div className="text-lg font-bold text-gray-800">
                   ${Math.round(realData.yieldPredictions.revenue) || 0}
                 </div>
-                <div className="text-xs text-emerald-200">Est. Revenue</div>
+                <div className="text-xs text-gray-600">Est. Revenue</div>
               </div>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+            <div className="bg-white/5 backdrop-blur-md rounded-lg p-3 border border-white/10">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-emerald-200">AI Analysis Status</span>
-                <span className="text-white font-medium flex items-center">
+                <span className="text-gray-600">AI Analysis Status</span>
+                <span className="text-gray-800 font-medium flex items-center">
                   <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
                   Real-time monitoring
                 </span>
@@ -328,12 +327,12 @@ const Index = memo(function Index() {
         </div>
 
         {/* 🌍 COMMUNITY HUB - THE SOCIAL BRAIN */}
-        <div className="bg-gradient-to-br from-purple-800 via-pink-800 to-rose-800 rounded-2xl p-0 overflow-hidden relative">
+        <div className="bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-rose-500/20 backdrop-filter backdrop-blur-xl rounded-2xl p-0 overflow-hidden relative border border-white/10">
           {/* Animated Background */}
-          <div className="absolute inset-0 opacity-15">
-            <div className="absolute top-4 left-4 w-16 h-16 bg-gradient-to-br from-purple-300 to-pink-300 rounded-full blur-xl animate-pulse"></div>
-            <div className="absolute bottom-4 right-4 w-20 h-20 bg-gradient-to-br from-pink-300 to-rose-300 rounded-full blur-xl animate-pulse delay-500"></div>
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-gradient-to-br from-yellow-300 to-orange-300 rounded-full blur-lg animate-pulse delay-1000"></div>
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-4 left-4 w-16 h-16 bg-gradient-to-br from-purple-300/30 to-pink-300/30 rounded-full blur-xl animate-pulse"></div>
+            <div className="absolute bottom-4 right-4 w-20 h-20 bg-gradient-to-br from-pink-300/30 to-rose-300/30 rounded-full blur-xl animate-pulse delay-500"></div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-gradient-to-br from-yellow-300/30 to-orange-300/30 rounded-full blur-lg animate-pulse delay-1000"></div>
           </div>
 
           <div className="relative z-10 p-6">
@@ -343,13 +342,13 @@ const Index = memo(function Index() {
                   <MessageCircle className="h-6 w-6 text-white animate-pulse" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white mb-1">Community Hub</h3>
-                  <p className="text-purple-200 text-sm">Connect with 50,000+ smart farmers</p>
+                  <h3 className="text-xl font-bold text-gray-800 mb-1">Community Hub</h3>
+                  <p className="text-gray-600 text-sm">Connect with 50,000+ smart farmers</p>
                 </div>
               </div>
               <Button
                 onClick={() => navigate('/community')}
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
+                className="bg-white/10 hover:bg-white/20 text-gray-800 border-white/20 backdrop-blur-sm"
                 size="sm"
               >
                 Join
@@ -357,33 +356,33 @@ const Index = memo(function Index() {
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
-                <div className="text-2xl font-bold text-white mb-1">
+              <div className="bg-white/5 backdrop-blur-md rounded-lg p-4 border border-white/10">
+                <div className="text-2xl font-bold text-gray-800 mb-1">
                   {realData.communityStats.questionsToday}
                 </div>
-                <div className="text-xs text-purple-200">Questions Today</div>
+                <div className="text-xs text-gray-600">Questions Today</div>
                 <div className="flex items-center mt-2">
                   <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
-                  <span className="text-xs text-purple-200">{Math.floor(realData.communityStats.questionsToday * 0.6)} answered</span>
+                  <span className="text-xs text-gray-600">{Math.floor(realData.communityStats.questionsToday * 0.6)} answered</span>
                 </div>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
-                <div className="text-2xl font-bold text-white mb-1">
+              <div className="bg-white/5 backdrop-blur-md rounded-lg p-4 border border-white/10">
+                <div className="text-2xl font-bold text-gray-800 mb-1">
                   {realData.communityStats.expertsOnline}
                 </div>
-                <div className="text-xs text-purple-200">Experts Online</div>
+                <div className="text-xs text-gray-600">Experts Online</div>
                 <div className="flex items-center mt-2">
                   <div className="w-2 h-2 bg-yellow-400 rounded-full mr-2 animate-pulse"></div>
-                  <span className="text-xs text-purple-200">Ready to help</span>
+                  <span className="text-xs text-gray-600">Ready to help</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-              <div className="text-sm text-white font-medium mb-1">Latest Question</div>
-              <div className="text-xs text-purple-200">
-                {realData.communityStats.latestQuestion.length > 50 
-                  ? `${realData.communityStats.latestQuestion.substring(0, 50)}...` 
+            <div className="bg-white/5 backdrop-blur-md rounded-lg p-3 border border-white/10">
+              <div className="text-sm text-gray-800 font-medium mb-1">Latest Question</div>
+              <div className="text-xs text-gray-600">
+                {realData.communityStats.latestQuestion.length > 50
+                  ? `${realData.communityStats.latestQuestion.substring(0, 50)}...`
                   : realData.communityStats.latestQuestion}
               </div>
             </div>
@@ -391,12 +390,11 @@ const Index = memo(function Index() {
         </div>
 
         {/* 💰 REFERRALS - THE MONEY MAKER */}
-        <div className="bg-gradient-to-br from-yellow-600 via-orange-600 to-red-600 rounded-2xl p-0 overflow-hidden relative">
+        <div className="bg-gradient-to-br from-yellow-500/20 via-orange-500/20 to-red-500/20 backdrop-filter backdrop-blur-xl rounded-2xl p-0 overflow-hidden relative border border-white/10">
           {/* Animated Background */}
-          <div className="absolute inset-0 opacity-20">
-            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-yellow-300 to-orange-300 animate-pulse"></div>
+          <div className="absolute inset-0 opacity-10">
             <div className="absolute top-2 right-2 text-6xl animate-bounce delay-100">💰</div>
-            <div className="absolute bottom-2 left-2 text-4xl animate-bounce delay-300">🚀</div>
+            <div className="absolute bottom-2 left-2 text-4xl animate-bounce delay-300">�d</div>
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-3xl animate-bounce delay-500">⭐</div>
           </div>
 
@@ -407,13 +405,13 @@ const Index = memo(function Index() {
                   <Users className="h-6 w-6 text-white animate-pulse" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white mb-1">Invite & Earn</h3>
-                  <p className="text-yellow-200 text-sm">Get 10 credits per friend!</p>
+                  <h3 className="text-xl font-bold text-gray-800 mb-1">Invite & Earn</h3>
+                  <p className="text-gray-600 text-sm">Get 10 credits per friend!</p>
                 </div>
               </div>
               <Button
                 onClick={() => navigate('/referrals')}
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
+                className="bg-white/10 hover:bg-white/20 text-gray-800 border-white/20 backdrop-blur-sm"
                 size="sm"
               >
                 Earn Now
@@ -421,30 +419,30 @@ const Index = memo(function Index() {
             </div>
 
             <div className="grid grid-cols-3 gap-3 mb-4">
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20 text-center">
-                <div className="text-lg font-bold text-white">
+              <div className="bg-white/5 backdrop-blur-md rounded-lg p-3 border border-white/10 text-center">
+                <div className="text-lg font-bold text-gray-800">
                   {realData.referralData.friendsInvited}
                 </div>
-                <div className="text-xs text-yellow-200">Friends Invited</div>
+                <div className="text-xs text-gray-600">Friends Invited</div>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20 text-center">
-                <div className="text-lg font-bold text-white">
+              <div className="bg-white/5 backdrop-blur-md rounded-lg p-3 border border-white/10 text-center">
+                <div className="text-lg font-bold text-gray-800">
                   {realData.referralData.creditsEarned}
                 </div>
-                <div className="text-xs text-yellow-200">Credits Earned</div>
+                <div className="text-xs text-gray-600">Credits Earned</div>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20 text-center">
-                <div className="text-lg font-bold text-white">
+              <div className="bg-white/5 backdrop-blur-md rounded-lg p-3 border border-white/10 text-center">
+                <div className="text-lg font-bold text-gray-800">
                   ${Math.round(realData.referralData.valueEarned)}
                 </div>
-                <div className="text-xs text-yellow-200">Value Earned</div>
+                <div className="text-xs text-gray-600">Value Earned</div>
               </div>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+            <div className="bg-white/5 backdrop-blur-md rounded-lg p-3 border border-white/10">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-yellow-200">Your Referral Code</span>
-                <span className="text-white font-bold tracking-wider">{realData.referralData.referralCode}</span>
+                <span className="text-gray-600">Your Referral Code</span>
+                <span className="text-gray-800 font-bold tracking-wider">{realData.referralData.referralCode}</span>
               </div>
             </div>
           </div>

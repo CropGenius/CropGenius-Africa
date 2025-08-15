@@ -83,7 +83,7 @@ const More = () => {
       icon: Scan,
       label: 'AI Crop Scanner',
       path: '/scan',
-      description: 'Revolutionary AI that instantly identifies nutrient deficiencies, pests, diseases & provides organic solutions - the world\'s first complete crop health analyzer!',
+      description: 'Instantly identify nutrient deficiencies, pests, diseases & CropGenius provides organic solutions - the world\'s first complete crop health analyzer!',
       category: 'farming',
       badge: userStats.scans > 0 ? `${userStats.scans} scans` : undefined
     },
@@ -112,7 +112,7 @@ const More = () => {
       icon: HelpCircle,
       label: 'Help & Support',
       path: 'https://discord.gg/gBMNVV9Q',
-      description: 'Join our exclusive Discord community! Chat directly with CropGenius developers, report issues, and share your farming challenges for us to solve!',
+      description: 'Chat directly with CropGenius developers, report issues, and share your farming challenges for us to solve!',
       category: 'support',
       isExternal: true
     }
