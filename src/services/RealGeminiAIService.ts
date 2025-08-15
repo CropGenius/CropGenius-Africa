@@ -553,26 +553,136 @@ Provide realistic predictions based on agricultural science. Respond with valid 
     }
 
     /**
+     * 🔧 FIX MALFORMED JSON
+     */
+    private fixMalformedJson(jsonString: string): string {
+        try {
+            // First, try to find the JSON boundaries
+            let json = jsonString.trim();
+            
+            // Find the start of the JSON object
+            const startIndex = json.indexOf('{');
+            if (startIndex === -1) {
+                throw new Error('No JSON object found');
+            }
+            
+            json = json.substring(startIndex);
+            
+            // Handle truncated JSON by finding the last complete structure
+            if (!json.endsWith('}')) {
+                // Try to close incomplete arrays and objects
+                let openBraces = 0;
+                let openBrackets = 0;
+                let inString = false;
+                let escapeNext = false;
+                let lastCompleteIndex = -1;
+                
+                for (let i = 0; i < json.length; i++) {
+                    const char = json[i];
+                    
+                    if (escapeNext) {
+                        escapeNext = false;
+                        continue;
+                    }
+                    
+                    if (char === '\\') {
+                        escapeNext = true;
+                        continue;
+                    }
+                    
+                    if (char === '"' && !escapeNext) {
+                        inString = !inString;
+                        continue;
+                    }
+                    
+                    if (inString) continue;
+                    
+                    switch (char) {
+                        case '{':
+                            openBraces++;
+                            break;
+                        case '}':
+                            openBraces--;
+                            if (openBraces === 0 && openBrackets === 0) {
+                                lastCompleteIndex = i;
+                            }
+                            break;
+                        case '[':
+                            openBrackets++;
+                            break;
+                        case ']':
+                            openBrackets--;
+                            break;
+                    }
+                }
+                
+                // If we found a complete structure, use it
+                if (lastCompleteIndex > -1) {
+                    json = json.substring(0, lastCompleteIndex + 1);
+                } else {
+                    // Try to fix incomplete arrays/objects
+                    let fixedJson = json;
+                    
+                    // Close incomplete string if needed
+                    if (inString) {
+                        fixedJson += '"';
+                    }
+                    
+                    // Close incomplete arrays
+                    while (openBrackets > 0) {
+                        fixedJson += ']';
+                        openBrackets--;
+                    }
+                    
+                    // Close incomplete objects
+                    while (openBraces > 0) {
+                        fixedJson += '}';
+                        openBraces--;
+                    }
+                    
+                    json = fixedJson;
+                }
+            }
+            
+            // Fix common JSON syntax issues
+            json = json
+                // Fix trailing commas in arrays
+                .replace(/,(\s*])/g, '$1')
+                // Fix trailing commas in objects
+                .replace(/,(\s*})/g, '$1')
+                // Fix missing commas between array elements (most common issue)
+                .replace(/}(\s*)(?=\{)/g, '},$1')
+                .replace(/](\s*)(?=\{)/g, '],$1')
+                .replace(/}(\s*)(?=\[)/g, '},$1')
+                .replace(/](\s*)(?=\[)/g, '],$1')
+                // Fix missing commas between strings in arrays
+                .replace(/"(\s*)(?=")/g, '",$1')
+                // Fix incomplete array elements
+                .replace(/,(\s*)$/g, '');
+            
+            // Test if the JSON is now valid
+            JSON.parse(json);
+            console.log('🔧 Successfully fixed malformed JSON');
+            return json;
+            
+        } catch (error) {
+            console.warn('⚠️ Could not fix malformed JSON, returning original:', error.message);
+            return jsonString;
+        }
+    }
+
+    /**
      * 🔍 PARSE ORGANIC ACTION RESPONSE
      */
     private parseOrganicActionResponse(response: string): any {
         try {
             console.log('🔍 Raw Gemini response to parse:', response);
             
-            // Clean response and extract JSON - handle truncated responses
+            // Clean response and extract JSON - handle truncated/malformed responses
             let cleanResponse = response.replace(/```json\n?|\n?```/g, '').trim();
             
-            // Fix common JSON truncation issues
-            if (!cleanResponse.endsWith('}')) {
-                // Try to find the last complete object
-                const lastCompleteObject = cleanResponse.lastIndexOf('}');
-                if (lastCompleteObject > 0) {
-                    cleanResponse = cleanResponse.substring(0, lastCompleteObject + 1);
-                    console.log('🔧 Fixed truncated JSON response');
-                } else {
-                    throw new Error('Response appears to be truncated beyond repair');
-                }
-            }
+            // Fix common JSON issues
+            cleanResponse = this.fixMalformedJson(cleanResponse);
             
             const parsed = JSON.parse(cleanResponse);
 
