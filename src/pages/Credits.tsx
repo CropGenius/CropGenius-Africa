@@ -5,20 +5,24 @@ import { Badge } from '@/components/ui/badge';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 import { useBackendFeatures } from '@/hooks/useBackendFeatures';
-import { CreditCard, Plus, History, Gift, Zap, Coins } from 'lucide-react';
+import { CreditCard, Plus, History, Gift, Zap, Coins, Crown, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 
 const Credits = () => {
   const { user } = useAuthContext();
   const { activateAllFeatures } = useBackendFeatures();
+  const navigate = useNavigate();
   const [credits, setCredits] = useState(0);
   const [loading, setLoading] = useState(true);
   const [activating, setActivating] = useState(false);
+  const [userPlan, setUserPlan] = useState<any>(null);
 
   useEffect(() => {
     if (user) {
       loadCredits();
+      loadUserPlan();
     }
   }, [user]);
 
@@ -31,6 +35,27 @@ const Credits = () => {
     
     setCredits(data?.credits || 0);
     setLoading(false);
+  };
+
+  const loadUserPlan = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase.rpc('get_user_plan', {
+        user_uuid: user.id
+      });
+
+      if (error) {
+        console.error('Error fetching user plan:', error);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        setUserPlan(data[0]);
+      }
+    } catch (error) {
+      console.error('Error in loadUserPlan:', error);
+    }
   };
 
   const handleActivateFeatures = async () => {
@@ -64,13 +89,42 @@ const Credits = () => {
         </CardContent>
       </Card>
 
+      {/* Pro Upgrade Banner */}
+      {!userPlan?.is_active && (
+        <Card className="mb-6 bg-gradient-to-r from-green-600 to-emerald-500 text-white border-0">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Crown className="h-12 w-12 text-yellow-300" />
+                <div>
+                  <h3 className="text-xl font-bold mb-1">Upgrade to CropGenius Pro</h3>
+                  <p className="text-green-100 text-sm mb-2">
+                    Unlimited credits + Premium AI features
+                  </p>
+                  <div className="text-sm text-green-100">
+                    ✨ From KES 999/month • Save 58% with annual plan
+                  </div>
+                </div>
+              </div>
+              <Button
+                onClick={() => navigate('/upgrade')}
+                className="bg-white text-green-600 hover:bg-gray-100 font-semibold"
+              >
+                Upgrade Now
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Quick Actions */}
       <div className="space-y-4 mb-6">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Zap className="h-5 w-5 text-yellow-600" />
-              Activate All Features
+              Free Credit Boost
             </CardTitle>
             <CardDescription>
               Get 1000 free credits and unlock all premium features

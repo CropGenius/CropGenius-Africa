@@ -34,6 +34,7 @@ import Credits from './pages/Credits';
 import AddCrop from './pages/AddCrop';
 import ReferralsPage from './pages/ReferralsPage';
 import JoinPage from './pages/JoinPage';
+import Upgrade from './pages/Upgrade';
 
 function Protected({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuthContext();
@@ -82,6 +83,7 @@ export default function AppRoutes() {
       <Route path="/market-insights" element={<Protected><MarketInsightsPage /></Protected>} />
       <Route path="/mission-control" element={<Protected><MissionControlPage /></Protected>} />
       <Route path="/credits" element={<Protected><Credits /></Protected>} />
+      <Route path="/upgrade" element={<Protected><Upgrade /></Protected>} />
       <Route path="/referrals" element={<Protected><ReferralsPage /></Protected>} />
       
       <Route path="*" element={<NotFound />} />

@@ -2441,6 +2441,45 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_sessions: {
+        Row: {
+          amount: number
+          completed_at: string | null
+          created_at: string | null
+          currency: string
+          flutterwave_data: Json | null
+          id: string
+          payment_data: Json | null
+          plan_type: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          completed_at?: string | null
+          created_at?: string | null
+          currency?: string
+          flutterwave_data?: Json | null
+          id: string
+          payment_data?: Json | null
+          plan_type: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          completed_at?: string | null
+          created_at?: string | null
+          currency?: string
+          flutterwave_data?: Json | null
+          id?: string
+          payment_data?: Json | null
+          plan_type?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       performance_baseline: {
         Row: {
           id: string
@@ -4661,6 +4700,16 @@ export type Database = {
           resource_type: string
         }[]
       }
+      get_user_plan: {
+        Args: { user_uuid: string }
+        Returns: {
+          billing_cycle: string
+          current_period_end: string
+          is_active: boolean
+          plan_type: string
+          status: string
+        }[]
+      }
       gettransactionid: {
         Args: Record<PropertyKey, never>
         Returns: unknown
@@ -4694,6 +4743,10 @@ export type Database = {
           resource_uuid?: string
           user_uuid: string
         }
+        Returns: boolean
+      }
+      has_pro_plan: {
+        Args: { user_uuid: string }
         Returns: boolean
       }
       is_index_unused: {
