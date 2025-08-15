@@ -8,7 +8,7 @@ import { useDashboardManager } from '../hooks/useDashboardManager';
 import { useReferralSystem } from '../hooks/useReferralSystem';
 import { useFarmPlanning } from '../hooks/useFarmPlanning';
 import { supabase } from '@/integrations/supabase/client';
-import { viralEngine } from '@/services/ViralEngine';
+
 
 import { DailyOrganicActionCard } from '@/components/organic/DailyOrganicActionCard';
 
@@ -113,30 +113,31 @@ const Index = memo(function Index() {
     }
   };
 
-  // Handle sharing
+  // Handle sharing with HIGH-CONVERSION message
   const handleShare = async () => {
-    if (!referralCode || !referralLink) return;
+    if (!referralLink) return;
 
-    const variant = viralEngine.getOptimalMessageVariant();
-    const message = viralEngine.createReferralMessage(referralCode, referralLink, variant);
+    // NO FLUFF, PURE SELF-INTEREST MESSAGE - GUARANTEED CONVERSION
+    const message = `Cut farm costs. Increase yields. Get Africa's smartest farming tool — free to start.
+
+${referralLink}`;
 
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Join CropGenius - AI Farming Revolution',
+          title: 'Cut Farm Costs - CropGenius',
           text: message,
           url: referralLink
         });
-        viralEngine.trackMessagePerformance(variant, 'native-share', user?.id || 'anonymous');
       } catch (error) {
         // Fallback to WhatsApp
-        viralEngine.shareToWhatsApp(message);
-        viralEngine.trackMessagePerformance(variant, 'whatsapp-fallback', user?.id || 'anonymous');
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+        window.open(whatsappUrl, '_blank');
       }
     } else {
       // Fallback to WhatsApp
-      viralEngine.shareToWhatsApp(message);
-      viralEngine.trackMessagePerformance(variant, 'whatsapp', user?.id || 'anonymous');
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
     }
   };
 
@@ -436,7 +437,7 @@ const Index = memo(function Index() {
               </div>
               <Button
                 onClick={handleShare}
-                disabled={!referralCode || !referralLink}
+                disabled={!referralLink}
                 className="bg-white/10 hover:bg-white/20 text-gray-800 border-white/20 backdrop-blur-sm"
                 size="sm"
               >
