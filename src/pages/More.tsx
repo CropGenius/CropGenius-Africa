@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  User, 
-  CreditCard, 
-  Users, 
-  Calendar, 
-  MessageSquare, 
-  HelpCircle, 
+import {
+  User,
+  CreditCard,
+  Users,
+  Calendar,
+  MessageSquare,
+  HelpCircle,
   Settings,
   Wifi,
   Scan,
@@ -33,7 +33,7 @@ const More = () => {
 
   const loadUserStats = async () => {
     if (!user) return;
-    
+
     try {
       // Get user credits
       const { data: profile } = await supabase
@@ -41,19 +41,19 @@ const More = () => {
         .select('credits')
         .eq('id', user.id)
         .single();
-      
+
       // Get user farms count
       const { count: farmsCount } = await supabase
         .from('farms')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id);
-      
+
       // Get user scans count
       const { count: scansCount } = await supabase
         .from('crop_scans')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id);
-      
+
       setUserStats({
         credits: profile?.credits || 0,
         farms: farmsCount || 0,
@@ -67,76 +67,76 @@ const More = () => {
   };
 
   const menuItems = [
-    { 
-      icon: User, 
-      label: 'Profile & Settings', 
+    {
+      icon: User,
+      label: 'Profile & Settings',
       path: '/settings',
       description: 'Manage your account',
       category: 'account'
     },
-    { 
-      icon: CreditCard, 
-      label: 'Credit Balance', 
+    {
+      icon: CreditCard,
+      label: 'Credit Balance',
       path: '/credits',
       description: `${userStats.credits} credits available`,
       category: 'account',
       badge: userStats.credits > 0 ? userStats.credits.toString() : undefined
     },
-    { 
-      icon: Calendar, 
-      label: 'Farm Planning', 
+    {
+      icon: Calendar,
+      label: 'Farm Planning',
       path: '/farm-planning',
       description: 'AI-powered farm plans',
       category: 'farming',
       isNew: true
     },
-    { 
-      icon: MessageSquare, 
-      label: 'Community Hub', 
+    {
+      icon: MessageSquare,
+      label: 'Community Hub',
       path: '/community',
       description: 'Connect with farmers',
       category: 'social',
       isNew: true
     },
-    { 
-      icon: Scan, 
-      label: 'Crop Disease Detection', 
+    {
+      icon: Scan,
+      label: 'Crop Disease Detection',
       path: '/crop-disease-detection',
       description: 'AI disease diagnosis',
       category: 'farming',
       badge: userStats.scans > 0 ? `${userStats.scans} scans` : undefined
     },
-    { 
-      icon: TrendingUp, 
-      label: 'Yield Predictor', 
+    {
+      icon: TrendingUp,
+      label: 'Yield Predictor',
       path: '/yield-predictor',
       description: 'Predict your harvest',
       category: 'farming'
     },
-    { 
-      icon: BarChart3, 
-      label: 'Market Insights', 
+    {
+      icon: BarChart3,
+      label: 'Market Insights',
       path: '/market-insights',
       description: 'Real-time market data',
       category: 'market'
     },
-    { 
-      icon: Target, 
-      label: 'Mission Control', 
+    {
+      icon: Target,
+      label: 'Mission Control',
       path: '/mission-control',
       description: 'Farm management hub',
       category: 'farming'
     },
-    { 
-      icon: Users, 
-      label: 'Referrals', 
+    {
+      icon: Users,
+      label: 'Referrals',
       path: '/referrals',
       description: 'Invite friends & earn',
       category: 'account'
     },
-    { 
-      icon: HelpCircle, 
-      label: 'Help & Support', 
+    {
+      icon: HelpCircle,
+      label: 'Help & Support',
       path: '/help',
       description: 'Get assistance',
       category: 'support'
@@ -163,7 +163,7 @@ const More = () => {
         <h1 className="text-2xl font-bold text-gray-900">More Options</h1>
         <p className="text-gray-600 mt-1">Explore all CropGenius features</p>
       </div>
-      
+
       {loading ? (
         <div className="space-y-3">
           {[...Array(6)].map((_, i) => (
@@ -192,9 +192,9 @@ const More = () => {
                 </div>
                 <div className="space-y-3">
                   {items.map(({ icon: Icon, label, path, description, badge, isNew }) => (
-                    <Card 
-                      key={path} 
-                      className="hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.02]" 
+                    <Card
+                      key={path}
+                      className="hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.02]"
                       onClick={() => navigate(path)}
                     >
                       <CardContent className="p-4">
@@ -230,7 +230,7 @@ const More = () => {
           })}
         </div>
       )}
-      
+
 
     </div>
   );

@@ -224,12 +224,8 @@ const Settings: React.FC = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="profile" className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              Profile
-            </TabsTrigger>
+        <Tabs defaultValue="notifications" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="notifications" className="flex items-center gap-2">
               <Bell className="h-4 w-4" />
               Notifications
@@ -238,72 +234,9 @@ const Settings: React.FC = () => {
               <Shield className="h-4 w-4" />
               Privacy
             </TabsTrigger>
-            <TabsTrigger value="support" className="flex items-center gap-2">
-              <HelpCircle className="h-4 w-4" />
-              Support
-            </TabsTrigger>
           </TabsList>
 
-          {/* Profile Tab */}
-          <TabsContent value="profile" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Profile Information</CardTitle>
-                <CardDescription>
-                  Update your personal information and account details
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {profile && (
-                  <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="full-name">Full Name</Label>
-                        <Input
-                          id="full-name"
-                          value={profile.full_name || ''}
-                          onChange={(e) => setProfile(prev => prev ? { ...prev, full_name: e.target.value } : null)}
-                          placeholder="Enter your full name"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="email">Email Address</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          value={profile.email || ''}
-                          onChange={(e) => setProfile(prev => prev ? { ...prev, email: e.target.value } : null)}
-                          placeholder="Enter your email"
-                        />
-                      </div>
-                    </div>
 
-                    <div className="flex items-center justify-between pt-4 border-t">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle2 className="h-4 w-4 text-green-600" />
-                        <span className="text-sm text-gray-600">
-                          Account verified and active
-                        </span>
-                      </div>
-                      <Button onClick={updateProfile} disabled={saving}>
-                        {saving ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Saving...
-                          </>
-                        ) : (
-                          <>
-                            <Save className="h-4 w-4 mr-2" />
-                            Save Changes
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           {/* Notifications Tab */}
           <TabsContent value="notifications" className="space-y-6">
@@ -483,71 +416,7 @@ const Settings: React.FC = () => {
             </Card>
           </TabsContent>
 
-          {/* Support Tab */}
-          <TabsContent value="support" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Help & Support</CardTitle>
-                <CardDescription>
-                  Get help and contact our support team
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Button variant="outline" className="h-20 flex-col gap-2">
-                    <HelpCircle className="h-6 w-6" />
-                    <span>Help Center</span>
-                  </Button>
-                  
-                  <Button variant="outline" className="h-20 flex-col gap-2">
-                    <User className="h-6 w-6" />
-                    <span>Contact Support</span>
-                  </Button>
-                </div>
 
-                <Separator />
-
-                <div className="space-y-2">
-                  <h4 className="font-medium">App Information</h4>
-                  <div className="text-sm text-gray-600 space-y-1">
-                    <p>Version: 1.0.0</p>
-                    <p>Last Updated: {new Date().toLocaleDateString()}</p>
-                    <p>User ID: {user?.id}</p>
-                  </div>
-                </div>
-
-                {/* 🔥 INFINITY IQ DEBUG DASHBOARD - DEVELOPMENT ONLY */}
-                {import.meta.env.DEV && (
-                  <>
-                    <Separator />
-                    <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950 dark:to-blue-950 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                      <div className="flex items-start gap-3">
-                        <Bug className="h-5 w-5 text-green-600 mt-0.5" />
-                        <div className="flex-1">
-                          <h4 className="font-medium text-green-800 dark:text-green-200">
-                            🚀 INFINITY IQ Debug Dashboard
-                          </h4>
-                          <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                            Production-ready authentication debugging system for 100M farmers. 
-                            Monitor auth events, system health, and performance metrics in real-time.
-                          </p>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="mt-3 bg-gradient-to-r from-green-600 to-blue-600 text-white border-none hover:from-green-700 hover:to-blue-700"
-                            onClick={() => setShowDebugDashboard(true)}
-                          >
-                            <Bug className="h-4 w-4 mr-2" />
-                            Open Debug Dashboard
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
 
         {/* Sign Out Section */}
