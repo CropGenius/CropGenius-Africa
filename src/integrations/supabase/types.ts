@@ -3400,6 +3400,48 @@ export type Database = {
           },
         ]
       }
+      user_plans: {
+        Row: {
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          plan_type: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_price_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan_type?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan_type?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_preferences: {
         Row: {
           budget_band: string | null
@@ -3612,6 +3654,42 @@ export type Database = {
           streak_days?: number | null
           total_tasks_completed?: number | null
           updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_usage: {
+        Row: {
+          chat_used_day: number
+          created_at: string
+          day_anchor: string
+          fields_count: number
+          id: string
+          month_anchor: string
+          scans_used_month: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          chat_used_day?: number
+          created_at?: string
+          day_anchor?: string
+          fields_count?: number
+          id?: string
+          month_anchor?: string
+          scans_used_month?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          chat_used_day?: number
+          created_at?: string
+          day_anchor?: string
+          fields_count?: number
+          id?: string
+          month_anchor?: string
+          scans_used_month?: number
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -4598,6 +4676,17 @@ export type Database = {
       grant_default_permissions: {
         Args: { user_uuid: string }
         Returns: undefined
+      }
+      handle_stripe_webhook: {
+        Args: {
+          current_period_end?: string
+          current_period_start?: string
+          event_type: string
+          stripe_customer_id: string
+          stripe_price_id?: string
+          stripe_subscription_id?: string
+        }
+        Returns: Json
       }
       has_permission: {
         Args: {
