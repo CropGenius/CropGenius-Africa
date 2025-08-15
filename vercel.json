@@ -1,6 +1,6 @@
 {
   "framework": null,
-  "buildCommand": "node scripts/build-production.js",
+  "buildCommand": "npx vite build --config vite.config.ts",
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "rewrites": [

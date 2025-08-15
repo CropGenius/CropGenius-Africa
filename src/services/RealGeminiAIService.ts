@@ -240,25 +240,23 @@ class RealGeminiAIService {
                 const data: GeminiResponse = await response.json();
                 console.log('🔍 Gemini API response structure:', JSON.stringify(data, null, 2));
 
-                // Handle different response structures safely
+                // OFFICIAL GEMINI API RESPONSE STRUCTURE (per ai.google.dev documentation)
                 let text: string;
                 
                 if (data.candidates && data.candidates.length > 0) {
-                    // Standard structure: data.candidates[0].content.parts[0].text
                     const candidate = data.candidates[0];
-                    if (candidate?.content?.parts && candidate.content.parts.length > 0) {
-                        text = candidate.content.parts[0]?.text;
+                    if (candidate && candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
+                        text = candidate.content.parts[0].text;
+                        if (!text) {
+                            throw new Error('Empty text in Gemini API response parts');
+                        }
                     } else {
+                        console.log('🔍 Candidate structure:', JSON.stringify(candidate, null, 2));
                         throw new Error('Invalid candidate structure from Gemini API');
                     }
-                } else if (data.content?.parts && data.content.parts.length > 0) {
-                    // Alternative structure: data.content.parts[0].text
-                    text = data.content.parts[0]?.text;
-                } else if (typeof data === 'string') {
-                    // Direct text response
-                    text = data;
                 } else {
-                    throw new Error('No valid response structure found from Gemini API');
+                    console.log('🔍 Full response structure:', JSON.stringify(data, null, 2));
+                    throw new Error('No candidates found in Gemini API response');
                 }
 
                 if (!text || text.trim().length === 0) {
@@ -371,25 +369,23 @@ class RealGeminiAIService {
                 const data: GeminiResponse = await response.json();
                 console.log('🔍 Gemini image analysis response structure:', JSON.stringify(data, null, 2));
 
-                // Handle different response structures safely
+                // OFFICIAL GEMINI API RESPONSE STRUCTURE (per ai.google.dev documentation)
                 let text: string;
                 
                 if (data.candidates && data.candidates.length > 0) {
-                    // Standard structure: data.candidates[0].content.parts[0].text
                     const candidate = data.candidates[0];
-                    if (candidate?.content?.parts && candidate.content.parts.length > 0) {
-                        text = candidate.content.parts[0]?.text;
+                    if (candidate && candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
+                        text = candidate.content.parts[0].text;
+                        if (!text) {
+                            throw new Error('Empty text in Gemini API response parts');
+                        }
                     } else {
+                        console.log('🔍 Image analysis candidate structure:', JSON.stringify(candidate, null, 2));
                         throw new Error('Invalid candidate structure from Gemini API');
                     }
-                } else if (data.content?.parts && data.content.parts.length > 0) {
-                    // Alternative structure: data.content.parts[0].text
-                    text = data.content.parts[0]?.text;
-                } else if (typeof data === 'string') {
-                    // Direct text response
-                    text = data;
                 } else {
-                    throw new Error('No valid response structure found from Gemini API');
+                    console.log('🔍 Image analysis full response:', JSON.stringify(data, null, 2));
+                    throw new Error('No candidates found in Gemini API response');
                 }
 
                 if (!text || text.trim().length === 0) {
