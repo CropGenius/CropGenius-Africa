@@ -19,7 +19,7 @@ const MarketInsightsPage: React.FC = () => {
           Upgrade to Pro to unlock real-time market data, AI price trends, and buyer discovery tailored to your crops.
         </p>
         <div className="flex gap-3">
-          <Button onClick={() => navigate('/credits')} className="bg-green-600 hover:bg-green-700">Upgrade to Pro</Button>
+          <Button onClick={() => navigate('/upgrade')} className="bg-green-600 hover:bg-green-700">Upgrade to Pro</Button>
           <Button variant="outline" onClick={() => navigate(-1)}>Go Back</Button>
         </div>
       </div>
