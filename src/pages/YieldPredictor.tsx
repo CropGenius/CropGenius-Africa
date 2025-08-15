@@ -166,7 +166,7 @@ const YieldPredictor = () => {
             Upgrade to Pro to get AI-powered yield forecasts, risk analysis and revenue projections for your farm.
           </p>
           <div className="flex gap-3">
-            <Button onClick={() => navigate('/credits')} className="bg-green-600 hover:bg-green-700">Upgrade to Pro</Button>
+            <Button onClick={() => navigate('/upgrade')} className="bg-green-600 hover:bg-green-700">Upgrade to Pro</Button>
             <Button variant="outline" onClick={() => navigate(-1)}>Go Back</Button>
           </div>
         </div>
