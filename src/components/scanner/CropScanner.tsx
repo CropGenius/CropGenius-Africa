@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -36,6 +37,8 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
   const [scanProgress, setScanProgress] = useState(0);
   const [scanResults, setScanResults] = useState<DiseaseDetectionResult | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [isGated, setIsGated] = useState(false);
+  const navigate = useNavigate();
 
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -89,6 +92,12 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
   }, []);
 
   const startCamera = async () => {
+    // Gating: check before starting camera
+    if (!canScan()) {
+      setIsGated(true);
+      toast.info('Monthly scan limit reached', { description: 'Upgrade to Pro for more scans.' });
+      return;
+    }
     setScanState("capturing");
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
     streamRef.current = stream;
@@ -125,12 +134,23 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
 
   // Trigger file input click
   const triggerFileInput = () => {
+    if (!canScan()) {
+      setIsGated(true);
+      toast.info('Monthly scan limit reached', { description: 'Upgrade to Pro for more scans.' });
+      return;
+    }
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
   };
 
   const handleScan = async (file: File) => {
+    // Safety: re-check gating at scan start
+    if (!canScan()) {
+      setIsGated(true);
+      toast.info('Monthly scan limit reached', { description: 'Upgrade to Pro for more scans.' });
+      return;
+    }
     setScanProgress(0);
     setScanState("scanning");
 
@@ -161,6 +181,16 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
 
       setScanResults(results);
       setScanState("results");
+
+      // Increment monthly scan counter for FREE users
+      try {
+        const isPro = getIsPro();
+        ensureMonthAnchor();
+        if (!isPro) {
+          const used = parseInt(localStorage.getItem('scans_used_month') || '0', 10) || 0;
+          localStorage.setItem('scans_used_month', String(used + 1));
+        }
+      } catch {}
 
       if (onScanComplete) {
         onScanComplete({
@@ -221,6 +251,33 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
     };
   }, [capturedImage, stopCamera]);
 
+  // --- Minimal plan/counter helpers (localStorage-based) ---
+  const getIsPro = () => {
+    try { return localStorage.getItem('plan_is_pro') === 'true'; } catch { return false; }
+  };
+  const getMonthKey = () => {
+    const d = new Date();
+    return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+  };
+  const ensureMonthAnchor = () => {
+    try {
+      const current = getMonthKey();
+      const anchor = localStorage.getItem('month_anchor');
+      if (anchor !== current) {
+        localStorage.setItem('month_anchor', current);
+        localStorage.setItem('scans_used_month', '0');
+      }
+    } catch {}
+  };
+  const canScan = () => {
+    try {
+      if (getIsPro()) return true;
+      ensureMonthAnchor();
+      const used = parseInt(localStorage.getItem('scans_used_month') || '0', 10) || 0;
+      return used < 15;
+    } catch { return true; }
+  };
+
   return (
     <div className="p-5 pb-24 animate-fade-in">
       <div className="mb-5">
@@ -266,6 +323,15 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
       {scanState === "idle" && (
         <Card className="glass-card p-5 mb-5">
           <div className="flex flex-col items-center text-center">
+            {isGated && (
+              <div className="w-full mb-4 p-3 rounded-md bg-amber-50 text-amber-800 text-sm">
+                Free plan allows 15 scans per month. Upgrade to Pro to continue scanning.
+                <div className="mt-2 flex gap-2 justify-center">
+                  <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => navigate('/credits')}>Upgrade to Pro</Button>
+                  <Button size="sm" variant="outline" onClick={() => setIsGated(false)}>Dismiss</Button>
+                </div>
+              </div>
+            )}
             {capturedImage ? (
               <div className="w-full mb-4">
                 <img
@@ -288,6 +354,7 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
               <Button
                 className="glass-btn bg-crop-green-600 hover:bg-crop-green-700 text-white flex items-center justify-center h-14"
                 onClick={startCamera}
+                disabled={isGated}
               >
                 <Camera className="mr-2" />
                 Take Photo
@@ -295,6 +362,7 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
               <Button
                 className="glass-btn bg-soil-brown-600 hover:bg-soil-brown-700 text-white flex items-center justify-center h-14"
                 onClick={triggerFileInput}
+                disabled={isGated}
               >
                 <Upload className="mr-2" />
                 Upload Image

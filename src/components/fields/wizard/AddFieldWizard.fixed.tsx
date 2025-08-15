@@ -65,6 +65,18 @@ const clearSessionData = (): void => {
 
 export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }: AddFieldWizardProps) {
   const { user } = useAuthContext();
+  const navigate = useNavigate();
+  
+  // --- Simple plan state (localStorage-based) ---
+  const getIsPro = () => {
+    try {
+      const v = localStorage.getItem('plan_is_pro');
+      return v === 'true';
+    } catch { return false; }
+  };
+  const [isPro, setIsPro] = useState<boolean>(getIsPro());
+  const [userFieldCount, setUserFieldCount] = useState<number | null>(null);
+  const [isGated, setIsGated] = useState(false);
   
   // Initialize state from session storage if available
   const [currentStep, setCurrentStep] = useState(() => 
@@ -245,6 +257,35 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
     
     loadFarmContext();
   }, [user?.id, isOnlineStatus, farmContext]);
+
+  // Fetch user's field count and apply gating (FREE: max 1 field)
+  useEffect(() => {
+    const checkGating = async () => {
+      try {
+        if (!user?.id) return;
+        // Count fields for this user
+        const { count, error } = await supabase
+          .from('fields')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id);
+        if (error) {
+          console.error('Error counting fields:', error);
+          return;
+        }
+        setUserFieldCount(count ?? 0);
+        const gated = !getIsPro() && (count ?? 0) >= 1;
+        setIsGated(gated);
+        if (gated) {
+          toast.info('Upgrade to add more fields', {
+            description: 'Free plan allows 1 field. Upgrade to Pro to add more.'
+          });
+        }
+      } catch (e) {
+        console.error('Gating check failed', e);
+      }
+    };
+    checkGating();
+  }, [user?.id]);
   
   const updateFieldData = (partialData: Partial<typeof fieldData>) => {
     setFieldData(prev => ({ ...prev, ...partialData }));
@@ -406,6 +447,27 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
         </div>
         <p className="text-muted-foreground text-sm">Preparing field creation...</p>
+      </div>
+    );
+  }
+  
+  // Gated view for FREE users with >=1 field
+  if (isGated) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 space-y-4 text-center">
+        <Shield className="h-10 w-10 text-amber-500" />
+        <h2 className="text-xl font-semibold">Add more fields with Pro</h2>
+        <p className="text-sm text-muted-foreground max-w-md">
+          Free plan allows 1 field per user. Upgrade to Pro to add up to 50 fields and unlock advanced features.
+        </p>
+        <div className="flex gap-3 mt-2">
+          <Button onClick={() => navigate('/credits')} className="bg-green-600 hover:bg-green-700">
+            Upgrade to Pro
+          </Button>
+          <Button variant="outline" onClick={() => onCancel ? onCancel() : navigate('/fields')}>
+            Cancel
+          </Button>
+        </div>
       </div>
     );
   }
