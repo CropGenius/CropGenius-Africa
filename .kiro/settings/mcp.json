@@ -65,7 +65,9 @@
       ],
       "disabled": false,
       "autoApprove": [
-        "browser_navigate"
+        "browser_navigate",
+        "browser_take_screenshot",
+        "browser_close"
       ]
     }
   }
