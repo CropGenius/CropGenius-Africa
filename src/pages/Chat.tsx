@@ -58,7 +58,7 @@ User: ${message}`
       console.error('Gemini error:', error);
       const errorResponse = {
         role: 'assistant' as const,
-        content: 'Error connecting to Gemini API'
+        content: 'Error connecting to CropGenius AI'
       };
       setMessages(prev => [...prev, errorResponse]);
     } finally {
