@@ -6,32 +6,23 @@ import { useAuthContext } from '@/providers/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 import { CreditCard, Plus, History, Gift, Zap, Coins, Crown, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
-
-
-interface UserPlan {
-  plan_type: string;
-  status: string;
-  billing_cycle: string;
-  current_period_end: string | null;
-  is_active: boolean;
-}
+import { useUserPlan } from '@/hooks/useUserPlan';
 
 const Credits = () => {
   const { user } = useAuthContext();
+  const { userPlan, isPro, loading: planLoading } = useUserPlan();
   const [credits, setCredits] = useState(0);
-  const [userPlan, setUserPlan] = useState<UserPlan | null>(null);
   const [loading, setLoading] = useState(true);
   const [upgrading, setUpgrading] = useState(false);
 
   useEffect(() => {
     if (user) {
-      loadUserData();
+      loadCredits();
     }
   }, [user]);
 
-  const loadUserData = async () => {
+  const loadCredits = async () => {
     try {
-      // Load credits
       const { data: profileData } = await supabase
         .from('profiles')
         .select('credits')
@@ -39,19 +30,8 @@ const Credits = () => {
         .single();
       
       setCredits(profileData?.credits || 0);
-
-      // Load user plan
-      const { data: planData, error: planError } = await supabase.rpc('get_user_plan', {
-        user_uuid: user!.id
-      });
-
-      if (planError) {
-        console.error('Error loading plan:', planError);
-      } else if (planData && planData.length > 0) {
-        setUserPlan(planData[0]);
-      }
     } catch (error) {
-      console.error('Error loading user data:', error);
+      console.error('Error loading credits:', error);
     } finally {
       setLoading(false);
     }
@@ -62,7 +42,6 @@ const Credits = () => {
     
     setUpgrading(true);
     try {
-      // Initialize Flutterwave payment
       const { data, error } = await supabase.functions.invoke('flutterwave-init-payment', {
         body: {
           plan_type: planType,
@@ -78,7 +57,6 @@ const Credits = () => {
         throw new Error(data.error || 'Payment initialization failed');
       }
 
-      // Redirect to Flutterwave payment page
       window.open(data.payment_link, '_blank');
       
       toast.success('Redirecting to secure payment...', {
@@ -95,7 +73,16 @@ const Credits = () => {
     }
   };
 
-  const isPro = userPlan?.is_active;
+  if (loading || planLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 pb-20 flex items-center justify-center">
+        <div className="text-center">
+          <Coins className="h-12 w-12 text-blue-500 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading your account...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 pb-20">
@@ -124,7 +111,7 @@ const Credits = () => {
                   </Badge>
                 )}
               </div>
-              <p className="text-3xl font-bold">{loading ? '...' : credits}</p>
+              <p className="text-3xl font-bold">{credits}</p>
               <p className="text-green-100 text-sm">Credits Available</p>
               {isPro && userPlan?.current_period_end && (
                 <p className="text-xs text-white/80 mt-2">

@@ -6,28 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface PaymentRequest {
-  email: string;
-  amount: number;
-  currency: string;
-  payment_plan?: string;
-  payment_options?: string;
-  redirect_url: string;
-  customer: {
-    email: string;
-    name: string;
-    phonenumber?: string;
-  };
-  customizations: {
-    title: string;
-    description: string;
-    logo?: string;
-  };
-  tx_ref: string;
-}
-
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -38,7 +17,6 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    // Get user from auth header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       throw new Error('No authorization header');
@@ -58,18 +36,16 @@ serve(async (req) => {
       throw new Error('Plan type is required');
     }
 
-    // Get plan details
     const planDetails = plan_type === 'pro' ? {
-      amount: 999, // KES 999 per month
+      amount: 999,
       name: 'CropGenius Pro',
       interval: 'monthly'
     } : {
-      amount: 9999, // KES 9999 per year  
-      name: 'CropGenius Pro Annual',
+      amount: 9999,
+      name: 'CropGenius Pro Annual', 
       interval: 'yearly'
     };
 
-    // Get user profile for details
     const { data: profile } = await supabaseAdmin
       .from('profiles')
       .select('full_name, email')
@@ -78,12 +54,9 @@ serve(async (req) => {
 
     const customerName = profile?.full_name || user.email?.split('@')[0] || 'Customer';
     const customerEmail = profile?.email || user.email || '';
-
-    // Generate unique transaction reference
     const tx_ref = `CG-${user.id.slice(0, 8)}-${Date.now()}`;
 
-    // Prepare Flutterwave payment request
-    const paymentRequest: PaymentRequest = {
+    const paymentRequest = {
       email: customerEmail,
       amount: planDetails.amount,
       currency: 'KES',
@@ -92,12 +65,12 @@ serve(async (req) => {
       customer: {
         email: customerEmail,
         name: customerName,
-        phonenumber: '', // Can be added later
+        phonenumber: '',
       },
       customizations: {
         title: 'CropGenius Pro Subscription',
         description: `${planDetails.name} - ${planDetails.interval} billing`,
-        logo: 'https://cropgenius.com/logo.png', // Update with actual logo
+        logo: 'https://cropgenius.com/logo.png',
       },
       tx_ref,
     };
@@ -109,11 +82,11 @@ serve(async (req) => {
       tx_ref
     });
 
-    // Make request to Flutterwave
+    // Use test environment credentials for now
     const flutterwaveResponse = await fetch('https://api.flutterwave.com/v3/payments', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('FLUTTERWAVE_SECRET_KEY')}`,
+        'Authorization': `Bearer FLWSECK_TEST-4a7f8efd66f34b6cb1c4eb0b2df6ea7b-X`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(paymentRequest),
@@ -131,7 +104,6 @@ serve(async (req) => {
       throw new Error(`Payment initialization failed: ${flutterwaveData.message}`);
     }
 
-    // Store payment session in database
     await supabaseAdmin
       .from('payment_sessions')
       .insert({
