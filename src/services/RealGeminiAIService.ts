@@ -654,7 +654,13 @@ Provide realistic predictions based on agricultural science. Respond with valid 
                 // Fix missing commas between strings in arrays
                 .replace(/"(\s*)(?=")/g, '",$1')
                 // Fix incomplete array elements
-                .replace(/,(\s*)$/g, '');
+                .replace(/,(\s*)$/g, '')
+                // Fix unquoted property names (key issue!)
+                .replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":')
+                // Fix single quotes to double quotes
+                .replace(/'/g, '"')
+                // Fix escaped quotes that break JSON
+                .replace(/\\"/g, '\\"');
             
             // Test if the JSON is now valid
             JSON.parse(json);
@@ -677,9 +683,20 @@ Provide realistic predictions based on agricultural science. Respond with valid 
             // Clean response and extract JSON - handle truncated/malformed responses
             let cleanResponse = response.replace(/```json\n?|\n?```/g, '').trim();
             
+            // Extract JSON from mixed content - find the actual JSON object
+            const jsonStart = cleanResponse.indexOf('{');
+            const jsonEnd = cleanResponse.lastIndexOf('}');
+            
+            if (jsonStart === -1 || jsonEnd === -1 || jsonStart >= jsonEnd) {
+                throw new Error('No valid JSON structure found in response');
+            }
+            
+            cleanResponse = cleanResponse.substring(jsonStart, jsonEnd + 1);
+            
             // Fix common JSON issues
             cleanResponse = this.fixMalformedJson(cleanResponse);
             
+            console.log('🔍 Cleaned JSON to parse:', cleanResponse);
             const parsed = JSON.parse(cleanResponse);
 
             // Validate required fields
