@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Menu, MapPin, CloudRain, Camera, MessageCircle, BarChart3, TrendingUp, RefreshCw } from 'lucide-react';
 import { useDashboardManager } from '../hooks/useDashboardManager';
-import SatelliteImageryDisplay from '@/components/SatelliteImageryDisplay';
+
 import { DailyOrganicActionCard } from '@/components/organic/DailyOrganicActionCard';
 import { EnvTest } from '@/components/debug/EnvTest';
 
@@ -113,56 +113,7 @@ const Index = memo(function Index() {
           </CardContent>
         </Card>
 
-        {/* Satellite Intelligence - FULLSCREEN PRODUCTION READY */}
-        {dashboard.fields && dashboard.fields.length > 0 && (
-          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-0 overflow-hidden min-h-[400px] relative">
-            {/* Header Overlay */}
-            <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/60 to-transparent p-6">
-              <h3 className="text-xl font-bold text-white mb-2 flex items-center">
-                <div className="w-8 h-8 bg-cyan-500 rounded-lg mr-3 flex items-center justify-center">
-                  <span className="text-white text-sm">🛰️</span>
-                </div>
-                Satellite Field Intelligence
-              </h3>
-              <p className="text-cyan-100 text-sm">
-                Real-time satellite monitoring of {dashboard.fields[0]?.name || 'your field'}
-              </p>
-            </div>
-            
-            {/* Fullscreen Satellite Display */}
-            <div className="w-full h-[400px]">
-              <SatelliteImageryDisplay 
-                fieldCoordinates={dashboard.fields[0]?.boundary?.coordinates}
-                fieldId={dashboard.fields[0]?.id}
-                fullscreen={true}
-              />
-            </div>
-            
-            {/* Bottom Overlay with Field Stats */}
-            <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/80 to-transparent p-6">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-400">
-                    {Math.round(85 + Math.random() * 10)}%
-                  </div>
-                  <div className="text-xs text-gray-300">NDVI Health</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-400">
-                    {(dashboard.fields[0]?.size_hectares || 2.5).toFixed(1)}ha
-                  </div>
-                  <div className="text-xs text-gray-300">Field Size</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-yellow-400">
-                    {dashboard.fields[0]?.crop_type || 'Maize'}
-                  </div>
-                  <div className="text-xs text-gray-300">Crop Type</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+
 
 
       </div>
