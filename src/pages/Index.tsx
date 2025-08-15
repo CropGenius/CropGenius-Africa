@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../providers/AuthProvider';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Menu, MapPin, CloudRain, Camera, MessageCircle, BarChart3, TrendingUp, RefreshCw, Calendar, Users } from 'lucide-react';
+import { Menu, MapPin, CloudRain, Camera, MessageCircle, BarChart3, TrendingUp, RefreshCw, Calendar, Users, Copy, Share2, Check } from 'lucide-react';
 import { useDashboardManager } from '../hooks/useDashboardManager';
 import { useReferralSystem } from '../hooks/useReferralSystem';
 import { useFarmPlanning } from '../hooks/useFarmPlanning';
 import { supabase } from '@/integrations/supabase/client';
+import { viralEngine } from '@/services/ViralEngine';
 
 import { DailyOrganicActionCard } from '@/components/organic/DailyOrganicActionCard';
 
@@ -15,16 +16,18 @@ const Index = memo(function Index() {
   const navigate = useNavigate();
   const { user } = useAuthContext();
   const dashboard = useDashboardManager(user?.id);
-  const { referralStats } = useReferralSystem();
+  const { referralStats, referralCode, referralLink, copyToClipboard } = useReferralSystem();
   const { plans } = useFarmPlanning();
 
   // Real backend data states
   const [realData, setRealData] = useState({
     farmPlans: { active: 0, tasksThisWeek: 0, nextTask: null },
     yieldPredictions: { expectedYield: 0, confidence: 0, revenue: 0 },
-    communityStats: { questionsToday: 0, expertsOnline: 0, latestQuestion: '' },
-    referralData: { friendsInvited: 0, creditsEarned: 0, valueEarned: 0, referralCode: '' }
+    communityStats: { questionsToday: 0, expertsOnline: 0, latestQuestion: '' }
   });
+
+  // Referral sharing state
+  const [copied, setCopied] = useState(false);
 
   // Fetch REAL data from backend
   useEffect(() => {
@@ -89,12 +92,6 @@ const Index = memo(function Index() {
             questionsToday: questionsToday,
             expertsOnline: Math.floor(questionsToday * 0.3) + 15, // Realistic expert ratio
             latestQuestion: questionsData?.[0]?.title || 'No recent questions'
-          },
-          referralData: {
-            friendsInvited: referralStats.count || 0,
-            creditsEarned: referralStats.credits || 0,
-            valueEarned: (referralStats.credits || 0) * 0.5, // $0.50 per credit
-            referralCode: referralStats.code || 'LOADING'
           }
         });
       } catch (error) {
@@ -104,6 +101,44 @@ const Index = memo(function Index() {
 
     fetchRealData();
   }, [user, referralStats]);
+
+  // Handle referral code copy
+  const handleCopyReferralCode = async () => {
+    if (!referralCode) return;
+
+    const success = await copyToClipboard(referralCode);
+    if (success) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  // Handle sharing
+  const handleShare = async () => {
+    if (!referralCode || !referralLink) return;
+
+    const variant = viralEngine.getOptimalMessageVariant();
+    const message = viralEngine.createReferralMessage(referralCode, referralLink, variant);
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Join CropGenius - AI Farming Revolution',
+          text: message,
+          url: referralLink
+        });
+        viralEngine.trackMessagePerformance(variant, 'native-share', user?.id || 'anonymous');
+      } catch (error) {
+        // Fallback to WhatsApp
+        viralEngine.shareToWhatsApp(message);
+        viralEngine.trackMessagePerformance(variant, 'whatsapp-fallback', user?.id || 'anonymous');
+      }
+    } else {
+      // Fallback to WhatsApp
+      viralEngine.shareToWhatsApp(message);
+      viralEngine.trackMessagePerformance(variant, 'whatsapp', user?.id || 'anonymous');
+    }
+  };
 
   return (
     <div className="min-h-screen">
@@ -410,39 +445,52 @@ const Index = memo(function Index() {
                 </div>
               </div>
               <Button
-                onClick={() => navigate('/referrals')}
+                onClick={handleShare}
+                disabled={!referralCode || !referralLink}
                 className="bg-white/10 hover:bg-white/20 text-gray-800 border-white/20 backdrop-blur-sm"
                 size="sm"
               >
-                Earn Now
+                <Share2 className="h-4 w-4 mr-1" />
+                Share
               </Button>
             </div>
 
             <div className="grid grid-cols-3 gap-3 mb-4">
               <div className="bg-white/5 backdrop-blur-md rounded-lg p-3 border border-white/10 text-center">
                 <div className="text-lg font-bold text-gray-800">
-                  {realData.referralData.friendsInvited}
+                  {referralStats.count || 0}
                 </div>
                 <div className="text-xs text-gray-600">Friends Invited</div>
               </div>
               <div className="bg-white/5 backdrop-blur-md rounded-lg p-3 border border-white/10 text-center">
                 <div className="text-lg font-bold text-gray-800">
-                  {realData.referralData.creditsEarned}
+                  {referralStats.credits || 0}
                 </div>
                 <div className="text-xs text-gray-600">Credits Earned</div>
               </div>
               <div className="bg-white/5 backdrop-blur-md rounded-lg p-3 border border-white/10 text-center">
                 <div className="text-lg font-bold text-gray-800">
-                  ${Math.round(realData.referralData.valueEarned)}
+                  ${Math.round((referralStats.credits || 0) * 0.5)}
                 </div>
                 <div className="text-xs text-gray-600">Value Earned</div>
               </div>
             </div>
 
-            <div className="bg-white/5 backdrop-blur-md rounded-lg p-3 border border-white/10">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Your Referral Code</span>
-                <span className="text-gray-800 font-bold tracking-wider">{realData.referralData.referralCode}</span>
+            <div className="bg-white/5 backdrop-blur-md rounded-lg p-3 border border-white/10 mb-3">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600 text-sm">Your Referral Code</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-800 font-bold tracking-wider text-lg">
+                    {referralCode || 'LOADING...'}
+                  </span>
+                  <Button
+                    onClick={handleCopyReferralCode}
+                    disabled={!referralCode}
+                    className="bg-white/10 hover:bg-white/20 text-gray-800 border-white/20 backdrop-blur-sm h-8 w-8 p-0"
+                  >
+                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
