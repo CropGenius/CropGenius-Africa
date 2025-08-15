@@ -4,17 +4,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
   User,
-  CreditCard,
   Users,
   Calendar,
   MessageSquare,
   HelpCircle,
-  Settings,
-  Wifi,
   Scan,
   TrendingUp,
   BarChart3,
-  Target,
   Sparkles
 } from 'lucide-react';
 
@@ -35,13 +31,6 @@ const More = () => {
     if (!user) return;
 
     try {
-      // Get user credits
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('credits')
-        .eq('id', user.id)
-        .single();
-
       // Get user farms count
       const { count: farmsCount } = await supabase
         .from('farms')
@@ -55,7 +44,7 @@ const More = () => {
         .eq('user_id', user.id);
 
       setUserStats({
-        credits: profile?.credits || 0,
+        credits: 0,
         farms: farmsCount || 0,
         scans: scansCount || 0
       });
@@ -73,14 +62,6 @@ const More = () => {
       path: '/settings',
       description: 'Manage your account',
       category: 'account'
-    },
-    {
-      icon: CreditCard,
-      label: 'Credit Balance',
-      path: '/credits',
-      description: `${userStats.credits} credits available`,
-      category: 'account',
-      badge: userStats.credits > 0 ? userStats.credits.toString() : undefined
     },
     {
       icon: Calendar,
@@ -119,13 +100,6 @@ const More = () => {
       path: '/market-insights',
       description: 'Real-time market data',
       category: 'market'
-    },
-    {
-      icon: Target,
-      label: 'Mission Control',
-      path: '/mission-control',
-      description: 'Farm management hub',
-      category: 'farming'
     },
     {
       icon: Users,

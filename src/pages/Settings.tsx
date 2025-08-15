@@ -10,12 +10,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { 
-  Settings as SettingsIcon, 
-  User, 
-  Bell, 
-  Shield, 
-  HelpCircle, 
+import {
+  Settings as SettingsIcon,
+  User,
+  Bell,
+  Shield,
+  HelpCircle,
   LogOut,
   Save,
   Download,
@@ -77,7 +77,7 @@ const Settings: React.FC = () => {
       .select('memory_data')
       .eq('user_id', user!.id)
       .single();
-    
+
     if (data?.memory_data) {
       const savedNotifications = {
         email_notifications: data.memory_data.email_notifications ?? true,
@@ -93,7 +93,7 @@ const Settings: React.FC = () => {
 
   const loadUserProfile = async () => {
     setLoading(true);
-    
+
     const { data } = await supabase
       .from('profiles')
       .select('*')
@@ -154,14 +154,14 @@ const Settings: React.FC = () => {
 
   const exportData = async () => {
     setSaving(true);
-    
+
     const [farmsData, fieldsData, scansData, tasksData] = await Promise.all([
       supabase.from('farms').select('*').eq('user_id', user!.id),
       supabase.from('fields').select('*').eq('user_id', user!.id),
       supabase.from('crop_scans').select('*').eq('user_id', user!.id),
       supabase.from('tasks').select('*').eq('assigned_to', user!.id)
     ]);
-    
+
     const userData = {
       profile,
       notifications,
@@ -188,12 +188,12 @@ const Settings: React.FC = () => {
 
   const deleteAccount = async () => {
     setSaving(true);
-    
+
     await supabase.from('farms').delete().eq('user_id', user!.id);
     await supabase.from('fields').delete().eq('user_id', user!.id);
     await supabase.from('crop_scans').delete().eq('user_id', user!.id);
     await supabase.from('profiles').delete().eq('id', user!.id);
-    
+
     await signOut();
     navigate('/auth');
     toast.success('Account deleted successfully');
@@ -212,267 +212,267 @@ const Settings: React.FC = () => {
   }
 
   return (
-      <div className="container py-6 space-y-6 min-h-screen">
-        {/* Header */}
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary rounded-lg">
-            <SettingsIcon className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-            <p className="text-gray-600">Manage your account and preferences</p>
-          </div>
+    <div className="container py-6 space-y-6 min-h-screen">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <div className="p-2 bg-primary rounded-lg">
+          <SettingsIcon className="w-6 h-6 text-white" />
         </div>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
+          <p className="text-gray-600">Manage your account and preferences</p>
+        </div>
+      </div>
 
-        <Tabs defaultValue="notifications" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="notifications" className="flex items-center gap-2">
-              <Bell className="h-4 w-4" />
-              Notifications
-            </TabsTrigger>
-            <TabsTrigger value="privacy" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              Privacy
-            </TabsTrigger>
-          </TabsList>
+      <Tabs defaultValue="notifications" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="notifications" className="flex items-center gap-2">
+            <Bell className="h-4 w-4" />
+            Notifications
+          </TabsTrigger>
+          <TabsTrigger value="privacy" className="flex items-center gap-2">
+            <Shield className="h-4 w-4" />
+            Privacy
+          </TabsTrigger>
+        </TabsList>
 
 
 
-          {/* Notifications Tab */}
-          <TabsContent value="notifications" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Notification Preferences</CardTitle>
-                <CardDescription>
-                  Choose how you want to receive updates and alerts
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="email-notifications">Email Notifications</Label>
-                      <p className="text-sm text-gray-600">Receive updates via email</p>
-                    </div>
-                    <Switch
-                      id="email-notifications"
-                      checked={notifications.email_notifications}
-                      onCheckedChange={(checked) => 
-                        setNotifications(prev => ({ ...prev, email_notifications: checked }))
-                      }
-                    />
+        {/* Notifications Tab */}
+        <TabsContent value="notifications" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Notification Preferences</CardTitle>
+              <CardDescription>
+                Choose how you want to receive updates and alerts
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="email-notifications">Email Notifications</Label>
+                    <p className="text-sm text-gray-600">Receive updates via email</p>
                   </div>
-
-                  <Separator />
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="push-notifications">Push Notifications</Label>
-                      <p className="text-sm text-gray-600">Receive browser notifications</p>
-                    </div>
-                    <Switch
-                      id="push-notifications"
-                      checked={notifications.push_notifications}
-                      onCheckedChange={(checked) => 
-                        setNotifications(prev => ({ ...prev, push_notifications: checked }))
-                      }
-                    />
-                  </div>
-
-                  <Separator />
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="weather-alerts">Weather Alerts</Label>
-                      <p className="text-sm text-gray-600">Get notified about weather changes</p>
-                    </div>
-                    <Switch
-                      id="weather-alerts"
-                      checked={notifications.weather_alerts}
-                      onCheckedChange={(checked) => 
-                        setNotifications(prev => ({ ...prev, weather_alerts: checked }))
-                      }
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="market-alerts">Market Price Alerts</Label>
-                      <p className="text-sm text-gray-600">Notifications about price changes</p>
-                    </div>
-                    <Switch
-                      id="market-alerts"
-                      checked={notifications.market_alerts}
-                      onCheckedChange={(checked) => 
-                        setNotifications(prev => ({ ...prev, market_alerts: checked }))
-                      }
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="task-reminders">Task Reminders</Label>
-                      <p className="text-sm text-gray-600">Reminders for farming tasks</p>
-                    </div>
-                    <Switch
-                      id="task-reminders"
-                      checked={notifications.task_reminders}
-                      onCheckedChange={(checked) => 
-                        setNotifications(prev => ({ ...prev, task_reminders: checked }))
-                      }
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="weekly-reports">Weekly Reports</Label>
-                      <p className="text-sm text-gray-600">Weekly farm performance summaries</p>
-                    </div>
-                    <Switch
-                      id="weekly-reports"
-                      checked={notifications.weekly_reports}
-                      onCheckedChange={(checked) => 
-                        setNotifications(prev => ({ ...prev, weekly_reports: checked }))
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t">
-                  <Button onClick={async () => {
-                    setSaving(true);
-                    
-                    await supabase
-                      .from('user_memory')
-                      .upsert({
-                        user_id: user!.id,
-                        memory_data: {
-                          ...notifications,
-                          updated_at: new Date().toISOString()
-                        }
-                      });
-                    
-                    toast.success('Notification preferences saved');
-                    setSaving(false);
-                  }} disabled={saving}>
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Preferences
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Privacy Tab */}
-          <TabsContent value="privacy" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Privacy & Data</CardTitle>
-                <CardDescription>
-                  Manage your data and privacy settings
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-4">
-                  <Button variant="outline" onClick={exportData} className="w-full justify-start" disabled={saving}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Export My Data
-                  </Button>
-                  
-                  <Button variant="outline" className="w-full justify-start">
-                    <Shield className="h-4 w-4 mr-2" />
-                    Privacy Policy
-                  </Button>
-                  
-                  <Button variant="outline" className="w-full justify-start">
-                    <Shield className="h-4 w-4 mr-2" />
-                    Terms of Service
-                  </Button>
+                  <Switch
+                    id="email-notifications"
+                    checked={notifications.email_notifications}
+                    onCheckedChange={(checked) =>
+                      setNotifications(prev => ({ ...prev, email_notifications: checked }))
+                    }
+                  />
                 </div>
 
                 <Separator />
 
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <div className="flex items-start gap-3">
-                    <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5" />
-                    <div className="flex-1">
-                      <h4 className="font-medium text-red-800">Danger Zone</h4>
-                      <p className="text-sm text-red-700 mt-1">
-                        Permanently delete your account and all associated data. This action cannot be undone.
-                      </p>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        className="mt-3"
-                        onClick={() => setShowDeleteConfirm(true)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete Account
-                      </Button>
-                    </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="push-notifications">Push Notifications</Label>
+                    <p className="text-sm text-gray-600">Receive browser notifications</p>
+                  </div>
+                  <Switch
+                    id="push-notifications"
+                    checked={notifications.push_notifications}
+                    onCheckedChange={(checked) =>
+                      setNotifications(prev => ({ ...prev, push_notifications: checked }))
+                    }
+                  />
+                </div>
+
+                <Separator />
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="weather-alerts">Weather Alerts</Label>
+                    <p className="text-sm text-gray-600">Get notified about weather changes</p>
+                  </div>
+                  <Switch
+                    id="weather-alerts"
+                    checked={notifications.weather_alerts}
+                    onCheckedChange={(checked) =>
+                      setNotifications(prev => ({ ...prev, weather_alerts: checked }))
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="market-alerts">Market Price Alerts</Label>
+                    <p className="text-sm text-gray-600">Notifications about price changes</p>
+                  </div>
+                  <Switch
+                    id="market-alerts"
+                    checked={notifications.market_alerts}
+                    onCheckedChange={(checked) =>
+                      setNotifications(prev => ({ ...prev, market_alerts: checked }))
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="task-reminders">Task Reminders</Label>
+                    <p className="text-sm text-gray-600">Reminders for farming tasks</p>
+                  </div>
+                  <Switch
+                    id="task-reminders"
+                    checked={notifications.task_reminders}
+                    onCheckedChange={(checked) =>
+                      setNotifications(prev => ({ ...prev, task_reminders: checked }))
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="weekly-reports">Weekly Reports</Label>
+                    <p className="text-sm text-gray-600">Weekly farm performance summaries</p>
+                  </div>
+                  <Switch
+                    id="weekly-reports"
+                    checked={notifications.weekly_reports}
+                    onCheckedChange={(checked) =>
+                      setNotifications(prev => ({ ...prev, weekly_reports: checked }))
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 border-t">
+                <Button onClick={async () => {
+                  setSaving(true);
+
+                  await supabase
+                    .from('user_memory')
+                    .upsert({
+                      user_id: user!.id,
+                      memory_data: {
+                        ...notifications,
+                        updated_at: new Date().toISOString()
+                      }
+                    });
+
+                  toast.success('Notification preferences saved');
+                  setSaving(false);
+                }} disabled={saving}>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Preferences
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Privacy Tab */}
+        <TabsContent value="privacy" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Privacy & Data</CardTitle>
+              <CardDescription>
+                Manage your data and privacy settings
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-4">
+                <Button variant="outline" onClick={exportData} className="w-full justify-start" disabled={saving}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Export My Data
+                </Button>
+
+                <Button variant="outline" className="w-full justify-start">
+                  <Shield className="h-4 w-4 mr-2" />
+                  Privacy Policy
+                </Button>
+
+                <Button variant="outline" className="w-full justify-start">
+                  <Shield className="h-4 w-4 mr-2" />
+                  Terms of Service
+                </Button>
+              </div>
+
+              <Separator />
+
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5" />
+                  <div className="flex-1">
+                    <h4 className="font-medium text-red-800">Danger Zone</h4>
+                    <p className="text-sm text-red-700 mt-1">
+                      Permanently delete your account and all associated data. This action cannot be undone.
+                    </p>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="mt-3"
+                      onClick={() => setShowDeleteConfirm(true)}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete Account
+                    </Button>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-
-        </Tabs>
-
-        {/* Sign Out Section */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-medium">Sign Out</h3>
-                <p className="text-sm text-gray-600">Sign out of your CropGenius account</p>
               </div>
-              <Button variant="outline" onClick={handleSignOut}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+
+      </Tabs>
+
+      {/* Sign Out Section */}
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-medium">Sign Out</h3>
+              <p className="text-sm text-gray-600">Sign out of your CropGenius account</p>
+            </div>
+            <Button variant="outline" onClick={handleSignOut}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md mx-4">
+            <CardHeader>
+              <CardTitle className="text-red-600">Delete Account</CardTitle>
+              <CardDescription>
+                Are you absolutely sure you want to delete your account? This action cannot be undone.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+                <p className="text-sm text-red-700">
+                  This will permanently delete your account, all your farm data, fields, scans, and settings.
+                </p>
+              </div>
+            </CardContent>
+            <div className="flex items-center justify-end gap-2 p-6 pt-0">
+              <Button
+                variant="outline"
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={deleteAccount}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Account
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </Card>
+        </div>
+      )}
 
-        {/* Delete Confirmation Dialog */}
-        {showDeleteConfirm && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <Card className="w-full max-w-md mx-4">
-              <CardHeader>
-                <CardTitle className="text-red-600">Delete Account</CardTitle>
-                <CardDescription>
-                  Are you absolutely sure you want to delete your account? This action cannot be undone.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-                  <p className="text-sm text-red-700">
-                    This will permanently delete your account, all your farm data, fields, scans, and settings.
-                  </p>
-                </div>
-              </CardContent>
-              <div className="flex items-center justify-end gap-2 p-6 pt-0">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowDeleteConfirm(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={deleteAccount}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Account
-                </Button>
-              </div>
-            </Card>
-          </div>
-        )}
-
-        {/* Auth debug dashboard removed - simplified auth system is self-explanatory */}
-      </div>
+      {/* Auth debug dashboard removed - simplified auth system is self-explanatory */}
+    </div>
   );
 };
 
