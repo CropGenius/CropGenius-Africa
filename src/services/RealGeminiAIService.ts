@@ -744,13 +744,17 @@ Provide realistic predictions based on agricultural science. Respond with valid 
                 parsed.steps = ['Follow the organic farming instructions'];
             }
 
-            // Validate urgency - map to database values
-            if (!['high', 'medium', 'low'].includes(parsed.urgency)) {
-                // Map old values to new ones
-                if (parsed.urgency === 'immediate') parsed.urgency = 'high';
-                else if (parsed.urgency === 'today') parsed.urgency = 'medium';
-                else if (parsed.urgency === 'this_week') parsed.urgency = 'low';
-                else parsed.urgency = 'medium'; // default
+            // Validate urgency - STRICT database compliance
+            const validUrgencies = ['high', 'medium', 'low'];
+            if (!validUrgencies.includes(parsed.urgency)) {
+                console.warn(`⚠️ Invalid urgency value "${parsed.urgency}", setting to medium`);
+                parsed.urgency = 'medium';
+            }
+            
+            // Double-check urgency is valid string (not undefined/null)
+            if (typeof parsed.urgency !== 'string' || !parsed.urgency) {
+                console.warn('⚠️ Urgency is not a valid string, setting to medium');
+                parsed.urgency = 'medium';
             }
 
             console.log('✅ Organic action response parsed successfully');
