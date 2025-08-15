@@ -102,11 +102,11 @@ const Index = memo(function Index() {
     fetchRealData();
   }, [user, referralStats]);
 
-  // Handle referral code copy
+  // Handle referral LINK copy (not just code!)
   const handleCopyReferralCode = async () => {
-    if (!referralCode) return;
+    if (!referralLink) return;
 
-    const success = await copyToClipboard(referralCode);
+    const success = await copyToClipboard(referralLink);
     if (success) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -172,23 +172,13 @@ const Index = memo(function Index() {
           </div>
         </div>
 
-
-
         {/* 🔥💪 DAILY ORGANIC ACTION CARD - THE MONEY-MAKING ENGINE */}
         <DailyOrganicActionCard
           onActionComplete={(action) => {
-            console.log('🎉 Action completed:', action);
+            // Action completed successfully
           }}
           className="shadow-xl"
         />
-
-
-
-
-
-
-
-
 
         {/* My Fields */}
         <Card className="premium-glass-card">
@@ -378,7 +368,7 @@ const Index = memo(function Index() {
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-800 mb-1">Community Hub</h3>
-                  <p className="text-gray-600 text-sm">Connect with 50,000+ smart farmers</p>
+                  <p className="text-gray-600 text-sm">Connect with smart farmers</p>
                 </div>
               </div>
               <Button
@@ -485,7 +475,7 @@ const Index = memo(function Index() {
                   </span>
                   <Button
                     onClick={handleCopyReferralCode}
-                    disabled={!referralCode}
+                    disabled={!referralLink}
                     className="bg-white/10 hover:bg-white/20 text-gray-800 border-white/20 backdrop-blur-sm h-8 w-8 p-0"
                   >
                     {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
@@ -500,8 +490,6 @@ const Index = memo(function Index() {
 
 
       </div>
-
-
     </div>
   );
 });
