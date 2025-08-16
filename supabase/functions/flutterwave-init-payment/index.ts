@@ -56,12 +56,17 @@ serve(async (req) => {
     const customerEmail = profile?.email || user.email || '';
     const tx_ref = `CG-${user.id.slice(0, 8)}-${Date.now()}`;
 
+    // Validate required fields per Flutterwave API docs
+    if (!customerEmail || !customerName) {
+      throw new Error('Customer email and name are required');
+    }
+
     const paymentRequest = {
-      email: customerEmail,
+      tx_ref,
       amount: planDetails.amount,
       currency: 'KES',
-      payment_options: 'card,mobilemoney,banktransfer,qr',
       redirect_url: redirect_url || `${req.headers.get('origin')}/dashboard`,
+      payment_options: 'card,mobilemoney,banktransfer,qr',
       customer: {
         email: customerEmail,
         name: customerName,
@@ -72,7 +77,10 @@ serve(async (req) => {
         description: `${planDetails.name} - ${planDetails.interval} billing`,
         logo: 'https://cropgenius.com/logo.png',
       },
-      tx_ref,
+      meta: {
+        user_id: user.id,
+        plan_type: plan_type
+      }
     };
 
     console.log('Initializing Flutterwave payment:', {
