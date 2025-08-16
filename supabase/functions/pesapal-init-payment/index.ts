@@ -73,6 +73,17 @@ serve(async (req) => {
       throw new Error('Pesapal credentials not configured');
     }
 
+    // Get registered IPN notification_id
+    const { data: ipnData } = await supabaseAdmin
+      .from('pesapal_ipn_urls')
+      .select('notification_id')
+      .eq('environment', 'live')
+      .single();
+
+    if (!ipnData?.notification_id) {
+      throw new Error('IPN URL not registered. Please register IPN URL first.');
+    }
+
     console.log('Pesapal payment request details:', {
       customerEmail,
       customerName,
@@ -114,7 +125,7 @@ serve(async (req) => {
       amount: planDetails.amount,
       description: `${planDetails.name} - ${planDetails.interval} billing`,
       callback_url: redirect_url || `${req.headers.get('origin')}/upgrade?upgrade=success`,
-      notification_id: orderTrackingId,
+      notification_id: ipnData.notification_id,
       branch: 'CropGenius',
       billing_address: {
         email_address: customerEmail,
