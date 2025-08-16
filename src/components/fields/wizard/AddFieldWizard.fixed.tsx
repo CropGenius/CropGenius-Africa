@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Tractor, MapPin, ArrowRight, Circle, CheckCircle, Sparkles, AlertTriangle, Loader2, Shield, Save } from 'lucide-react';
+import { Tractor, MapPin, ArrowRight, Circle, CheckCircle, Sparkles, AlertTriangle, Loader2, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
@@ -452,7 +452,7 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
   
   // If gated, render nothing (navigation handled above)
   if (isGated) return null;
-  
+
   return (
     <>
       <div className="space-y-6">

@@ -30,7 +30,6 @@ import CropDiseaseDetectionPage from './pages/CropDiseaseDetectionPage';
 import YieldPredictor from './pages/YieldPredictor';
 import MarketInsightsPage from './pages/MarketInsightsPage';
 import MissionControlPage from './pages/MissionControlPage';
-import Credits from './pages/upgrade';
 import AddCrop from './pages/AddCrop';
 import ReferralsPage from './pages/ReferralsPage';
 import JoinPage from './pages/JoinPage';
@@ -82,7 +81,6 @@ export default function AppRoutes() {
       <Route path="/yield-predictor" element={<Protected><YieldPredictor /></Protected>} />
       <Route path="/market-insights" element={<Protected><MarketInsightsPage /></Protected>} />
       <Route path="/mission-control" element={<Protected><MissionControlPage /></Protected>} />
-      <Route path="/upgrade" element={<Protected><upgrade /></Protected>} />
       <Route path="/upgrade" element={<Protected><Upgrade /></Protected>} />
       <Route path="/referrals" element={<Protected><ReferralsPage /></Protected>} />
       
