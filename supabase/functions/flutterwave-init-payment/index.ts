@@ -61,6 +61,19 @@ serve(async (req) => {
       throw new Error('Customer email and name are required');
     }
 
+    const flutterwaveSecretKey = Deno.env.get('FLUTTERWAVE_SECRET_KEY');
+    if (!flutterwaveSecretKey) {
+      throw new Error('Flutterwave secret key not configured');
+    }
+
+    console.log('Payment request details:', {
+      customerEmail,
+      customerName,
+      planDetails,
+      tx_ref,
+      flutterwaveSecretKey: flutterwaveSecretKey ? 'Present' : 'Missing'
+    });
+
     const paymentRequest = {
       tx_ref,
       amount: planDetails.amount,
@@ -87,13 +100,9 @@ serve(async (req) => {
       user_id: user.id,
       amount: planDetails.amount,
       plan: plan_type,
-      tx_ref
+      tx_ref,
+      paymentRequest
     });
-
-    const flutterwaveSecretKey = Deno.env.get('FLUTTERWAVE_SECRET_KEY');
-    if (!flutterwaveSecretKey) {
-      throw new Error('Flutterwave secret key not configured');
-    }
 
     const flutterwaveResponse = await fetch('https://api.flutterwave.com/v3/payments', {
       method: 'POST',
