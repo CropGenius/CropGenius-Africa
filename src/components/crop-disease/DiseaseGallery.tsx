@@ -22,14 +22,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle, Search, Filter, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useDiseaseGallery } from '@/hooks/use-disease-gallery';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { toast } from "sonner";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function DiseaseGallery() {
   const { diseaseGallery, isLoading, error, filterGallery, searchGallery, refreshGallery } = useDiseaseGallery();
   const [selectedDisease, setSelectedDisease] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
-  // Using sonner toast directly
+  const { toast } = useToast();
 
   // Handle search input changes with debounce
   useEffect(() => {

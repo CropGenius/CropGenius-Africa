@@ -6,11 +6,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const PESAPAL_BASE_URL = 'https://pay.pesapal.com/v3';
-const PESAPAL_AUTH_URL = `${PESAPAL_BASE_URL}/api/Auth/RequestToken`;
-const PESAPAL_STATUS_URL = `${PESAPAL_BASE_URL}/api/Transactions/GetTransactionStatus`;
-
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -35,71 +32,44 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { order_tracking_id, merchant_reference } = await req.json();
+    const { transaction_id, tx_ref } = await req.json();
 
-    if (!order_tracking_id && !merchant_reference) {
-      throw new Error('Order tracking ID or merchant reference is required');
+    if (!transaction_id && !tx_ref) {
+      throw new Error('Transaction ID or transaction reference is required');
     }
 
-    console.log('Verifying Pesapal payment:', { 
-      order_tracking_id, 
-      merchant_reference, 
-      user_id: user.id 
-    });
+    console.log('Verifying payment:', { transaction_id, tx_ref, user_id: user.id });
 
-    // Get Pesapal auth token
-    const pesapalConsumerKey = Deno.env.get('PESAPAL_CONSUMER_KEY');
-    const pesapalConsumerSecret = Deno.env.get('PESAPAL_CONSUMER_SECRET');
-    
-    const authResponse = await fetch(PESAPAL_AUTH_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({
-        consumer_key: pesapalConsumerKey,
-        consumer_secret: pesapalConsumerSecret,
-      }),
-    });
-
-    const authData = await authResponse.json();
-    
-    if (!authData.token) {
-      throw new Error('Failed to get Pesapal authentication token');
-    }
-
-    // Verify with Pesapal
-    const verifyResponse = await fetch(`${PESAPAL_STATUS_URL}?orderTrackingId=${order_tracking_id}`, {
+    // Verify with Flutterwave
+    const verifyResponse = await fetch(`https://api.flutterwave.com/v3/transactions/${transaction_id}/verify`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${authData.token}`,
+        'Authorization': `Bearer ${Deno.env.get('FLUTTERWAVE_SECRET_KEY')}`,
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
       },
     });
 
     if (!verifyResponse.ok) {
-      throw new Error('Failed to verify transaction with Pesapal');
+      throw new Error('Failed to verify transaction with Flutterwave');
     }
 
     const verifyData = await verifyResponse.json();
 
-    if (verifyData.status !== 200) {
+    if (verifyData.status !== 'success') {
       throw new Error(`Verification failed: ${verifyData.message}`);
     }
 
-    const transactionData = verifyData.data;
+    const { data: txData } = verifyData;
 
     // Check if payment session exists
     const { data: paymentSession } = await supabaseAdmin
       .from('payment_sessions')
       .select('*')
-      .eq('id', merchant_reference || transactionData.merchant_reference)
+      .eq('id', tx_ref || txData.tx_ref)
       .single();
 
     if (!paymentSession) {
-      console.error('Payment session not found for reference:', merchant_reference || transactionData.merchant_reference);
+      console.error('Payment session not found for tx_ref:', tx_ref || txData.tx_ref);
       return new Response(
         JSON.stringify({
           success: false,
@@ -113,9 +83,9 @@ serve(async (req) => {
       );
     }
 
-    const isVerified = transactionData.payment_status_description?.toLowerCase() === 'completed' && 
-                      transactionData.currency === 'KES' &&
-                      Math.abs(parseFloat(transactionData.amount) - paymentSession.amount) <= 0.01;
+    const isVerified = txData.status === 'successful' && 
+                      txData.currency === 'KES' &&
+                      parseFloat(txData.amount) === paymentSession.amount;
 
     if (isVerified && paymentSession.status !== 'completed') {
       // Process the payment if verified but not yet processed
@@ -124,7 +94,7 @@ serve(async (req) => {
         .update({
           status: 'completed',
           completed_at: new Date().toISOString(),
-          pesapal_data: transactionData
+          flutterwave_data: txData
         })
         .eq('id', paymentSession.id);
 
@@ -141,7 +111,7 @@ serve(async (req) => {
           status: 'active',
           current_period_start: new Date().toISOString(),
           current_period_end: planEndDate.toISOString(),
-          pesapal_order_tracking_id: order_tracking_id,
+          flutterwave_customer_id: txData.customer?.id || null,
           billing_cycle: paymentSession.plan_type === 'pro_annual' ? 'yearly' : 'monthly'
         }, {
           onConflict: 'user_id'
@@ -151,7 +121,7 @@ serve(async (req) => {
       await supabaseAdmin.rpc('restore_user_credits', {
         p_user_id: paymentSession.user_id,
         p_amount: 1000,
-        p_description: `Pro subscription activated via Pesapal - ${paymentSession.plan_type}`
+        p_description: `Pro subscription activated - ${paymentSession.plan_type}`
       });
     }
 
@@ -160,13 +130,13 @@ serve(async (req) => {
         success: true,
         verified: isVerified,
         transaction: {
-          order_tracking_id: transactionData.order_tracking_id,
-          merchant_reference: transactionData.merchant_reference,
-          status: transactionData.payment_status_description,
-          amount: transactionData.amount,
-          currency: transactionData.currency,
-          payment_method: transactionData.payment_method,
-          created_date: transactionData.created_date
+          id: txData.id,
+          tx_ref: txData.tx_ref,
+          status: txData.status,
+          amount: txData.amount,
+          currency: txData.currency,
+          payment_type: txData.payment_type,
+          processor_response: txData.processor_response
         },
         payment_session: paymentSession
       }),
@@ -177,7 +147,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Pesapal payment verification error:', error);
+    console.error('Payment verification error:', error);
     return new Response(
       JSON.stringify({
         success: false,

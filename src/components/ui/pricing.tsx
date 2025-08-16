@@ -17,8 +17,6 @@ interface PricingProps {
   title?: string;
   description?: string;
   onUpgrade?: (plan: 'monthly' | 'annual') => void;
-  isLoading?: boolean;
-  loadingText?: string;
 }
 
 export function Pricing({
@@ -27,8 +25,6 @@ export function Pricing({
   title = "Unlock CropGenius Pro",
   description = "Join 10,000+ farmers across Africa with 38% higher yields",
   onUpgrade,
-  isLoading = false,
-  loadingText = "Processing...",
 }: PricingProps) {
   const [isAnnual, setIsAnnual] = useState(true); // Default to annual (best value)
   const isDesktop = useMediaQuery("(min-width: 768px)");
@@ -233,7 +229,6 @@ export function Pricing({
             {/* CTA Button */}
             <button
               onClick={handleUpgradeClick}
-              disabled={isLoading}
               className={cn(
                 buttonVariants({
                   variant: "default",
@@ -241,20 +236,12 @@ export function Pricing({
                 }),
                 "w-full text-lg font-semibold",
                 "bg-primary hover:bg-primary/90",
-                "transform transition-all hover:scale-105",
-                "disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                "transform transition-all hover:scale-105"
               )}
             >
-              {isLoading ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                  {loadingText}
-                </div>
-              ) : (
-                isAnnual 
-                  ? `Upgrade — Best Value (Save ${savingsPercent}%)`
-                  : "Start Monthly — KES " + monthlyPrice.toLocaleString() + "/mo"
-              )}
+              {isAnnual 
+                ? `Upgrade — Best Value (Save ${savingsPercent}%)`
+                : "Start Monthly — KES " + monthlyPrice.toLocaleString() + "/mo"}
             </button>
 
             {/* Trust Signals */}

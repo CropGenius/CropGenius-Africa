@@ -2785,6 +2785,7 @@ export type Database = {
           completed_at: string | null
           created_at: string | null
           currency: string
+          flutterwave_data: Json | null
           id: string
           payment_data: Json | null
           pesapal_data: Json | null
@@ -2798,6 +2799,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string | null
           currency?: string
+          flutterwave_data?: Json | null
           id: string
           payment_data?: Json | null
           pesapal_data?: Json | null
@@ -2811,6 +2813,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string | null
           currency?: string
+          flutterwave_data?: Json | null
           id?: string
           payment_data?: Json | null
           pesapal_data?: Json | null

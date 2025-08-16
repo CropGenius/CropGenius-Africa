@@ -107,18 +107,18 @@ serve(async (req) => {
 
     console.log('Pesapal auth successful, submitting order...');
 
-    // Step 2: Submit order request - Following official PesaPal API 3.0 specification exactly
+    // Step 2: Submit order request
     const orderRequest = {
-      id: orderTrackingId, // merchant_reference: unique ID from our system
+      id: orderTrackingId,
       currency: 'KES',
       amount: planDetails.amount,
       description: `${planDetails.name} - ${planDetails.interval} billing`,
       callback_url: redirect_url || `${req.headers.get('origin')}/upgrade?upgrade=success`,
-      notification_id: "fe078e53-78da-4a83-aa89-e7ded5c456e6", // This should be registered IPN URL ID
+      notification_id: orderTrackingId,
       branch: 'CropGenius',
       billing_address: {
         email_address: customerEmail,
-        phone_number: '', // Optional if email provided
+        phone_number: '',
         country_code: 'KE',
         first_name: customerName.split(' ')[0] || customerName,
         middle_name: '',
@@ -150,21 +150,15 @@ serve(async (req) => {
 
     const orderData = await orderResponse.json();
 
-    // Check for success according to official PesaPal API 3.0 documentation
-    if (orderData.status !== "200") {
-      console.error('PesaPal order submission failed:', orderData);
-      throw new Error(`Order submission failed: ${orderData.message || orderData.error?.message || 'Unknown error'}`);
+    if (orderData.status !== 200) {
+      throw new Error(`Order submission failed: ${orderData.message || 'Unknown error'}`);
     }
 
-    if (!orderData.order_tracking_id || !orderData.redirect_url) {
-      throw new Error('Invalid response from PesaPal: missing order_tracking_id or redirect_url');
-    }
-
-    // Save payment session according to official PesaPal API 3.0 response format
+    // Save payment session
     await supabaseAdmin
       .from('payment_sessions')
       .insert({
-        id: orderTrackingId, // Our merchant reference
+        id: orderTrackingId,
         user_id: user.id,
         amount: planDetails.amount,
         currency: 'KES',
@@ -173,11 +167,9 @@ serve(async (req) => {
         payment_data: {
           pesapal_redirect_url: orderData.redirect_url,
           pesapal_order_tracking_id: orderData.order_tracking_id,
-          merchant_reference: orderData.merchant_reference,
           plan_details: planDetails,
           payment_method: 'pesapal'
-        },
-        pesapal_data: orderData // Store complete PesaPal response
+        }
       });
 
     console.log('Pesapal payment session created successfully:', orderTrackingId);

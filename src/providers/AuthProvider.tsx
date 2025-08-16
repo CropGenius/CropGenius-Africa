@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode } from 'react';
+import { createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -22,8 +22,7 @@ export function useAuthContext() {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const auth = useAuth();
-  return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={useAuth()}>{children}</AuthContext.Provider>;
 }
 
 export default AuthProvider;

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useContext, createContext, ReactNode, useRef } from 'react';
 import FieldBrainAgent from '@/agents/FieldBrainAgent';
-import { toast } from 'sonner';
+import { useToast as useSonner } from 'sonner';
 import { FieldInsight } from '@/types/supabase';
 import { useNavigate } from 'react-router-dom';
 import { useCredits } from '@/hooks/useCredits';
