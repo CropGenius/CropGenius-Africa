@@ -31,11 +31,11 @@ const Upgrade = () => {
     setIsLoading(true);
 
     try {
-      console.log('Initiating Flutterwave payment for plan:', plan);
+      console.log('Initiating Pesapal payment for plan:', plan);
 
       const planType = plan === 'annual' ? 'pro_annual' : 'pro';
       
-      const { data, error } = await supabase.functions.invoke('flutterwave-init-payment', {
+const { data, error } = await supabase.functions.invoke('pesapal-init-payment', {
         body: {
           plan_type: planType,
           redirect_url: `${window.location.origin}/upgrade?upgrade=success`
@@ -43,7 +43,7 @@ const Upgrade = () => {
       });
 
       if (error) {
-        console.error('Flutterwave initialization error:', error);
+        console.error('Pesapal initialization error:', error);
         throw new Error(error.message || 'Failed to initialize payment');
       }
 
@@ -51,9 +51,9 @@ const Upgrade = () => {
         throw new Error(data?.error || 'Invalid payment response');
       }
 
-      console.log('Flutterwave payment link generated:', data.payment_link);
+      console.log('Pesapal payment link generated:', data.payment_link);
 
-      // Open Flutterwave payment page in new tab
+      // Open Pesapal payment page in new tab
       window.open(data.payment_link, '_blank');
 
       toast.success('Payment window opened! Complete your payment to activate Pro features.', {
