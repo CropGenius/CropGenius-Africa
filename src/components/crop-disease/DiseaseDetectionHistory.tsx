@@ -41,7 +41,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { useDiseaseDetection, DetectionHistoryItem } from '@/hooks/use-disease-detection';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { 
   Dialog,
   DialogContent,
@@ -76,7 +76,7 @@ export default function DiseaseDetectionHistory() {
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   
-  const { toast } = useToast();
+  // Using sonner toast directly
 
   // Filter and sort history
   const filteredAndSortedHistory = useMemo(() => {
