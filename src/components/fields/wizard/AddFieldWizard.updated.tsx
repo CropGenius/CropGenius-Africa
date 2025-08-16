@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 // useErrorLogging eliminated - using console.error instead
-import ErrorBoundary from '@/components/error/ErrorBoundary';
+// ErrorBoundary removed - keeping it simple
 import { Field, Boundary, Coordinates } from '@/types/field';
 import StepOne from './steps/StepOne';
 import StepTwo from './steps/StepTwo';
@@ -64,7 +64,7 @@ const clearWizardSessionData = (): void => {
 };
 
 export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }: AddFieldWizardProps) {
-  const { logError, logSuccess, trackOperation } = useErrorLogging('AddFieldWizard');
+  // Error logging removed - keeping it simple
   const navigate = useNavigate();
   const { user } = useAuthContext();
   
@@ -224,14 +224,13 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
       } catch (error) {
         // Log but never block
         console.error("❌ [AddFieldWizard] Error in farm context:", error);
-        logError(error as Error, { context: 'farmContextLoading' });
       } finally {
         setIsLoading(false);
       }
     };
     
     loadFarmContext();
-  }, [user?.id, logError, farmContext]);
+  }, [user?.id, farmContext]);
   
   const updateFieldData = useCallback((partialData: Partial<typeof fieldData>) => {
     setFieldData(prev => {
@@ -389,8 +388,7 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
   }
   
   return (
-    <ErrorBoundary>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Progress indicator */}
         <div className="flex justify-center items-center space-x-2 mb-6">
           {Array.from({ length: totalSteps }).map((_, idx) => (
@@ -557,6 +555,6 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
           Progress saved automatically
         </div>
       </div>
-    </ErrorBoundary>
+    </div>
   );
 }
