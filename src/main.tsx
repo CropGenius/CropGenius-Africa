@@ -2,7 +2,7 @@ import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as SonnerToaster } from '@/components/ui/sonner';
-// import { registerServiceWorker } from './utils/serviceWorker';
+// Simple service worker registration
 
 
 import './index.css';
@@ -33,5 +33,9 @@ root.render(
 
 console.log('🚀 [MAIN] App rendered!');
 
-// Service worker registration temporarily disabled for debugging
-// registerServiceWorker();
+// Register service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js')
+    .then(() => console.log('SW registered'))
+    .catch(err => console.error('SW registration failed:', err));
+}
