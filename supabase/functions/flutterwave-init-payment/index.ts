@@ -82,11 +82,15 @@ serve(async (req) => {
       tx_ref
     });
 
-    // Use test environment credentials for now
+    const flutterwaveSecretKey = Deno.env.get('FLUTTERWAVE_SECRET_KEY');
+    if (!flutterwaveSecretKey) {
+      throw new Error('Flutterwave secret key not configured');
+    }
+
     const flutterwaveResponse = await fetch('https://api.flutterwave.com/v3/payments', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer FLWSECK_TEST-4a7f8efd66f34b6cb1c4eb0b2df6ea7b-X`,
+        'Authorization': `Bearer ${flutterwaveSecretKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(paymentRequest),
