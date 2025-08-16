@@ -276,9 +276,8 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
         const gated = !getIsPro() && (count ?? 0) >= 1;
         setIsGated(gated);
         if (gated) {
-          toast.info('Upgrade to add more fields', {
-            description: 'Free plan allows 1 field. Upgrade to Pro to add more.'
-          });
+          // Zero-friction: direct redirect to Upgrade page
+          navigate('/upgrade');
         }
       } catch (e) {
         console.error('Gating check failed', e);
@@ -451,26 +450,8 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
     );
   }
   
-  // Gated view for FREE users with >=1 field
-  if (isGated) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 space-y-4 text-center">
-        <Shield className="h-10 w-10 text-amber-500" />
-        <h2 className="text-xl font-semibold">Add more fields with Pro</h2>
-        <p className="text-sm text-muted-foreground max-w-md">
-          Free plan allows 1 field per user. Upgrade to Pro to add up to 50 fields and unlock advanced features.
-        </p>
-        <div className="flex gap-3 mt-2">
-          <Button onClick={() => navigate('/credits')} className="bg-green-600 hover:bg-green-700">
-            Upgrade to Pro
-          </Button>
-          <Button variant="outline" onClick={() => onCancel ? onCancel() : navigate('/fields')}>
-            Cancel
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  // If gated, render nothing (navigation handled above)
+  if (isGated) return null;
   
   return (
     <>

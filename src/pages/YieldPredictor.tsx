@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import Layout from "@/components/Layout";
 import {
@@ -27,7 +27,7 @@ import {
   FormDescription
 } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
-import { Zap, RefreshCcw, Calendar, AlertTriangle, Shield } from "lucide-react";
+import { Zap, RefreshCcw, Calendar, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -156,23 +156,10 @@ const YieldPredictor = () => {
     }
   };
 
-  if (!isPro) {
-    return (
-      <Layout>
-        <div className="p-10 pb-20 flex flex-col items-center text-center">
-          <Shield className="h-10 w-10 text-amber-500 mb-2" />
-          <h1 className="text-2xl font-semibold mb-1">Yield Predictor is a Pro feature</h1>
-          <p className="text-gray-600 max-w-xl mb-4">
-            Upgrade to Pro to get AI-powered yield forecasts, risk analysis and revenue projections for your farm.
-          </p>
-          <div className="flex gap-3">
-            <Button onClick={() => navigate('/credits')} className="bg-green-600 hover:bg-green-700">Upgrade to Pro</Button>
-            <Button variant="outline" onClick={() => navigate(-1)}>Go Back</Button>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
+  useEffect(() => {
+    if (!isPro) navigate('/upgrade');
+  }, [isPro, navigate]);
+  if (!isPro) return null;
 
   return (
     <Layout>
