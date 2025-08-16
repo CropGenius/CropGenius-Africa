@@ -4,23 +4,63 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Pricing } from '@/components/ui/pricing';
 import { toast } from 'sonner';
+import { useUserPlan } from '@/hooks/useUserPlan';
+import { usePaymentPolling } from '@/hooks/usePaymentPolling';
+import { useRouter } from '@/hooks/useRouter';
 
 const Upgrade = () => {
   const { user } = useAuthContext();
+  const { refetch: refetchUserPlan, isPro } = useUserPlan();
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [paymentTrackingId, setPaymentTrackingId] = useState<string | null>(null);
 
-  // Check URL for upgrade success
+  // Payment polling for seamless verification
+  const { isPolling, isVerifying, isVerified } = usePaymentPolling({
+    orderTrackingId: paymentTrackingId || undefined,
+    onSuccess: () => {
+      toast.success('🎉 Payment successful! Welcome to CropGenius Pro!', {
+        description: 'All Pro features are now unlocked. Redirecting to dashboard...'
+      });
+      
+      setTimeout(() => {
+        router.navigate('/dashboard');
+      }, 2000);
+    }
+  });
+
+  // Check URL for upgrade success and start verification
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('upgrade') === 'success') {
+    const upgradeStatus = urlParams.get('upgrade');
+    const orderTrackingId = urlParams.get('order_tracking_id');
+    
+    if (upgradeStatus === 'success' && orderTrackingId) {
+      setPaymentTrackingId(orderTrackingId);
+      toast.loading('Verifying your payment...', {
+        description: 'Please wait while we confirm your transaction.'
+      });
+    } else if (upgradeStatus === 'success') {
       toast.success('Welcome to CropGenius Pro!', {
         description: 'Your account has been upgraded successfully.'
       });
-      
-      // Clean URL
+    }
+    
+    // Clean URL
+    if (upgradeStatus) {
       window.history.replaceState(null, '', window.location.pathname);
     }
   }, []);
+
+  // Redirect if already Pro
+  useEffect(() => {
+    if (isPro && !isLoading) {
+      toast.info('You are already a Pro member!', {
+        description: 'Redirecting to your dashboard...'
+      });
+      setTimeout(() => router.navigate('/dashboard'), 1500);
+    }
+  }, [isPro, isLoading, router]);
 
   const handleUpgrade = async (plan: 'monthly' | 'annual') => {
     if (!user) {
@@ -53,11 +93,18 @@ const { data, error } = await supabase.functions.invoke('pesapal-init-payment', 
 
       console.log('Pesapal payment link generated:', data.payment_link);
 
+      // Store tracking ID for verification
+      setPaymentTrackingId(data.order_tracking_id);
+      
       // Open Pesapal payment page in new tab
       window.open(data.payment_link, '_blank');
 
       toast.success('Payment window opened! Complete your payment to activate Pro features.', {
-        description: `Amount: KES ${data.amount} for CropGenius ${plan === 'annual' ? 'Pro Annual' : 'Pro'}`
+        description: `Amount: KES ${data.amount} for CropGenius ${plan === 'annual' ? 'Pro Annual' : 'Pro'}`,
+        action: {
+          label: 'Verify Payment',
+          onClick: () => setPaymentTrackingId(data.order_tracking_id)
+        }
       });
 
     } catch (error) {
@@ -94,6 +141,12 @@ const { data, error } = await supabase.functions.invoke('pesapal-init-payment', 
         title="Unlock CropGenius Pro"
         description="Join 10,000+ farmers across Africa with 38% higher yields"
         onUpgrade={handleUpgrade}
+        isLoading={isLoading || isPolling || isVerifying}
+        loadingText={
+          isVerifying ? 'Verifying payment...' :
+          isPolling ? 'Checking payment status...' :
+          'Processing...'
+        }
       />
     </div>
   );
