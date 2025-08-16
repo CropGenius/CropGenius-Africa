@@ -1,9 +1,8 @@
+import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as SonnerToaster } from '@/components/ui/sonner';
-// import { registerServiceWorker } from './utils/serviceWorker';
-
 
 import './index.css';
 import App from './App';
