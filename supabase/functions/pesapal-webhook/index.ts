@@ -21,32 +21,70 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    const body = await req.text();
-    const webhookData = JSON.parse(body);
-
-    console.log('Pesapal webhook received:', webhookData);
-
-    const { OrderTrackingId, OrderMerchantReference } = webhookData;
-
-    if (!OrderTrackingId && !OrderMerchantReference) {
-      throw new Error('Invalid webhook payload: missing order tracking ID');
+    let ipnData;
+    
+    // Handle both GET and POST requests as per PesaPal official documentation
+    if (req.method === 'GET') {
+      // Extract parameters from URL query string
+      const url = new URL(req.url);
+      ipnData = {
+        OrderTrackingId: url.searchParams.get('OrderTrackingId'),
+        OrderMerchantReference: url.searchParams.get('OrderMerchantReference'),
+        OrderNotificationType: url.searchParams.get('OrderNotificationType')
+      };
+    } else if (req.method === 'POST') {
+      // Get JSON data from POST body
+      ipnData = await req.json();
+    } else {
+      throw new Error('Unsupported HTTP method');
     }
 
-    // Get payment session
+    console.log('PesaPal IPN received:', ipnData);
+
+    // Validate IPN data according to official documentation  
+    if (!ipnData.OrderTrackingId || !ipnData.OrderMerchantReference || !ipnData.OrderNotificationType) {
+      throw new Error('Invalid IPN data received: missing required parameters');
+    }
+
+    // Find the payment session using merchant reference
     const { data: paymentSession, error: sessionError } = await supabaseAdmin
       .from('payment_sessions')
       .select('*')
-      .eq('id', OrderMerchantReference || OrderTrackingId)
+      .eq('id', ipnData.OrderMerchantReference)
       .single();
 
     if (sessionError || !paymentSession) {
-      console.error('Payment session not found:', OrderMerchantReference || OrderTrackingId);
-      return new Response('Payment session not found', { status: 404 });
+      console.error('Payment session not found:', ipnData.OrderMerchantReference);
+      // Return proper IPN response format as per official docs
+      return new Response(
+        JSON.stringify({
+          orderNotificationType: ipnData.OrderNotificationType,
+          orderTrackingId: ipnData.OrderTrackingId,
+          orderMerchantReference: ipnData.OrderMerchantReference,
+          status: 500
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200
+        }
+      );
     }
 
     if (paymentSession.status === 'completed') {
-      console.log('Payment already processed:', OrderMerchantReference || OrderTrackingId);
-      return new Response('Already processed', { status: 200 });
+      console.log('Payment already processed:', ipnData.OrderMerchantReference);
+      // Return success IPN response
+      return new Response(
+        JSON.stringify({
+          orderNotificationType: ipnData.OrderNotificationType,
+          orderTrackingId: ipnData.OrderTrackingId,
+          orderMerchantReference: ipnData.OrderMerchantReference,
+          status: 200
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200
+        }
+      );
     }
 
     // Get Pesapal auth token
@@ -71,8 +109,8 @@ serve(async (req) => {
       throw new Error('Failed to get Pesapal authentication token');
     }
 
-    // Verify transaction status with Pesapal
-    const statusResponse = await fetch(`${PESAPAL_STATUS_URL}?orderTrackingId=${OrderTrackingId}`, {
+    // Verify transaction status with Pesapal according to official docs
+    const statusResponse = await fetch(`${PESAPAL_STATUS_URL}?orderTrackingId=${ipnData.OrderTrackingId}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${authData.token}`,
@@ -87,17 +125,48 @@ serve(async (req) => {
 
     const statusData = await statusResponse.json();
     
-    if (statusData.status !== 200) {
+    if (statusData.status !== "200") {
       console.log('Transaction verification failed:', statusData);
-      return new Response('Transaction not successful', { status: 400 });
+      // Return error IPN response
+      return new Response(
+        JSON.stringify({
+          orderNotificationType: ipnData.OrderNotificationType,
+          orderTrackingId: ipnData.OrderTrackingId,
+          orderMerchantReference: ipnData.OrderMerchantReference,
+          status: 500
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200
+        }
+      );
     }
 
-    const transactionData = statusData.data;
+    // According to official docs, transaction data is directly in response
+    const transactionData = statusData;
     
-    // Check if payment is successful
-    if (transactionData.payment_status_description?.toLowerCase() !== 'completed') {
-      console.log('Payment not completed:', transactionData.payment_status_description);
-      return new Response('Payment not completed', { status: 400 });
+    // Check if payment is successful using official status codes and descriptions
+    const isCompleted = (transactionData.payment_status_description?.toUpperCase() === 'COMPLETED' || 
+                        transactionData.status_code === 1);
+    
+    if (!isCompleted) {
+      console.log('Payment not completed:', {
+        status_description: transactionData.payment_status_description,
+        status_code: transactionData.status_code
+      });
+      // Return success but don't process payment
+      return new Response(
+        JSON.stringify({
+          orderNotificationType: ipnData.OrderNotificationType,
+          orderTrackingId: ipnData.OrderTrackingId,
+          orderMerchantReference: ipnData.OrderMerchantReference,
+          status: 200
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200
+        }
+      );
     }
 
     // Verify amount matches
@@ -109,12 +178,13 @@ serve(async (req) => {
       throw new Error('Amount mismatch');
     }
 
-    console.log('Processing successful Pesapal payment:', {
-      orderTrackingId: OrderTrackingId,
-      merchantReference: OrderMerchantReference,
+    console.log('Processing successful PesaPal payment:', {
+      orderTrackingId: ipnData.OrderTrackingId,
+      merchantReference: ipnData.OrderMerchantReference,
       user_id: paymentSession.user_id,
       plan_type: paymentSession.plan_type,
-      amount: transactionData.amount
+      amount: transactionData.amount,
+      payment_status: transactionData.payment_status_description
     });
 
     // Update payment session
@@ -140,7 +210,7 @@ serve(async (req) => {
         status: 'active',
         current_period_start: new Date().toISOString(),
         current_period_end: planEndDate.toISOString(),
-        pesapal_order_tracking_id: OrderTrackingId,
+        pesapal_order_tracking_id: ipnData.OrderTrackingId,
         billing_cycle: paymentSession.plan_type === 'pro_annual' ? 'yearly' : 'monthly'
       }, {
         onConflict: 'user_id'
@@ -159,10 +229,13 @@ serve(async (req) => {
       end_date: planEndDate
     });
 
+    // Return proper IPN response as per official PesaPal documentation
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: 'Pesapal payment processed successfully' 
+      JSON.stringify({
+        orderNotificationType: ipnData.OrderNotificationType,
+        orderTrackingId: ipnData.OrderTrackingId,
+        orderMerchantReference: ipnData.OrderMerchantReference,
+        status: 200
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -171,15 +244,19 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Pesapal webhook processing error:', error);
+    console.error('PesaPal IPN processing error:', error);
+    
+    // Return error response as per official documentation
     return new Response(
       JSON.stringify({
-        success: false,
-        error: error.message
+        orderNotificationType: "IPNCHANGE",
+        orderTrackingId: "",
+        orderMerchantReference: "",
+        status: 500
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
+        status: 200 // Still return 200 to PesaPal but with status 500 in body
       }
     );
   }

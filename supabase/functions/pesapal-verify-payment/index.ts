@@ -85,11 +85,13 @@ serve(async (req) => {
 
     const verifyData = await verifyResponse.json();
 
-    if (verifyData.status !== 200) {
-      throw new Error(`Verification failed: ${verifyData.message}`);
+    // Check response according to official PesaPal API 3.0 documentation
+    if (verifyData.status !== "200") {
+      throw new Error(`Verification failed: ${verifyData.message || verifyData.error?.message || 'Unknown error'}`);
     }
 
-    const transactionData = verifyData.data;
+    // According to official docs, transaction data is directly in response, not in data property
+    const transactionData = verifyData;
 
     // Check if payment session exists
     const { data: paymentSession } = await supabaseAdmin
@@ -113,7 +115,10 @@ serve(async (req) => {
       );
     }
 
-    const isVerified = transactionData.payment_status_description?.toLowerCase() === 'completed' && 
+    // According to official PesaPal API 3.0 docs: payment_status_description values are INVALID, FAILED, COMPLETED or REVERSED
+    // status_code: 0 - INVALID, 1 - COMPLETED, 2 - FAILED, 3 - REVERSED
+    const isVerified = (transactionData.payment_status_description?.toUpperCase() === 'COMPLETED' || 
+                       transactionData.status_code === 1) && 
                       transactionData.currency === 'KES' &&
                       Math.abs(parseFloat(transactionData.amount) - paymentSession.amount) <= 0.01;
 
@@ -124,7 +129,7 @@ serve(async (req) => {
         .update({
           status: 'completed',
           completed_at: new Date().toISOString(),
-          pesapal_data: transactionData
+          pesapal_data: transactionData // Store complete transaction response as per official docs
         })
         .eq('id', paymentSession.id);
 
@@ -160,13 +165,17 @@ serve(async (req) => {
         success: true,
         verified: isVerified,
         transaction: {
-          order_tracking_id: transactionData.order_tracking_id,
+          order_tracking_id: order_tracking_id,
           merchant_reference: transactionData.merchant_reference,
           status: transactionData.payment_status_description,
+          status_code: transactionData.status_code,
           amount: transactionData.amount,
           currency: transactionData.currency,
           payment_method: transactionData.payment_method,
-          created_date: transactionData.created_date
+          payment_account: transactionData.payment_account,
+          confirmation_code: transactionData.confirmation_code,
+          created_date: transactionData.created_date,
+          description: transactionData.description
         },
         payment_session: paymentSession
       }),
