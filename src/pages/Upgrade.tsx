@@ -31,6 +31,20 @@ const Upgrade = () => {
     setIsLoading(true);
 
     try {
+      // Step 1: Ensure IPN URL is registered
+      console.log('Ensuring IPN URL is registered...');
+      
+      const { error: ipnError } = await supabase.functions.invoke('pesapal-register-ipn');
+      
+      if (ipnError) {
+        console.error('IPN registration error:', ipnError);
+        toast.error('Failed to initialize payment system', {
+          description: 'IPN URL registration failed. Please try again.'
+        });
+        return;
+      }
+
+      // Step 2: Initialize payment with proper notification_id
       console.log('Initiating Pesapal payment for plan:', plan);
 
       const planType = plan === 'annual' ? 'pro_annual' : 'pro';

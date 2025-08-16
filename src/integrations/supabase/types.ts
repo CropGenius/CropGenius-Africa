@@ -2785,7 +2785,6 @@ export type Database = {
           completed_at: string | null
           created_at: string | null
           currency: string
-          flutterwave_data: Json | null
           id: string
           payment_data: Json | null
           pesapal_data: Json | null
@@ -2799,7 +2798,6 @@ export type Database = {
           completed_at?: string | null
           created_at?: string | null
           currency?: string
-          flutterwave_data?: Json | null
           id: string
           payment_data?: Json | null
           pesapal_data?: Json | null
@@ -2813,7 +2811,6 @@ export type Database = {
           completed_at?: string | null
           created_at?: string | null
           currency?: string
-          flutterwave_data?: Json | null
           id?: string
           payment_data?: Json | null
           pesapal_data?: Json | null
@@ -2881,6 +2878,33 @@ export type Database = {
           is_system?: boolean | null
           name?: string
           permission?: string
+        }
+        Relationships: []
+      }
+      pesapal_ipn_urls: {
+        Row: {
+          created_at: string | null
+          environment: string
+          id: string
+          ipn_url: string
+          notification_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          environment: string
+          id?: string
+          ipn_url: string
+          notification_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          environment?: string
+          id?: string
+          ipn_url?: string
+          notification_id?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
