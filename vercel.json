@@ -3,7 +3,8 @@
   "buildCommand": "npx vite build --config vite.config.ts",
   "outputDirectory": "dist",
   "installCommand": "npm install",
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/.*", "dest": "/index.html" }
   ]
 }
