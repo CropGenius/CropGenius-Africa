@@ -161,8 +161,8 @@ serve(async (req) => {
 
     const orderData = await orderResponse.json();
 
-    if (orderData.status !== 200) {
-      throw new Error(`Order submission failed: ${orderData.message || 'Unknown error'}`);
+    if (orderData.status !== "200") {
+      throw new Error(`Order submission failed: ${orderData.error?.message || orderData.message || 'Unknown error'}`);
     }
 
     // Save payment session
