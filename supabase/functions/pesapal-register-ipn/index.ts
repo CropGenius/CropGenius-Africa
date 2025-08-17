@@ -22,11 +22,16 @@ serve(async (req) => {
     );
 
     // Check if IPN URL is already registered
-    const { data: existingIpn } = await supabaseAdmin
+    const { data: existingIpn, error: queryError } = await supabaseAdmin
       .from('pesapal_ipn_urls')
       .select('*')
       .eq('environment', 'live')
-      .single();
+      .maybeSingle();
+
+    // Log any database errors for debugging
+    if (queryError) {
+      console.log('Database query error (might be expected if table is new):', queryError.message);
+    }
 
     if (existingIpn && existingIpn.notification_id) {
       console.log('IPN URL already registered:', existingIpn.notification_id);
@@ -47,7 +52,12 @@ serve(async (req) => {
     const pesapalConsumerKey = Deno.env.get('PESAPAL_CONSUMER_KEY');
     const pesapalConsumerSecret = Deno.env.get('PESAPAL_CONSUMER_SECRET');
     
+    console.log('Checking Pesapal credentials...');
     if (!pesapalConsumerKey || !pesapalConsumerSecret) {
+      console.error('Missing Pesapal credentials:', { 
+        hasKey: !!pesapalConsumerKey, 
+        hasSecret: !!pesapalConsumerSecret 
+      });
       throw new Error('Pesapal credentials not configured');
     }
 
