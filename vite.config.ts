@@ -26,9 +26,15 @@ export default defineConfig(({ mode }) => {
       dedupe: ['react', 'react-dom']
     },
     server: {
-      host: "::",
+      // Bind explicitly to IPv4 localhost to avoid IPv6/WS issues
+      host: 'localhost',
       port: 8080,
-      open: true
+      open: true,
+      hmr: {
+        host: 'localhost',
+        port: 8080,
+        protocol: 'ws'
+      }
     },
     esbuild: {
       logOverride: { 'this-is-undefined-in-esm': 'silent' },
