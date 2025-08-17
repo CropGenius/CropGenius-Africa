@@ -23,6 +23,8 @@ export function useAuthContext() {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  console.log('🔧 [AUTH] AuthProvider rendering - timestamp:', Date.now());
+  console.log('🔧 [AUTH] React useState available:', typeof useState);
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);

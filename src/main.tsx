@@ -15,10 +15,12 @@ if (!rootElement) {
 }
 
 console.log('🚀 [MAIN] Starting React app...');
+console.log('🚀 [MAIN] React version:', React.version);
 console.log('🚀 [MAIN] Root element:', rootElement);
 
 const root = createRoot(rootElement);
 console.log('🚀 [MAIN] Root created, rendering app...');
+console.log('🚀 [MAIN] About to render - timestamp:', Date.now());
 
 
 
