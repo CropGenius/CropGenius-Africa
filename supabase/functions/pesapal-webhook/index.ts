@@ -21,12 +21,22 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    const body = await req.text();
-    const webhookData = JSON.parse(body);
-
-    console.log('Pesapal webhook received:', webhookData);
-
-    const { OrderTrackingId, OrderMerchantReference } = webhookData;
+    // Handle GET request (IPN notification_type = 'GET')
+    let OrderTrackingId, OrderMerchantReference;
+    
+    if (req.method === 'GET') {
+      const url = new URL(req.url);
+      OrderTrackingId = url.searchParams.get('OrderTrackingId');
+      OrderMerchantReference = url.searchParams.get('OrderMerchantReference');
+      console.log('Pesapal GET webhook received:', { OrderTrackingId, OrderMerchantReference });
+    } else {
+      // Handle POST request fallback
+      const body = await req.text();
+      const webhookData = JSON.parse(body);
+      console.log('Pesapal POST webhook received:', webhookData);
+      OrderTrackingId = webhookData.OrderTrackingId;
+      OrderMerchantReference = webhookData.OrderMerchantReference;
+    }
 
     if (!OrderTrackingId && !OrderMerchantReference) {
       throw new Error('Invalid webhook payload: missing order tracking ID');

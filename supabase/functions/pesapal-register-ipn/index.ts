@@ -82,7 +82,7 @@ serve(async (req) => {
     
     const ipnRequest = {
       url: ipnUrl,
-      ipn_notification_type: 'POST'
+      ipn_notification_type: 'GET'
     };
 
     console.log('Registering IPN URL:', ipnUrl);
