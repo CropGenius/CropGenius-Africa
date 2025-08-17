@@ -92,7 +92,7 @@ serve(async (req) => {
     
     const ipnRequest = {
       url: ipnUrl,
-      ipn_notification_type: 'GET'
+      ipn_notification_type: 'POST'
     };
 
     console.log('Registering IPN URL:', ipnUrl);
@@ -115,8 +115,8 @@ serve(async (req) => {
 
     const ipnData = await ipnResponse.json();
 
-    if (ipnData.status !== 200) {
-      throw new Error(`IPN registration failed: ${ipnData.message || 'Unknown error'}`);
+    if (ipnData.status !== "200") {
+      throw new Error(`IPN registration failed: ${ipnData.error?.message || ipnData.message || 'Unknown error'}`);
     }
 
     const notificationId = ipnData.ipn_id;

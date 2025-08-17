@@ -21,22 +21,46 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    // Handle GET request (IPN notification_type = 'GET')
-    let OrderTrackingId, OrderMerchantReference;
+    // Handle POST request with URL-encoded parameters from Pesapal IPN
+    let pesapal_notification_type, pesapal_transaction_tracking_id, pesapal_merchant_reference;
     
-    if (req.method === 'GET') {
-      const url = new URL(req.url);
-      OrderTrackingId = url.searchParams.get('OrderTrackingId');
-      OrderMerchantReference = url.searchParams.get('OrderMerchantReference');
-      console.log('Pesapal GET webhook received:', { OrderTrackingId, OrderMerchantReference });
-    } else {
-      // Handle POST request fallback
+    if (req.method === 'POST') {
       const body = await req.text();
-      const webhookData = JSON.parse(body);
-      console.log('Pesapal POST webhook received:', webhookData);
-      OrderTrackingId = webhookData.OrderTrackingId;
-      OrderMerchantReference = webhookData.OrderMerchantReference;
+      console.log('Pesapal IPN POST body received:', body);
+      
+      // Parse URL-encoded parameters
+      const params = new URLSearchParams(body);
+      pesapal_notification_type = params.get('pesapal_notification_type');
+      pesapal_transaction_tracking_id = params.get('pesapal_transaction_tracking_id');
+      pesapal_merchant_reference = params.get('pesapal_merchant_reference');
+      
+      console.log('Pesapal IPN parameters:', { 
+        pesapal_notification_type, 
+        pesapal_transaction_tracking_id, 
+        pesapal_merchant_reference 
+      });
+      
+      // Respond with concatenated parameters as required by Pesapal
+      const response_body = `pesapal_notification_type=${pesapal_notification_type}&pesapal_transaction_tracking_id=${pesapal_transaction_tracking_id}&pesapal_merchant_reference=${pesapal_merchant_reference}`;
+      
+      // If notification type is not CHANGE, just acknowledge
+      if (pesapal_notification_type !== 'CHANGE') {
+        console.log('IPN notification type is not CHANGE, acknowledging receipt');
+        return new Response(response_body, { 
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'text/plain' }
+        });
+      }
+    } else {
+      return new Response('Invalid IPN request', { 
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'text/plain' }
+      });
     }
+
+    // Use transaction tracking ID to find payment session
+    const OrderTrackingId = pesapal_transaction_tracking_id;
+    const OrderMerchantReference = pesapal_merchant_reference;
 
     if (!OrderTrackingId && !OrderMerchantReference) {
       throw new Error('Invalid webhook payload: missing order tracking ID');
@@ -169,28 +193,20 @@ serve(async (req) => {
       end_date: planEndDate
     });
 
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: 'Pesapal payment processed successfully' 
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
-    );
+    // Respond with concatenated parameters as required by Pesapal
+    const response_body = `pesapal_notification_type=${pesapal_notification_type}&pesapal_transaction_tracking_id=${pesapal_transaction_tracking_id}&pesapal_merchant_reference=${pesapal_merchant_reference}`;
+    
+    return new Response(response_body, {
+      headers: { ...corsHeaders, 'Content-Type': 'text/plain' },
+      status: 200,
+    });
 
   } catch (error) {
     console.error('Pesapal webhook processing error:', error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: error.message
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      }
-    );
+    // Return 500 to allow Pesapal retries on server errors
+    return new Response('Internal Server Error', {
+      headers: { ...corsHeaders, 'Content-Type': 'text/plain' },
+      status: 500,
+    });
   }
 });
