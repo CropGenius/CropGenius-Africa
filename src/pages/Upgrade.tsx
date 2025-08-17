@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { PesapalUpgrade } from '@/components/payment/PesapalUpgrade';
+import { Pricing } from '@/components/ui/pricing';
 import { toast } from 'sonner';
 
 const Upgrade = () => {
@@ -22,7 +22,7 @@ const Upgrade = () => {
     }
   }, []);
 
-  const handleUpgrade = async (plan: 'monthly' | 'annual') => {
+  const handleUpgrade = async (planType: 'monthly' | 'annual') => {
     if (!user) {
       toast.error('Please log in to upgrade');
       return;
@@ -45,13 +45,13 @@ const Upgrade = () => {
       }
 
       // Step 2: Initialize payment with proper notification_id
-      console.log('Initiating Pesapal payment for plan:', plan);
+      console.log('Initiating Pesapal payment for plan:', planType);
 
-      const planType = plan === 'annual' ? 'pro_annual' : 'pro';
+      const planTypeValue = planType === 'annual' ? 'pro_annual' : 'pro';
       
 const { data, error } = await supabase.functions.invoke('pesapal-init-payment', {
         body: {
-          plan_type: planType,
+          plan_type: planTypeValue,
           redirect_url: `${window.location.origin}/upgrade?upgrade=success`
         }
       });
@@ -71,7 +71,7 @@ const { data, error } = await supabase.functions.invoke('pesapal-init-payment', 
       window.open(data.payment_link, '_blank');
 
       toast.success('Payment window opened! Complete your payment to activate Pro features.', {
-        description: `Amount: KES ${data.amount} for CropGenius ${plan === 'annual' ? 'Pro Annual' : 'Pro'}`
+        description: `Amount: KES ${data.amount} for CropGenius ${planType === 'annual' ? 'Pro Annual' : 'Pro'}`
       });
 
     } catch (error) {
@@ -101,8 +101,14 @@ const { data, error } = await supabase.functions.invoke('pesapal-init-payment', 
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <PesapalUpgrade />
+    <div className="min-h-screen bg-background">
+      <Pricing 
+        monthlyPrice={999}
+        annualPrice={9999}
+        title="Upgrade to CropGenius Pro"
+        description="Get unlimited access to AI-powered farming insights and premium features."
+        onUpgrade={handleUpgrade}
+      />
     </div>
   );
 };

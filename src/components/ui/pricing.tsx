@@ -16,14 +16,14 @@ interface PricingProps {
   annualPrice?: number;
   title?: string;
   description?: string;
-  onUpgrade?: (plan: 'monthly' | 'annual') => void;
+  onUpgrade?: (planType: 'monthly' | 'annual') => void;
 }
 
 export function Pricing({
   monthlyPrice = 999,
   annualPrice = 9999,
-  title = "Unlock CropGenius Pro",
-  description = "Join 10,000+ farmers across Africa with 38% higher yields",
+  title = "Simple, Transparent Pricing",
+  description = "Choose the plan that works for you. All Pro features included.",
   onUpgrade,
 }: PricingProps) {
   const [isAnnual, setIsAnnual] = useState(true); // Default to annual (best value)
@@ -65,11 +65,11 @@ export function Pricing({
   const monthlyEquivalent = Math.round(annualPrice / 12);
 
   const monthlyFeatures = [
-    { icon: Zap, text: "Unlimited crop disease scans" },
-    { icon: Users, text: "AI-powered yield predictions" },
-    { icon: TrendingUp, text: "Hyperlocal weather forecasts" },
-    { icon: HeadphonesIcon, text: "WhatsApp notifications" },
-    { icon: Lock, text: "Offline mode access" },
+    { icon: Zap, text: "All core Pro features" },
+    { icon: Users, text: "Unlimited scans & field analysis" },
+    { icon: TrendingUp, text: "Advanced crop insights & AI chat" },
+    { icon: HeadphonesIcon, text: "Email support (48h response)" },
+    { icon: Lock, text: "No long-term commitment" },
     { icon: Shield, text: "7-day money-back guarantee" },
   ];
 
@@ -77,8 +77,8 @@ export function Pricing({
     { icon: Zap, text: "Everything in Monthly, plus:" },
     { icon: Award, text: `Save KES ${savings.toLocaleString()} (${savingsPercent}% off)` },
     { icon: HeadphonesIcon, text: "Priority support (24h response)" },
-    { icon: Users, text: "Free soil testing kit" },
-    { icon: TrendingUp, text: "Personal farm advisor calls" },
+    { icon: Users, text: "Beta access to new features" },
+    { icon: TrendingUp, text: "Annual usage reports & insights" },
     { icon: Shield, text: "14-day money-back guarantee" },
   ];
 
@@ -154,7 +154,7 @@ export function Pricing({
             {/* Plan Name & Description */}
             <div className="text-center mb-6">
               <p className="text-2xl font-bold text-foreground mb-2">
-                CROPGENIUS PRO
+                PROFESSIONAL
               </p>
               <p className="text-sm text-muted-foreground">
                 {isAnnual 
@@ -167,8 +167,14 @@ export function Pricing({
             <div className="text-center mb-6">
               <div className="flex items-baseline justify-center gap-2">
                 <span className="text-5xl font-bold tracking-tight text-foreground">
-                  KES <NumberFlow
+                  <NumberFlow
                     value={isAnnual ? annualPrice : monthlyPrice}
+                    format={{
+                      style: "currency",
+                      currency: "KES",
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
+                    }}
                     transformTiming={{
                       duration: 500,
                       easing: "ease-out",
@@ -241,7 +247,7 @@ export function Pricing({
             >
               {isAnnual 
                 ? `Upgrade — Best Value (Save ${savingsPercent}%)`
-                : "Start Monthly — KES " + monthlyPrice.toLocaleString() + "/mo"}
+                : "Start Monthly — KES " + monthlyPrice + "/mo"}
             </button>
 
             {/* Trust Signals */}
