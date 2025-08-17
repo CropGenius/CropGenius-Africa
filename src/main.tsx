@@ -23,11 +23,11 @@ console.log('🚀 [MAIN] Root created, rendering app...');
 
 
 root.render(
-  <QueryClientProvider client={queryClient}>
-    <App />
-    <Toaster />
-    <SonnerToaster />
-  </QueryClientProvider>
+  React.createElement(QueryClientProvider, { client: queryClient },
+    React.createElement(App),
+    React.createElement(Toaster),
+    React.createElement(SonnerToaster)
+  )
 );
 
 console.log('🚀 [MAIN] App rendered!');
