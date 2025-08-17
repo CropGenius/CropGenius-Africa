@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Pricing } from '@/components/ui/pricing';
+import { PesapalUpgrade } from '@/components/payment/PesapalUpgrade';
 import { toast } from 'sonner';
 
 const Upgrade = () => {
@@ -102,13 +102,7 @@ const { data, error } = await supabase.functions.invoke('pesapal-init-payment', 
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <Pricing 
-        monthlyPrice={999}
-        annualPrice={9999}
-        title="Unlock CropGenius Pro"
-        description="Join 10,000+ farmers across Africa with 38% higher yields"
-        onUpgrade={handleUpgrade}
-      />
+      <PesapalUpgrade />
     </div>
   );
 };

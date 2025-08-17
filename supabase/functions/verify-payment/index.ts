@@ -40,26 +40,49 @@ serve(async (req) => {
 
     console.log('Verifying payment:', { transaction_id, tx_ref, user_id: user.id });
 
-    // Verify with Flutterwave
-    const verifyResponse = await fetch(`https://api.flutterwave.com/v3/transactions/${transaction_id}/verify`, {
+    // Verify with Pesapal  
+    const pesapalConsumerKey = Deno.env.get('PESAPAL_CONSUMER_KEY');
+    const pesapalConsumerSecret = Deno.env.get('PESAPAL_CONSUMER_SECRET');
+    
+    // Get Pesapal auth token
+    const authResponse = await fetch('https://pay.pesapal.com/v3/api/Auth/RequestToken', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        consumer_key: pesapalConsumerKey,
+        consumer_secret: pesapalConsumerSecret,
+      }),
+    });
+
+    const authData = await authResponse.json();
+    
+    if (!authData.token) {
+      throw new Error('Failed to get Pesapal authentication token');
+    }
+
+    const verifyResponse = await fetch(`https://pay.pesapal.com/v3/api/Transactions/GetTransactionStatus?orderTrackingId=${transaction_id}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('FLUTTERWAVE_SECRET_KEY')}`,
+        'Authorization': `Bearer ${authData.token}`,
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
     });
 
     if (!verifyResponse.ok) {
-      throw new Error('Failed to verify transaction with Flutterwave');
+      throw new Error('Failed to verify transaction with Pesapal');
     }
 
     const verifyData = await verifyResponse.json();
 
-    if (verifyData.status !== 'success') {
+    if (verifyData.status !== 200) {
       throw new Error(`Verification failed: ${verifyData.message}`);
     }
 
-    const { data: txData } = verifyData;
+    const txData = verifyData.data;
 
     // Check if payment session exists
     const { data: paymentSession } = await supabaseAdmin
@@ -83,9 +106,9 @@ serve(async (req) => {
       );
     }
 
-    const isVerified = txData.status === 'successful' && 
+    const isVerified = txData.payment_status_description?.toLowerCase() === 'completed' && 
                       txData.currency === 'KES' &&
-                      parseFloat(txData.amount) === paymentSession.amount;
+                      Math.abs(parseFloat(txData.amount) - paymentSession.amount) <= 0.01;
 
     if (isVerified && paymentSession.status !== 'completed') {
       // Process the payment if verified but not yet processed
@@ -94,7 +117,7 @@ serve(async (req) => {
         .update({
           status: 'completed',
           completed_at: new Date().toISOString(),
-          flutterwave_data: txData
+          pesapal_data: txData
         })
         .eq('id', paymentSession.id);
 
@@ -111,7 +134,7 @@ serve(async (req) => {
           status: 'active',
           current_period_start: new Date().toISOString(),
           current_period_end: planEndDate.toISOString(),
-          flutterwave_customer_id: txData.customer?.id || null,
+          pesapal_order_tracking_id: txData.order_tracking_id || null,
           billing_cycle: paymentSession.plan_type === 'pro_annual' ? 'yearly' : 'monthly'
         }, {
           onConflict: 'user_id'
@@ -130,13 +153,13 @@ serve(async (req) => {
         success: true,
         verified: isVerified,
         transaction: {
-          id: txData.id,
-          tx_ref: txData.tx_ref,
-          status: txData.status,
+          order_tracking_id: txData.order_tracking_id,
+          merchant_reference: txData.merchant_reference,
+          status: txData.payment_status_description,
           amount: txData.amount,
           currency: txData.currency,
-          payment_type: txData.payment_type,
-          processor_response: txData.processor_response
+          payment_method: txData.payment_method,
+          created_date: txData.created_date
         },
         payment_session: paymentSession
       }),

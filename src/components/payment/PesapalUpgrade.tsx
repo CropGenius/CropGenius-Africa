@@ -18,12 +18,12 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-interface FlutterwaveUpgradeProps {
+interface PesapalUpgradeProps {
   onUpgradeStart?: () => void;
   onUpgradeComplete?: () => void;
 }
 
-export const FlutterwaveUpgrade: React.FC<FlutterwaveUpgradeProps> = ({
+export const PesapalUpgrade: React.FC<PesapalUpgradeProps> = ({
   onUpgradeStart,
   onUpgradeComplete
 }) => {
@@ -74,8 +74,9 @@ export const FlutterwaveUpgrade: React.FC<FlutterwaveUpgradeProps> = ({
 
   const paymentMethods = [
     { icon: Smartphone, name: 'M-Pesa', description: 'Most popular in Kenya' },
+    { icon: Smartphone, name: 'Airtel Money', description: 'Mobile payments' },
     { icon: CreditCard, name: 'Cards', description: 'Visa, Mastercard' },
-    { icon: Banknote, name: 'Bank Transfer', description: 'Direct banking' },
+    { icon: Banknote, name: 'Bank Transfer', description: 'All major banks' },
     { icon: QrCode, name: 'QR Code', description: 'Quick scan payment' }
   ];
 
@@ -89,9 +90,23 @@ export const FlutterwaveUpgrade: React.FC<FlutterwaveUpgradeProps> = ({
     onUpgradeStart?.();
 
     try {
-      console.log('Initiating Flutterwave payment for plan:', selectedPlan);
+      // Step 1: Ensure IPN URL is registered
+      console.log('Ensuring Pesapal IPN URL is registered...');
+      
+      const { error: ipnError } = await supabase.functions.invoke('pesapal-register-ipn');
+      
+      if (ipnError) {
+        console.error('Pesapal IPN registration error:', ipnError);
+        toast.error('Failed to initialize payment system', {
+          description: 'IPN URL registration failed. Please try again.'
+        });
+        return;
+      }
 
-      const { data, error } = await supabase.functions.invoke('flutterwave-init-payment', {
+      // Step 2: Initialize payment with proper notification_id
+      console.log('Initiating Pesapal payment for plan:', selectedPlan);
+
+      const { data, error } = await supabase.functions.invoke('pesapal-init-payment', {
         body: {
           plan_type: selectedPlan,
           redirect_url: `${window.location.origin}/dashboard?upgrade=success`
@@ -99,7 +114,7 @@ export const FlutterwaveUpgrade: React.FC<FlutterwaveUpgradeProps> = ({
       });
 
       if (error) {
-        console.error('Flutterwave initialization error:', error);
+        console.error('Pesapal initialization error:', error);
         throw new Error(error.message || 'Failed to initialize payment');
       }
 
@@ -107,9 +122,9 @@ export const FlutterwaveUpgrade: React.FC<FlutterwaveUpgradeProps> = ({
         throw new Error(data?.error || 'Invalid payment response');
       }
 
-      console.log('Flutterwave payment link generated:', data.payment_link);
+      console.log('Pesapal payment link generated:', data.payment_link);
 
-      // Open Flutterwave payment page in new tab
+      // Open Pesapal payment page in new tab
       window.open(data.payment_link, '_blank');
 
       toast.success('Payment window opened! Complete your payment to activate Pro features.', {
@@ -209,7 +224,7 @@ export const FlutterwaveUpgrade: React.FC<FlutterwaveUpgradeProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {paymentMethods.map((method, index) => (
               <div key={index} className="flex flex-col items-center text-center p-4 rounded-lg bg-gray-50 dark:bg-gray-800">
                 <method.icon className="h-8 w-8 text-green-600 mb-2" />
@@ -219,7 +234,7 @@ export const FlutterwaveUpgrade: React.FC<FlutterwaveUpgradeProps> = ({
             ))}
           </div>
           <div className="mt-4 text-center text-sm text-gray-600 dark:text-gray-300">
-            Powered by Flutterwave - Trusted by 290,000+ businesses across Africa
+            Powered by Pesapal - Trusted payment gateway across East Africa
           </div>
         </CardContent>
       </Card>
@@ -272,7 +287,7 @@ export const FlutterwaveUpgrade: React.FC<FlutterwaveUpgradeProps> = ({
         
         <div className="mt-4 space-y-2 text-sm text-gray-600 dark:text-gray-300">
           <div>💯 30-day money-back guarantee</div>
-          <div>🔒 Secure payment processing by Flutterwave</div>
+          <div>🔒 Secure payment processing by Pesapal</div>
           <div>📱 Instant activation after payment</div>
         </div>
       </div>
