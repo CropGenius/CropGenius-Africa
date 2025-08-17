@@ -46,7 +46,7 @@ serve(async (req) => {
       name: 'CropGenius Pro',
       interval: 'monthly'
     } : {
-      amount: 9999,
+      amount: 7999,
       name: 'CropGenius Pro Annual', 
       interval: 'yearly'
     };
