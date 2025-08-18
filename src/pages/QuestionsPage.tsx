@@ -347,50 +347,55 @@ export const QuestionsPage: React.FC = () => {
             {/* Filters */}
             <Card className="mb-6">
               <CardContent className="pt-6">
-                <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex flex-col sm:flex-row gap-3 items-stretch">
                   {/* Search */}
-                  <div className="flex-1">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input
-                        placeholder="Search questions..."
-                        value={filters.search}
-                        onChange={(e) => handleSearch(e.target.value)}
-                        className="pl-10"
-                      />
+                  <div className="relative flex-1">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Search className="h-4 w-4 text-gray-400" />
                     </div>
+                    <Input
+                      placeholder="Search questions..."
+                      value={filters.search}
+                      onChange={(e) => handleSearch(e.target.value)}
+                      className="pl-9 h-full"
+                    />
                   </div>
 
                   {/* Status Filter */}
-                  <Select
-                    value={filters.status}
-                    onValueChange={(value) => handleFilterChange('status', value)}
-                  >
-                    <SelectTrigger className="w-full sm:w-40">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="open">Open</SelectItem>
-                      <SelectItem value="answered">Answered</SelectItem>
-                      <SelectItem value="closed">Closed</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="w-full sm:w-48">
+                    <Select
+                      value={filters.status}
+                      onValueChange={(value) => handleFilterChange('status', value)}
+                    >
+                      <SelectTrigger className="w-full">
+                        <Filter className="h-4 w-4 mr-2 text-gray-500" />
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="open">Open</SelectItem>
+                        <SelectItem value="answered">Answered</SelectItem>
+                        <SelectItem value="closed">Closed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
                   {/* Sort */}
-                  <Select
-                    value={filters.sort_by}
-                    onValueChange={(value) => handleFilterChange('sort_by', value)}
-                  >
-                    <SelectTrigger className="w-full sm:w-40">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="created_at">Latest</SelectItem>
-                      <SelectItem value="vote_score">Most Voted</SelectItem>
-                      <SelectItem value="answer_count">Most Answered</SelectItem>
-                      <SelectItem value="view_count">Most Viewed</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="w-full sm:w-48">
+                    <Select
+                      value={filters.sort_by}
+                      onValueChange={(value) => handleFilterChange('sort_by', value)}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Sort by" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="created_at">Latest</SelectItem>
+                        <SelectItem value="vote_score">Most Voted</SelectItem>
+                        <SelectItem value="answer_count">Most Answered</SelectItem>
+                        <SelectItem value="view_count">Most Viewed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
                   {/* Clear Filters */}
                   {getActiveFiltersCount() > 0 && (
