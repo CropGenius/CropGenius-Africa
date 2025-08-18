@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, Tractor } from 'lucide-react';
+import { Menu, Tractor, Zap, ZapOff } from 'lucide-react';
 
 const TopNav = () => {
   const navigate = useNavigate();
@@ -17,10 +17,26 @@ const TopNav = () => {
             <Menu className="w-6 h-6" />
           </button>
           
-          {/* CropGenius Logo */}
-          <h1 className="text-2xl font-black text-white tracking-tight" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-            CropGenius
-          </h1>
+          {/* CropGenius Logo with Pro Badge */}
+          <div className="flex items-center space-x-2">
+            <h1 className="text-2xl font-black text-white tracking-tight" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+              CropGenius
+            </h1>
+            {useMemo(() => {
+              const isPro = localStorage.getItem('plan_is_pro') === 'true';
+              return isPro ? (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gradient-to-r from-yellow-400 to-amber-500 text-amber-900 border border-amber-300">
+                  <Zap className="h-3 w-3 mr-1" />
+                  PRO
+                </span>
+              ) : (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gradient-to-r from-gray-200 to-gray-300 text-gray-700 border border-gray-400">
+                  <ZapOff className="h-3 w-3 mr-1" />
+                  FREE
+                </span>
+              );
+            }, [])}
+          </div>
           
           {/* Manage Fields */}
           <button 
