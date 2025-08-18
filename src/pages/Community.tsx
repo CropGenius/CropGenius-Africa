@@ -728,22 +728,28 @@ const Community = () => {
 
           {/* Questions Tab */}
           <TabsContent value="questions" className="mt-4">
-            <div className="flex flex-col md:flex-row gap-4 mb-4">
-              <div className="w-full md:w-2/3">
-                <Input
-                  placeholder="Search questions..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="mb-4"
-                />
-              </div>
-              <div className="w-full md:w-1/3">
+            <div className="flex flex-col space-y-2 mb-4">
+              <div className="flex flex-col sm:flex-row gap-2 w-full">
+                <div className="relative flex-1">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <Input
+                    placeholder="Search questions..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
                 <Select
                   value={selectedCategory}
                   onValueChange={setSelectedCategory}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Filter by category" />
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <Filter className="h-4 w-4 mr-2 text-gray-500" />
+                    <SelectValue placeholder="All Categories" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Categories</SelectItem>
