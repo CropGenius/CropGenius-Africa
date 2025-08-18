@@ -21,24 +21,19 @@ export default defineConfig(({ mode }) => {
     ].filter(Boolean),
     resolve: {
       alias: {
-        "@supabase/storage-js": "@supabase/storage-js",
         "@": resolve(__dirname, "./src"),
       },
       dedupe: ['react', 'react-dom']
     },
     server: {
-      // Use default Vite port (5173) to avoid conflicts
+      // Bind explicitly to IPv4 localhost to avoid IPv6/WS issues
       host: 'localhost',
-      port: 5173,
-      strictPort: true,
+      port: 8080,
       open: true,
       hmr: {
-        protocol: 'ws',
         host: 'localhost',
-        port: 5173
-      },
-      watch: {
-        usePolling: true
+        port: 8080,
+        protocol: 'ws'
       }
     },
     esbuild: {
@@ -73,11 +68,9 @@ export default defineConfig(({ mode }) => {
             'ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select']
           }
         },
-        external: ['@supabase/storage-js']
+        treeshake: true
       },
-      commonjsOptions: {
-        include: [/node_modules/],
-      },
+      sourcemap: false,
       reportCompressedSize: true
     },
     define: {
@@ -86,7 +79,7 @@ export default defineConfig(({ mode }) => {
     },
     optimizeDeps: {
       include: ['react', 'react-dom'],
-      exclude: ['lucide-react', '@supabase/storage-js']
+      exclude: ['lucide-react']
     }
   }
 })
