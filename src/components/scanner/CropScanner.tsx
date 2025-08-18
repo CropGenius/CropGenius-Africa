@@ -1,26 +1,11 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
-import {
-  Camera,
-  Upload,
-  Leaf,
-  AlertTriangle,
-  CheckCircle,
-  Map,
-  ShoppingCart,
-  Share,
-  RotateCw,
-  Zap,
-  ArrowRight,
-  AlertCircle,
-} from "lucide-react";
-import { cropDiseaseOracle, type DiseaseDetectionResult } from '@/agents/CropDiseaseOracle';
+import { Button, Card, Progress, Badge } from '@/components/ui';
+import { toast } from 'sonner';
+import { Camera, Upload, Leaf, AlertTriangle, CheckCircle, Map, ShoppingCart, Share, RotateCw, Zap, ArrowRight, AlertCircle } from 'lucide-react';
+import { cropDiseaseOracle } from '@/agents/CropDiseaseOracle';
 import { supabase } from '@/integrations/supabase/client';
+import type { DiseaseDetectionResult } from '@/agents/CropDiseaseOracle';
 
 type ScanState = "idle" | "capturing" | "scanning" | "results";
 type DiseaseSeverity = "low" | "medium" | "high" | "critical";

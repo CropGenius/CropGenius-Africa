@@ -1,52 +1,4 @@
-/**
- * 🚀 CROPGENIUS NOTIFICATION SERVICE - THE REAL DEAL
- * 
- * This replaces the fake notification system with ACTUAL functionality.
- * No more lies, no more placeholders - this is production-ready notification delivery.
- * 
- * Features:
- * - Real push notifications with service worker integration
- * - Email notifications via SendGrid
- * - WhatsApp Business API integration
- * - Notification queue management
- * - Delivery tracking and analytics
- * - User preference enforcement
- * - Retry logic for failed deliveries
- */
-
 import { supabase } from '@/integrations/supabase/client';
-
-// ============================================================================
-// TYPES AND INTERFACES
-// ============================================================================
-
-export interface NotificationData {
-  title: string;
-  message: string;
-  data?: Record<string, any>;
-  icon?: string;
-  badge?: string;
-  tag?: string;
-  actions?: NotificationAction[];
-}
-
-export interface NotificationAction {
-  action: string;
-  title: string;
-  icon?: string;
-}
-
-export interface QueueNotificationParams {
-  userId: string;
-  type: 'email' | 'push' | 'whatsapp' | 'sms';
-  channel: 'weather' | 'market' | 'task' | 'system' | 'emergency';
-  title: string;
-  message: string;
-  data?: Record<string, any>;
-  scheduledFor?: Date;
-  priority?: number; // 1=critical, 5=low
-  templateId?: string;
-}
 
 export interface NotificationPreferences {
   email_enabled: boolean;
@@ -59,499 +11,173 @@ export interface NotificationPreferences {
   system_notifications: boolean;
   emergency_alerts: boolean;
   weekly_reports: boolean;
-  quiet_hours_start?: string;
-  quiet_hours_end?: string;
   timezone: string;
   max_daily_notifications: number;
-  reminder_frequency: 'never' | 'once' | 'twice' | 'hourly';
-  whatsapp_phone?: string;
-  sms_phone?: string;
+  reminder_frequency: 'once' | 'daily' | 'weekly';
 }
 
-export interface PushSubscription {
-  endpoint: string;
-  keys: {
-    p256dh: string;
-    auth: string;
-  };
-}
-
-// ============================================================================
-// NOTIFICATION SERVICE CLASS
-// ============================================================================
-
-export class NotificationService {
-  private static instance: NotificationService;
-  private vapidPublicKey: string;
-  private serviceWorkerRegistration: ServiceWorkerRegistration | null = null;
-
-  constructor() {
-    this.vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY || '';
-    this.initializeServiceWorker();
-  }
-
-  static getInstance(): NotificationService {
-    if (!NotificationService.instance) {
-      NotificationService.instance = new NotificationService();
-    }
-    return NotificationService.instance;
-  }
-
-  // ============================================================================
-  // SERVICE WORKER INITIALIZATION
-  // ============================================================================
-
-  private async initializeServiceWorker(): Promise<void> {
-    if (!('serviceWorker' in navigator)) {
-      console.warn('Service workers not supported');
-      return;
-    }
-
-    try {
-      this.serviceWorkerRegistration = await navigator.serviceWorker.register('/sw.js');
-      console.log('Service worker registered successfully');
-      
-      // Listen for service worker updates
-      this.serviceWorkerRegistration.addEventListener('updatefound', () => {
-        console.log('Service worker update found');
-      });
-    } catch (error) {
-      console.error('Service worker registration failed:', error);
-    }
-  }
-
-  // ============================================================================
-  // PUSH NOTIFICATION MANAGEMENT
-  // ============================================================================
-
+class NotificationService {
   async requestNotificationPermission(): Promise<NotificationPermission> {
     if (!('Notification' in window)) {
-      throw new Error('This browser does not support notifications');
+      console.warn("This browser does not support notifications.");
+      return 'denied';
     }
-
-    let permission = Notification.permission;
-
-    if (permission === 'default') {
-      permission = await Notification.requestPermission();
-    }
-
+    const permission = await Notification.requestPermission();
     return permission;
   }
 
   async subscribeToPushNotifications(userId: string): Promise<PushSubscription | null> {
-    const permission = await this.requestNotificationPermission();
-    
-    if (permission !== 'granted') {
-      throw new Error('Notification permission denied');
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      console.warn("Push notifications not supported.");
+      return null;
     }
 
-    if (!this.serviceWorkerRegistration) {
-      throw new Error('Service worker not registered');
-    }
+    const registration = await navigator.serviceWorker.ready;
+    let subscription = await registration.pushManager.getSubscription();
 
-    try {
-      const subscription = await this.serviceWorkerRegistration.pushManager.subscribe({
+    if (!subscription) {
+      // Replace with your actual VAPID public key
+      const VAPID_PUBLIC_KEY = import.meta.env.VITE_APP_WEB_PUSH_PUBLIC_KEY; 
+      if (!VAPID_PUBLIC_KEY) {
+        console.error("VAPID public key not set. Cannot subscribe to push notifications.");
+        return null;
+      }
+      subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: this.urlBase64ToUint8Array(this.vapidPublicKey)
+        applicationServerKey: VAPID_PUBLIC_KEY,
       });
-
-      const subscriptionData = {
-        endpoint: subscription.endpoint,
-        keys: {
-          p256dh: this.arrayBufferToBase64(subscription.getKey('p256dh')!),
-          auth: this.arrayBufferToBase64(subscription.getKey('auth')!)
-        }
-      };
-
-      // Save subscription to database
-      await this.savePushSubscription(userId, subscriptionData);
-
-      return subscriptionData;
-    } catch (error) {
-      console.error('Failed to subscribe to push notifications:', error);
-      throw error;
     }
-  }
 
-  private async savePushSubscription(userId: string, subscription: PushSubscription): Promise<void> {
-    const { error } = await supabase
-      .from('push_subscriptions')
-      .upsert({
+    // Send subscription to your backend (Supabase function, etc.)
+    if (subscription) {
+      const { error } = await supabase.from('push_subscriptions').upsert({
         user_id: userId,
         endpoint: subscription.endpoint,
-        p256dh_key: subscription.keys.p256dh,
-        auth_key: subscription.keys.auth,
-        user_agent: navigator.userAgent,
-        device_type: this.getDeviceType(),
-        browser: this.getBrowserName(),
-        active: true,
-        last_used: new Date().toISOString()
-      }, {
-        onConflict: 'user_id,endpoint'
+        p256dh: btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('p256dh')!) as any)),
+        auth: btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('auth')!) as any)),
       });
-
-    if (error) {
-      console.error('Failed to save push subscription:', error);
-      throw error;
-    }
-  }
-
-  async unsubscribeFromPushNotifications(userId: string): Promise<void> {
-    if (!this.serviceWorkerRegistration) {
-      return;
-    }
-
-    try {
-      const subscription = await this.serviceWorkerRegistration.pushManager.getSubscription();
-      
-      if (subscription) {
-        await subscription.unsubscribe();
-        
-        // Remove from database
-        await supabase
-          .from('push_subscriptions')
-          .update({ active: false })
-          .eq('user_id', userId)
-          .eq('endpoint', subscription.endpoint);
+      if (error) {
+        console.error("Error saving push subscription to Supabase:", error);
+        return null;
       }
-    } catch (error) {
-      console.error('Failed to unsubscribe from push notifications:', error);
-      throw error;
     }
+
+    return subscription;
   }
 
-  // ============================================================================
-  // NOTIFICATION QUEUE MANAGEMENT
-  // ============================================================================
-
-  async queueNotification(params: QueueNotificationParams): Promise<string> {
-    // Check user preferences first
-    const preferences = await this.getUserPreferences(params.userId);
-    
-    if (!this.shouldSendNotification(params, preferences)) {
-      console.log('Notification blocked by user preferences');
-      return '';
+  async unsubscribeFromPushNotifications(userId: string): Promise<boolean> {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      return false;
     }
 
-    const { data, error } = await supabase.rpc('queue_notification', {
-      p_user_id: params.userId,
-      p_type: params.type,
-      p_channel: params.channel,
-      p_title: params.title,
-      p_message: params.message,
-      p_data: params.data || {},
-      p_scheduled_for: params.scheduledFor?.toISOString() || new Date().toISOString(),
-      p_priority: params.priority || 2,
-      p_template_id: params.templateId
-    });
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
 
-    if (error) {
-      console.error('Failed to queue notification:', error);
-      throw error;
-    }
-
-    return data;
-  }
-
-  private shouldSendNotification(
-    params: QueueNotificationParams, 
-    preferences: NotificationPreferences
-  ): boolean {
-    // Check if notification type is enabled
-    switch (params.type) {
-      case 'email':
-        if (!preferences.email_enabled) return false;
-        break;
-      case 'push':
-        if (!preferences.push_enabled) return false;
-        break;
-      case 'whatsapp':
-        if (!preferences.whatsapp_enabled) return false;
-        break;
-      case 'sms':
-        if (!preferences.sms_enabled) return false;
-        break;
-    }
-
-    // Check if notification channel is enabled
-    switch (params.channel) {
-      case 'weather':
-        return preferences.weather_alerts;
-      case 'market':
-        return preferences.market_alerts;
-      case 'task':
-        return preferences.task_reminders;
-      case 'system':
-        return preferences.system_notifications;
-      case 'emergency':
-        return preferences.emergency_alerts; // Always allow emergency
-      default:
-        return true;
-    }
-  }
-
-  // ============================================================================
-  // IMMEDIATE NOTIFICATIONS (BYPASS QUEUE)
-  // ============================================================================
-
-  async sendImmediatePushNotification(
-    userId: string, 
-    notificationData: NotificationData
-  ): Promise<void> {
-    const permission = await this.requestNotificationPermission();
-    
-    if (permission !== 'granted') {
-      throw new Error('Notification permission not granted');
-    }
-
-    // Show browser notification immediately
-    const notification = new Notification(notificationData.title, {
-      body: notificationData.message,
-      icon: notificationData.icon || '/icons/notification-icon.png',
-      badge: notificationData.badge || '/icons/badge-icon.png',
-      tag: notificationData.tag,
-      data: notificationData.data,
-      requireInteraction: false,
-      silent: false
-    });
-
-    // Handle notification click
-    notification.onclick = (event) => {
-      event.preventDefault();
-      window.focus();
-      
-      if (notificationData.data?.url) {
-        window.open(notificationData.data.url, '_blank');
+    if (subscription) {
+      await subscription.unsubscribe();
+      // Remove subscription from your backend
+      const { error } = await supabase.from('push_subscriptions').delete().eq('user_id', userId).eq('endpoint', subscription.endpoint);
+      if (error) {
+        console.error("Error deleting push subscription from Supabase:", error);
+        return false;
       }
-      
-      notification.close();
-    };
-
-    // Auto-close after 10 seconds
-    setTimeout(() => {
-      notification.close();
-    }, 10000);
-
-    // Log the notification
-    await this.logNotificationDelivery(
-      null, // No queue ID for immediate notifications
-      userId,
-      'push',
-      'delivered'
-    );
+    }
+    return true;
   }
-
-  // ============================================================================
-  // USER PREFERENCES MANAGEMENT
-  // ============================================================================
 
   async getUserPreferences(userId: string): Promise<NotificationPreferences> {
-    const { data, error } = await supabase.rpc('get_notification_preferences', {
-      p_user_id: userId
-    });
+    const { data, error } = await supabase
+      .from('notification_preferences')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
 
-    if (error) {
-      console.error('Failed to get notification preferences:', error);
+    if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
+      console.error("Error fetching user preferences:", error);
       throw error;
     }
 
-    return data;
+    return data || {
+      email_enabled: true,
+      push_enabled: true,
+      whatsapp_enabled: false,
+      sms_enabled: false,
+      weather_alerts: true,
+      market_alerts: true,
+      task_reminders: true,
+      system_notifications: true,
+      emergency_alerts: true,
+      weekly_reports: false,
+      timezone: 'UTC',
+      max_daily_notifications: 10,
+      reminder_frequency: 'once'
+    };
   }
 
-  async updateUserPreferences(
-    userId: string, 
-    preferences: Partial<NotificationPreferences>
-  ): Promise<void> {
+  async updateUserPreferences(userId: string, preferences: Partial<NotificationPreferences>): Promise<void> {
     const { error } = await supabase
       .from('notification_preferences')
-      .upsert({
-        user_id: userId,
-        ...preferences,
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'user_id'
-      });
+      .upsert({ user_id: userId, ...preferences }, { onConflict: 'user_id' });
 
     if (error) {
-      console.error('Failed to update notification preferences:', error);
+      console.error("Error updating user preferences:", error);
       throw error;
     }
   }
 
-  // ============================================================================
-  // NOTIFICATION DELIVERY LOGGING
-  // ============================================================================
-
-  private async logNotificationDelivery(
-    notificationId: string | null,
-    userId: string,
-    type: string,
-    status: string,
-    errorCode?: string,
-    errorMessage?: string,
-    externalId?: string,
-    metadata?: Record<string, any>
-  ): Promise<void> {
-    const { error } = await supabase.rpc('log_notification_delivery', {
-      p_notification_id: notificationId,
-      p_user_id: userId,
-      p_type: type,
-      p_status: status,
-      p_error_code: errorCode,
-      p_error_message: errorMessage,
-      p_external_id: externalId,
-      p_metadata: metadata || {}
+  async sendImmediatePushNotification(userId: string, payload: { title: string; message: string; data?: any; icon?: string }): Promise<void> {
+    // This would typically involve calling a Supabase Edge Function or a backend service
+    // that then sends the push notification to the user's subscribed endpoint.
+    console.log(`Sending immediate push notification to user ${userId}:`, payload);
+    // Placeholder for actual push notification logic
+    const { error } = await supabase.functions.invoke('send-push-notification', {
+      body: { userId, payload },
     });
-
     if (error) {
-      console.error('Failed to log notification delivery:', error);
+      console.error("Error invoking send-push-notification function:", error);
+      throw error;
     }
-  }
-
-  // ============================================================================
-  // CONVENIENCE METHODS FOR COMMON NOTIFICATIONS
-  // ============================================================================
-
-  async sendWeatherAlert(
-    userId: string, 
-    weatherType: string, 
-    location: string, 
-    severity: 'low' | 'medium' | 'high' | 'critical'
-  ): Promise<void> {
-    const priority = severity === 'critical' ? 1 : severity === 'high' ? 2 : 3;
-    
-    await this.queueNotification({
-      userId,
-      type: 'push',
-      channel: 'weather',
-      title: `Weather Alert: ${weatherType}`,
-      message: `${severity.toUpperCase()} ${weatherType} expected in ${location}. Check the app for details.`,
-      data: { weatherType, location, severity },
-      priority,
-      templateId: severity === 'critical' ? 'weather_critical' : 'weather_warning'
-    });
-  }
-
-  async sendTaskReminder(
-    userId: string, 
-    taskTitle: string, 
-    dueTime: string
-  ): Promise<void> {
-    await this.queueNotification({
-      userId,
-      type: 'push',
-      channel: 'task',
-      title: `Task Due: ${taskTitle}`,
-      message: `Your task "${taskTitle}" is due ${dueTime}. Tap to view details.`,
-      data: { taskTitle, dueTime },
-      priority: 2,
-      templateId: 'task_reminder'
-    });
-  }
-
-  async sendMarketAlert(
-    userId: string, 
-    cropName: string, 
-    priceChange: number, 
-    newPrice: number
-  ): Promise<void> {
-    const isIncrease = priceChange > 0;
-    const percentage = Math.abs(priceChange);
-    
-    await this.queueNotification({
-      userId,
-      type: 'push',
-      channel: 'market',
-      title: `${cropName} Price ${isIncrease ? 'Up' : 'Down'} ${percentage}%`,
-      message: `${cropName} prices ${isIncrease ? 'increased' : 'decreased'} ${percentage}% to $${newPrice}. ${isIncrease ? 'Consider selling!' : 'Good buying opportunity!'}`,
-      data: { cropName, priceChange, newPrice, percentage },
-      priority: 2,
-      templateId: isIncrease ? 'market_price_up' : 'market_price_down'
-    });
   }
 
   async sendWelcomeNotification(userId: string): Promise<void> {
-    await this.queueNotification({
-      userId,
-      type: 'push',
-      channel: 'system',
+    console.log(`Sending welcome notification to user ${userId}`);
+    await this.sendImmediatePushNotification(userId, {
       title: 'Welcome to CropGenius!',
-      message: 'Thanks for joining CropGenius! Enable notifications to get weather alerts, task reminders, and market updates.',
-      data: { isWelcome: true },
-      priority: 3,
-      templateId: 'welcome'
+      message: 'Your journey to smarter farming begins now. Explore your dashboard!',
+      icon: '/icons/notification-icon.png'
     });
   }
 
-  // ============================================================================
-  // UTILITY METHODS
-  // ============================================================================
-
-  private urlBase64ToUint8Array(base64String: string): Uint8Array {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding)
-      .replace(/-/g, '+')
-      .replace(/_/g, '/');
-
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-
-    for (let i = 0; i < rawData.length; ++i) {
-      outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
+  async sendWeatherAlert(userId: string, weatherType: string, location: string, severity: 'low' | 'medium' | 'high' | 'critical'): Promise<void> {
+    console.log(`Sending weather alert to user ${userId}: ${weatherType} in ${location} (${severity})`);
+    await this.sendImmediatePushNotification(userId, {
+      title: `Weather Alert: ${weatherType} in ${location}`,
+      message: `Severity: ${severity.toUpperCase()}. Take necessary precautions.`,
+      data: { type: 'weather', weatherType, location, severity },
+      icon: '/icons/weather-icon.png'
+    });
   }
 
-  private arrayBufferToBase64(buffer: ArrayBuffer): string {
-    const bytes = new Uint8Array(buffer);
-    let binary = '';
-    for (let i = 0; i < bytes.byteLength; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    return window.btoa(binary);
+  async sendTaskReminder(userId: string, taskTitle: string, dueTime: string): Promise<void> {
+    console.log(`Sending task reminder to user ${userId}: ${taskTitle} due ${dueTime}`);
+    await this.sendImmediatePushNotification(userId, {
+      title: `Task Reminder: ${taskTitle}`,
+      message: `Due by ${dueTime}. Don't forget to complete it!`,
+      data: { type: 'task', taskTitle, dueTime },
+      icon: '/icons/task-icon.png'
+    });
   }
 
-  private getDeviceType(): string {
-    const userAgent = navigator.userAgent;
-    if (/tablet|ipad|playbook|silk/i.test(userAgent)) {
-      return 'tablet';
-    }
-    if (/mobile|iphone|ipod|android|blackberry|opera|mini|windows\sce|palm|smartphone|iemobile/i.test(userAgent)) {
-      return 'mobile';
-    }
-    return 'desktop';
-  }
-
-  private getBrowserName(): string {
-    const userAgent = navigator.userAgent;
-    if (userAgent.includes('Chrome')) return 'Chrome';
-    if (userAgent.includes('Firefox')) return 'Firefox';
-    if (userAgent.includes('Safari')) return 'Safari';
-    if (userAgent.includes('Edge')) return 'Edge';
-    return 'Unknown';
+  async sendMarketAlert(userId: string, cropName: string, priceChange: number, newPrice: number): Promise<void> {
+    console.log(`Sending market alert to user ${userId}: ${cropName} price change`);
+    const changeText = priceChange >= 0 ? 'increased' : 'decreased';
+    await this.sendImmediatePushNotification(userId, {
+      title: `Market Alert: ${cropName} Price ${changeText}`,
+      message: `${cropName} price has ${changeText} by ${Math.abs(priceChange)}%. New price: $${newPrice.toFixed(2)}.`,
+      data: { type: 'market', cropName, priceChange, newPrice },
+      icon: '/icons/market-icon.png'
+    });
   }
 }
 
-// ============================================================================
-// SINGLETON EXPORT
-// ============================================================================
-
-export const notificationService = NotificationService.getInstance();
-
-// ============================================================================
-// CONVENIENCE EXPORTS
-// ============================================================================
-
-export const {
-  requestNotificationPermission,
-  subscribeToPushNotifications,
-  unsubscribeFromPushNotifications,
-  queueNotification,
-  sendImmediatePushNotification,
-  getUserPreferences,
-  updateUserPreferences,
-  sendWeatherAlert,
-  sendTaskReminder,
-  sendMarketAlert,
-  sendWelcomeNotification
-} = notificationService;
+export const notificationService = new NotificationService();
