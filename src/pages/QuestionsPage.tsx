@@ -17,15 +17,14 @@ import {
   Filter,
   Plus,
   MessageCircle,
+  Sparkles,
+  RefreshCw,
+  AlertCircle,
   BookOpen,
   Play,
   Award,
   Star,
-  Users,
-  Check,
-  Sparkles,
-  RefreshCw,
-  AlertCircle
+  Users
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { QuestionCard } from '@/components/community/QuestionCard';
@@ -214,9 +213,9 @@ export const QuestionsPage: React.FC = () => {
   };
 
   const enrollInTraining = (resourceId: number) => {
-    setTrainingResources(trainingResources.map(r => 
-      r.id === resourceId ? { ...r, progress: 10 } : r
-    ));
+    setTrainingResources(prevResources => 
+      prevResources.map(r => r.id === resourceId ? { ...r, progress: 10 } : r)
+    );
     const resource = trainingResources.find(r => r.id === resourceId);
     toast.success(`Enrolled in "${resource?.title}"`, {
       description: "Start learning with expert-led content"
@@ -448,13 +447,18 @@ export const QuestionsPage: React.FC = () => {
 
           {/* Training Tab */}
           <TabsContent value="training">
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900">AI-Certified Learning Resources</h2>
-                  <p className="text-sm text-gray-600">Expert training modules to boost your farming skills</p>
-                </div>
+            {isLoading ? (
+              <div className="flex justify-center p-8">
+                <RefreshCw className="h-6 w-6 animate-spin" />
               </div>
+            ) : (
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-900">AI-Certified Learning Resources</h2>
+                    <p className="text-sm text-gray-600">Expert training modules to boost your farming skills</p>
+                  </div>
+                </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {trainingResources.map(resource => (
