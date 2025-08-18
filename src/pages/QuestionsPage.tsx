@@ -23,7 +23,8 @@ import {
   Play,
   Award,
   Star,
-  Users
+  Users,
+  Check
 } from 'lucide-react';
 
 // Simple interface - no complexity cancer
@@ -53,7 +54,13 @@ export const QuestionsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('questions');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [isLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Simulate loading completion
+  React.useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
   const [resources, setResources] = useState<TrainingResource[]>([
     {
       id: 1,
