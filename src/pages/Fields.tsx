@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Plus, Satellite, Zap } from 'lucide-react';
+import { MapPin, Plus, Satellite, Zap, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import SatelliteImageryDisplay from '@/components/SatelliteImageryDisplay';
 import { ZeroFrictionFieldCreator } from '@/components/fields/ZeroFrictionFieldCreator';
@@ -12,6 +12,18 @@ import { ZeroFrictionFieldCreator } from '@/components/fields/ZeroFrictionFieldC
 const Fields = () => {
   const navigate = useNavigate();
   const { user } = useAuthContext();
+  
+  const isPro = useMemo(() => {
+    try { return localStorage.getItem('plan_is_pro') === 'true'; } catch { return false; }
+  }, []);
+
+  // Redirect to upgrade if trying to access satellite view without pro
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('view') === 'satellite' && !isPro) {
+      navigate('/upgrade');
+    }
+  }, [isPro, navigate]);
   
   const { data: fields } = useQuery({
     queryKey: ['all-fields'],
@@ -82,18 +94,36 @@ const Fields = () => {
             })}
           </div>
           
-          {/* Satellite Intelligence for first field */}
-          {fields[0] && (
+          {/* Satellite Intelligence for first field - Pro only */}
+          {fields[0] && isPro && (
             <Card>
               <CardContent className="p-6">
                 <h3 className="text-lg font-semibold mb-4 flex items-center">
                   <Satellite className="h-5 w-5 mr-2 text-cyan-600" />
-                  Satellite Field Intelligence
+                  Satellite Field Intelligence (Pro)
                 </h3>
                 <SatelliteImageryDisplay 
                   fieldCoordinates={fields[0].boundary?.coordinates}
                   fieldId={fields[0].id}
                 />
+              </CardContent>
+            </Card>
+          )}
+          {fields[0] && !isPro && (
+            <Card>
+              <CardContent className="p-6 text-center">
+                <div className="flex flex-col items-center justify-center py-8">
+                  <Shield className="h-10 w-10 text-amber-500 mb-2" />
+                  <h3 className="text-lg font-semibold mb-2">Satellite Intelligence is a Pro Feature</h3>
+                  <p className="text-gray-600 mb-4">Upgrade to Pro to unlock satellite field analysis, NDVI mapping, and advanced field insights.</p>
+                  <Button 
+                    onClick={() => navigate('/upgrade')} 
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    <Zap className="h-4 w-4 mr-2" />
+                    Upgrade to Pro
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           )}

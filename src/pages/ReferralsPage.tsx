@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useReferralSystem } from '@/hooks/useReferralSystem';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -28,8 +29,22 @@ export default function ReferralsPage() {
   const { user } = useAuth();
   const [copied, setCopied] = useState(false);
   
+  const navigate = useNavigate();
+  
   // Check if user is premium (simplified check)
-  const isPremium = user?.user_metadata?.is_premium || false;
+  const isPremium = useMemo(() => {
+    try { return localStorage.getItem('plan_is_pro') === 'true'; } catch { return false; }
+  }, []);
+
+  // Redirect to upgrade if not premium
+  useEffect(() => {
+    if (!isPremium) {
+      navigate('/upgrade');
+    }
+  }, [isPremium, navigate]);
+
+  // Don't render anything if not premium (will redirect)
+  if (!isPremium) return null;
 
   const copyReferralLink = async () => {
     try {

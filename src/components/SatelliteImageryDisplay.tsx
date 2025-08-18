@@ -5,12 +5,13 @@
  * Connected to Sentinel Hub, NASA MODIS, and Landsat data sources
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 import { analyzeFieldEnhanced, type GeoLocation, type EnhancedFieldAnalysis } from '@/intelligence/fieldIntelligence';
 import {
   Satellite,
@@ -44,6 +45,20 @@ const SatelliteImageryDisplay: React.FC<SatelliteImageryDisplayProps> = ({
   fieldId,
   fullscreen = false
 }) => {
+  const navigate = useNavigate();
+  const isPro = useMemo(() => {
+    try { return localStorage.getItem('plan_is_pro') === 'true'; } catch { return false; }
+  }, []);
+
+  // Redirect to upgrade if not pro
+  useEffect(() => {
+    if (!isPro) {
+      navigate('/upgrade');
+    }
+  }, [isPro, navigate]);
+
+  // Don't render anything if not pro (will redirect)
+  if (!isPro) return null;
   const [viewMode, setViewMode] = useState<'ndvi' | 'rgb' | 'infrared' | 'moisture'>('ndvi');
   const [selectedField, setSelectedField] = useState<any>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
