@@ -1,6 +1,35 @@
 import React, { useEffect, useMemo } from 'react';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { useQuery } from '@tanstack/react-query';
+
+// Type for coordinates
+interface GeoLocation {
+  lat: number;
+  lng: number;
+}
+
+interface DbField {
+  id: string;
+  name: string;
+  size: number;
+  size_unit?: string;
+  crop_type?: string;
+  boundary?: {
+    coordinates: GeoLocation[];
+  } | null;
+  [key: string]: any; // Allow other fields from the database
+}
+
+interface Field {
+  id: string;
+  name: string;
+  size: string; // Display as string in the UI
+  size_unit?: string;
+  crop_type?: string;
+  boundary?: {
+    coordinates: GeoLocation[];
+  } | null;
+}
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,7 +54,7 @@ const Fields = () => {
     }
   }, [isPro, navigate]);
   
-  const { data: fields } = useQuery({
+  const { data: fields } = useQuery<Field[]>({
     queryKey: ['all-fields'],
     queryFn: async () => {
       // Load all fields without authentication
@@ -34,7 +63,34 @@ const Fields = () => {
         .select('*')
         .order('created_at', { ascending: false });
       
-      return data || [];
+      // Map database fields to our UI model
+      return (data || []).map((dbField: any) => {
+        // Safely parse the boundary data
+        let boundary = null;
+        if (dbField.boundary && dbField.boundary.coordinates) {
+          try {
+            // Convert coordinates to the format expected by GeoLocation
+            const coords = Array.isArray(dbField.boundary.coordinates[0])
+              ? dbField.boundary.coordinates.map(([lng, lat]: [number, number]) => ({ lat, lng }))
+              : dbField.boundary.coordinates;
+            
+            boundary = {
+              coordinates: coords
+            };
+          } catch (e) {
+            console.error('Error parsing boundary data:', e);
+          }
+        }
+
+        return {
+          id: dbField.id,
+          name: dbField.name || 'Unnamed Field',
+          size: (dbField.size || 0).toString(),
+          size_unit: dbField.size_unit || 'hectares',
+          crop_type: dbField.crop_type,
+          boundary
+        } as Field;
+      });
     }
   });
   const isLoading = false;
