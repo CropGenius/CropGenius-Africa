@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Tractor, MapPin, ArrowRight, Circle, CheckCircle, Sparkles, AlertTriangle, Loader2, Save } from 'lucide-react';
+import { Tractor, MapPin, ArrowRight, Circle, CheckCircle, Sparkles, AlertTriangle, Loader2, Shield, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
@@ -276,8 +276,9 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
         const gated = !getIsPro() && (count ?? 0) >= 1;
         setIsGated(gated);
         if (gated) {
-          // Zero-friction: direct redirect to Upgrade page
-          navigate('/upgrade');
+          toast.info('Upgrade to add more fields', {
+            description: 'Free plan allows 1 field. Upgrade to Pro to add more.'
+          });
         }
       } catch (e) {
         console.error('Gating check failed', e);
@@ -450,9 +451,27 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
     );
   }
   
-  // If gated, render nothing (navigation handled above)
-  if (isGated) return null;
-
+  // Gated view for FREE users with >=1 field
+  if (isGated) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 space-y-4 text-center">
+        <Shield className="h-10 w-10 text-amber-500" />
+        <h2 className="text-xl font-semibold">Add more fields with Pro</h2>
+        <p className="text-sm text-muted-foreground max-w-md">
+          Free plan allows 1 field per user. Upgrade to Pro to add up to 50 fields and unlock advanced features.
+        </p>
+        <div className="flex gap-3 mt-2">
+          <Button onClick={() => navigate('/credits')} className="bg-green-600 hover:bg-green-700">
+            Upgrade to Pro
+          </Button>
+          <Button variant="outline" onClick={() => onCancel ? onCancel() : navigate('/fields')}>
+            Cancel
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <>
       <div className="space-y-6">

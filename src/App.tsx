@@ -1,7 +1,15 @@
-import { CropGeniusApp } from './components/CropGeniusApp';
+import { BrowserRouter } from 'react-router-dom';
+import { AuthProvider } from './providers/AuthProvider';
+import AppRoutes from './AppRoutes';
 
 function App() {
-  return <CropGeniusApp />;
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </BrowserRouter>
+  );
 }
 
 export default App;

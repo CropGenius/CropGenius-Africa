@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Send, MessageSquare, Bot } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Send, MessageSquare, Bot, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 
 interface Message { id: string; content: string; isUser: boolean; }
@@ -40,7 +41,10 @@ const AIChatWidget = () => {
   };
 
   const sendMessage = async () => {
-    if (!canSend()) { navigate('/upgrade'); return; }
+    if (!canSend()) {
+      toast.info('Daily chat limit reached', { description: 'Upgrade to Pro for unlimited chat.' });
+      return;
+    }
     if (!inputValue.trim()) return;
     const userMessage = { id: Date.now().toString(), content: inputValue, isUser: true };
     const messageText = inputValue;
@@ -59,13 +63,6 @@ const AIChatWidget = () => {
     setMessages(prev => [...prev, aiMessage]);
   };
 
-  // If widget opens while gated, immediately redirect
-  useEffect(() => {
-    if (isOpen && !canSend()) {
-      navigate('/upgrade');
-    }
-  }, [isOpen]);
-
   if (!isOpen) {
     return (
       <button onClick={() => setIsOpen(true)} className="fixed bottom-4 right-4 bg-green-600 text-white p-3 rounded-full shadow-lg hover:bg-green-700">
@@ -82,6 +79,17 @@ const AIChatWidget = () => {
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+        {!canSend() && (
+          <div className="bg-amber-50 border border-amber-200 text-amber-800 text-sm p-3 rounded-md flex items-start gap-2">
+            <Shield className="h-4 w-4 mt-0.5" />
+            <div>
+              Free plan allows 5 chat messages per day. Upgrade to Pro for unlimited conversations.
+              <div className="mt-2">
+                <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => navigate('/credits')}>Upgrade to Pro</Button>
+              </div>
+            </div>
+          </div>
+        )}
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center p-6 text-gray-500">
             <Bot className="h-10 w-10 text-gray-300 mb-4" />
@@ -107,8 +115,9 @@ const AIChatWidget = () => {
             onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
             placeholder="Ask about crops, weather, diseases..."
             className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+            disabled={!canSend()}
           />
-          <Button onClick={sendMessage} size="sm">
+          <Button onClick={sendMessage} size="sm" disabled={!canSend()}>
             <Send className="h-4 w-4" />
           </Button>
         </div>

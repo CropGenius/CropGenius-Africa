@@ -23,18 +23,11 @@ export default defineConfig(({ mode }) => {
       alias: {
         "@": resolve(__dirname, "./src"),
       },
-      dedupe: ['react', 'react-dom']
     },
     server: {
-      // Bind explicitly to IPv4 localhost to avoid IPv6/WS issues
-      host: 'localhost',
+      host: "::",
       port: 8080,
-      open: true,
-      hmr: {
-        host: 'localhost',
-        port: 8080,
-        protocol: 'ws'
-      }
+      open: true
     },
     esbuild: {
       logOverride: { 'this-is-undefined-in-esm': 'silent' },

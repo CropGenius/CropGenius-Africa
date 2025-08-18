@@ -37,6 +37,7 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
   const [scanProgress, setScanProgress] = useState(0);
   const [scanResults, setScanResults] = useState<DiseaseDetectionResult | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [isGated, setIsGated] = useState(false);
   const navigate = useNavigate();
 
   // Refs
@@ -91,8 +92,12 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
   }, []);
 
   const startCamera = async () => {
-    // Gating: immediate redirect for zero friction
-    if (!canScan()) { navigate('/upgrade'); return; }
+    // Gating: check before starting camera
+    if (!canScan()) {
+      setIsGated(true);
+      toast.info('Monthly scan limit reached', { description: 'Upgrade to Pro for more scans.' });
+      return;
+    }
     setScanState("capturing");
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
     streamRef.current = stream;
@@ -129,15 +134,23 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
 
   // Trigger file input click
   const triggerFileInput = () => {
-    if (!canScan()) { navigate('/upgrade'); return; }
+    if (!canScan()) {
+      setIsGated(true);
+      toast.info('Monthly scan limit reached', { description: 'Upgrade to Pro for more scans.' });
+      return;
+    }
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
   };
 
   const handleScan = async (file: File) => {
-    // Safety: re-check gating at scan start; redirect
-    if (!canScan()) { navigate('/upgrade'); return; }
+    // Safety: re-check gating at scan start
+    if (!canScan()) {
+      setIsGated(true);
+      toast.info('Monthly scan limit reached', { description: 'Upgrade to Pro for more scans.' });
+      return;
+    }
     setScanProgress(0);
     setScanState("scanning");
 
@@ -310,6 +323,15 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
       {scanState === "idle" && (
         <Card className="glass-card p-5 mb-5">
           <div className="flex flex-col items-center text-center">
+            {isGated && (
+              <div className="w-full mb-4 p-3 rounded-md bg-amber-50 text-amber-800 text-sm">
+                Free plan allows 15 scans per month. Upgrade to Pro to continue scanning.
+                <div className="mt-2 flex gap-2 justify-center">
+                  <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => navigate('/credits')}>Upgrade to Pro</Button>
+                  <Button size="sm" variant="outline" onClick={() => setIsGated(false)}>Dismiss</Button>
+                </div>
+              </div>
+            )}
             {capturedImage ? (
               <div className="w-full mb-4">
                 <img
@@ -332,6 +354,7 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
               <Button
                 className="glass-btn bg-crop-green-600 hover:bg-crop-green-700 text-white flex items-center justify-center h-14"
                 onClick={startCamera}
+                disabled={isGated}
               >
                 <Camera className="mr-2" />
                 Take Photo
@@ -339,6 +362,7 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
               <Button
                 className="glass-btn bg-soil-brown-600 hover:bg-soil-brown-700 text-white flex items-center justify-center h-14"
                 onClick={triggerFileInput}
+                disabled={isGated}
               >
                 <Upload className="mr-2" />
                 Upload Image

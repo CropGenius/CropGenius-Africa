@@ -18,15 +18,3 @@ verify_jwt = true
 
 [functions.fn-crop-disease]
 verify_jwt = true
-
-[functions.pesapal-register-ipn]
-verify_jwt = true
-
-[functions.pesapal-init-payment]
-verify_jwt = true
-
-[functions.pesapal-webhook]
-verify_jwt = false
-
-[functions.pesapal-verify-payment]
-verify_jwt = true

@@ -3,11 +3,7 @@
   "buildCommand": "npx vite build --config vite.config.ts",
   "outputDirectory": "dist",
   "installCommand": "npm install",
-  "routes": [
-    { "handle": "filesystem" },
-    { "src": "/assets/(.*)", "headers": { "Cache-Control": "public, max-age=31536000, immutable" } },
-    { "src": "/index.html", "headers": { "Cache-Control": "no-cache, no-store, must-revalidate" } },
-    { "src": "/assets/.*", "status": 404 },
-    { "src": "/.*", "dest": "/index.html" }
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
