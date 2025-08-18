@@ -53,7 +53,7 @@ export const QuestionsPage: React.FC = () => {
   // SIMPLE STATE - NO CANCER
   const [activeTab, setActiveTab] = useState('questions');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
   
   // Simulate loading completion
@@ -193,10 +193,10 @@ export const QuestionsPage: React.FC = () => {
                   </CardHeader>
                   <CardContent className="space-y-2">
                     <Button
-                      variant={!selectedCategory ? "default" : "ghost"}
+                      variant={selectedCategory === 'all' ? "default" : "ghost"}
                       size="sm"
                       className="w-full justify-start"
-                      onClick={() => setSelectedCategory('')}
+                      onClick={() => setSelectedCategory('all')}
                     >
                       All Categories
                     </Button>
@@ -243,7 +243,7 @@ export const QuestionsPage: React.FC = () => {
                             <SelectValue placeholder="All Categories" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">All Categories</SelectItem>
+                            <SelectItem value="all">All Categories</SelectItem>
                             {mockCategories.map((category) => (
                               <SelectItem key={category.id} value={category.id}>
                                 <span className="flex items-center gap-2">
