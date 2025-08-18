@@ -148,7 +148,7 @@ interface Badge {
 
 const Community = () => {
   // State hooks
-  // Tabs state is managed internally by the Tabs component
+  const [activeTab, setActiveTab] = useState('questions');
   const [questions, setQuestions] = useState<Question[]>([
     {
       id: 1,
@@ -705,7 +705,11 @@ const Community = () => {
         )}
 
         {/* Main Tabs Navigation */}
-        <Tabs defaultValue="questions" className="mb-6">
+        <Tabs 
+          value={activeTab} 
+          onValueChange={setActiveTab}
+          className="mb-6"
+        >
           <TabsList className="w-full bg-muted grid grid-cols-4">
             <TabsTrigger value="questions" className="text-xs sm:text-sm">
               <HelpCircle className="h-4 w-4 mr-1 hidden sm:inline" />
@@ -728,10 +732,10 @@ const Community = () => {
           {/* Questions Tab */}
           <TabsContent value="questions" className="mt-4">
             {/* Combined search and filter row */}
-            <div className="flex flex-col sm:flex-row gap-3 mb-4">
+            <div className="flex flex-col sm:flex-row gap-3 mb-4 items-stretch">
               <div className="relative flex-1">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="h-4 w-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
                   </svg>
                 </div>
@@ -739,10 +743,10 @@ const Community = () => {
                   placeholder="Search questions..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-9 h-full"
                 />
               </div>
-              <div className="w-full sm:w-auto">
+              <div className="w-full sm:w-48">
                 <Select
                   value={selectedCategory}
                   onValueChange={setSelectedCategory}
