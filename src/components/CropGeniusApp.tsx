@@ -5,26 +5,20 @@
  * Designed to make Apple jealous and 100M African farmers feel like gods!
  */
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { 
   Satellite, 
   Cloud, 
   TrendingUp, 
   Camera, 
-  MapPin, 
-  Zap,
-  Leaf,
-  Eye,
   Brain,
-  Globe,
-  Star,
-  BarChart3,
-  ArrowRight,
   Shield,
-  Sparkles
+  Sprout,
+  Users,
+  DollarSign,
+  Star
 } from 'lucide-react';
-import { OrbitalLoaderOverlay } from '@/components/ui/orbital-loader';
 
 // Futuristic color palette that screams premium
 const colors = {
@@ -40,241 +34,203 @@ const colors = {
   glow: '0 0 30px rgba(0, 212, 255, 0.5)', // Neon glow
 };
 
-const CropGeniusApp = () => {
+export const CropGeniusApp = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [activeFeature, setActiveFeature] = useState('satellite');
-  const [farmerData, setFarmerData] = useState({
-    location: { lat: -1.286389, lng: 36.817223, name: 'Nairobi, Kenya' },
-    crops: ['Maize', 'Beans', 'Tomatoes'],
-    fieldHealth: 87,
-    yieldPrediction: 4.2,
-    marketValue: 1250
-  });
 
-  // Epic loading sequence
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 3000);
+    const timer = setTimeout(() => setIsLoading(false), 2000);
     return () => clearTimeout(timer);
   }, []);
 
   if (isLoading) {
-    return <OrbitalLoaderOverlay message="Initializing Agricultural Intelligence..." />;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-900 via-emerald-800 to-teal-900 flex items-center justify-center">
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="text-center"
+        >
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            className="w-20 h-20 mx-auto mb-4"
+          >
+            <Brain className="w-full h-full text-green-400" />
+          </motion.div>
+          <h1 className="text-4xl font-bold text-white mb-2">CROPGenius</h1>
+          <p className="text-green-200">Initializing AI Farm Intelligence...</p>
+        </motion.div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white relative overflow-hidden">
-      {/* Animated background particles */}
-      <div className="absolute inset-0 overflow-hidden">
-        {[...Array(50)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 bg-blue-400 rounded-full opacity-30"
-            animate={{
-              x: [0, Math.random() * window.innerWidth],
-              y: [0, Math.random() * window.innerHeight],
-            }}
-            transition={{
-              duration: Math.random() * 20 + 10,
-              repeat: Infinity,
-              repeatType: "reverse",
-            }}
-            style={{
-              left: Math.random() * window.innerWidth,
-              top: Math.random() * window.innerHeight,
-            }}
-          />
-        ))}
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-green-900 via-emerald-800 to-teal-900">
+      {/* Header */}
+      <header className="relative z-10 bg-black/20 backdrop-blur-md border-b border-green-500/30">
+        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Brain className="w-8 h-8 text-green-400" />
+            <h1 className="text-2xl font-bold text-white">CROPGenius</h1>
+          </div>
+          <nav className="hidden md:flex space-x-6">
+            <a href="#" className="text-green-200 hover:text-white transition-colors">Dashboard</a>
+            <a href="#" className="text-green-200 hover:text-white transition-colors">AI Analysis</a>
+            <a href="#" className="text-green-200 hover:text-white transition-colors">Market</a>
+            <a href="#" className="text-green-200 hover:text-white transition-colors">Weather</a>
+          </nav>
+        </div>
+      </header>
 
-      {/* Main content */}
-      <div className="relative z-10">
-        <FuturisticHeader />
-        <HeroDashboard 
-          farmerData={farmerData}
-          activeFeature={activeFeature}
-          setActiveFeature={setActiveFeature}
-        />
-        <FeatureGrid activeFeature={activeFeature} />
-        <SatelliteImageryDisplay />
-        <MarketIntelligenceBoard />
-        <AIInsightsPanel />
-      </div>
+      {/* Hero Section */}
+      <section className="relative py-20">
+        <div className="container mx-auto px-6 text-center">
+          <motion.h1
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.8 }}
+            className="text-6xl font-bold text-white mb-6"
+          >
+            AI-Powered Farming
+            <span className="block text-green-400">Revolution</span>
+          </motion.h1>
+          
+          <motion.p
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="text-xl text-green-100 mb-12 max-w-3xl mx-auto"
+          >
+            Transform your farm with AI intelligence. Get real-time insights, 
+            disease detection, weather predictions, and market intelligence 
+            that increases yields by 40% and profits by 60%.
+          </motion.p>
+
+          {/* Stats */}
+          <motion.div
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-16"
+          >
+            <StatsCard icon={Users} value="50K+" label="Active Farmers" />
+            <StatsCard icon={Sprout} value="40%" label="Yield Increase" />
+            <StatsCard icon={DollarSign} value="60%" label="Profit Boost" />
+            <StatsCard icon={Star} value="4.9/5" label="User Rating" />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Features Grid */}
+      <section className="py-20">
+        <div className="container mx-auto px-6">
+          <h2 className="text-4xl font-bold text-white text-center mb-16">
+            AI Features That Change Everything
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <FeatureCard
+              icon={Brain}
+              title="AI Crop Scanner"
+              description="Instant disease detection and treatment recommendations using computer vision"
+              glow="green"
+            />
+            <FeatureCard
+              icon={Cloud}
+              title="Smart Weather Engine"
+              description="Hyperlocal weather predictions with farming action recommendations"
+              glow="blue"
+            />
+            <FeatureCard
+              icon={TrendingUp}
+              title="Market Intelligence"
+              description="Real-time crop pricing and AI-driven sales strategy optimization"
+              glow="yellow"
+            />
+            <FeatureCard
+              icon={Shield}
+              title="Risk Assessment"
+              description="AI analyzes threats and provides preventive action plans"
+              glow="red"
+            />
+            <FeatureCard
+              icon={Camera}
+              title="Smart Planning"
+              description="AI generates daily task lists based on your farm conditions"
+              glow="purple"
+            />
+            <FeatureCard
+              icon={Satellite}
+              title="Satellite Monitoring"
+              description="Track field health with real-time satellite imagery"
+              glow="green"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-black/30">
+        <div className="container mx-auto px-6 text-center">
+          <h2 className="text-4xl font-bold text-white mb-6">
+            Join the AI Farming Revolution
+          </h2>
+          <p className="text-xl text-green-100 mb-12 max-w-2xl mx-auto">
+            Start your free trial today and see why farmers across Africa 
+            trust CROPGenius to maximize their harvests.
+          </p>
+          
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-12 rounded-xl text-lg transition-colors"
+          >
+            Start Free Trial
+          </motion.button>
+        </div>
+      </section>
     </div>
   );
 };
 
-// 🌟 FUTURISTIC HEADER - PREMIUM NAVIGATION
-const FuturisticHeader = () => (
-  <motion.header
-    initial={{ y: -100 }}
-    animate={{ y: 0 }}
-    className="fixed top-0 w-full z-50 backdrop-blur-lg bg-black/20 border-b border-cyan-400/20"
-  >
-    <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-      <motion.div
-        whileHover={{ scale: 1.05 }}
-        className="flex items-center space-x-3"
-      >
-        <div className="w-10 h-10 bg-gradient-to-r from-cyan-400 to-purple-500 rounded-lg flex items-center justify-center">
-          <Leaf className="w-6 h-6 text-white" />
-        </div>
-        <span className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
-          CropGenius
-        </span>
-      </motion.div>
-
-      <nav className="hidden md:flex space-x-8">
-        {['Dashboard', 'Satellite', 'Weather', 'Market', 'AI Assistant'].map((item) => (
-          <motion.a
-            key={item}
-            href={`#${item.toLowerCase()}`}
-            whileHover={{ scale: 1.1, color: colors.primary }}
-            className="text-gray-300 hover:text-cyan-400 transition-colors"
-          >
-            {item}
-          </motion.a>
-        ))}
-      </nav>
-
-      <motion.div
-        whileHover={{ scale: 1.05 }}
-        className="flex items-center space-x-3"
-      >
-        <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-cyan-400 rounded-full" />
-        <span className="text-sm text-gray-300">John Mwangi</span>
-      </motion.div>
-    </div>
-  </motion.header>
-);
-
-// 🏆 HERO DASHBOARD - THE MAIN ATTRACTION
-const HeroDashboard = ({ farmerData, activeFeature, setActiveFeature }) => (
-  <div className="pt-24 pb-16 px-6">
-    <div className="container mx-auto">
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-16"
-      >
-        <h1 className="text-6xl md:text-8xl font-bold mb-6 bg-gradient-to-r from-cyan-400 via-purple-500 to-orange-400 bg-clip-text text-transparent">
-          Agricultural Intelligence
-        </h1>
-        <p className="text-xl text-gray-400 max-w-3xl mx-auto mb-8">
-          Revolutionary AI-powered insights for African farmers. Real satellite data, weather intelligence, and market analysis in one stunning platform.
-        </p>
-        
-        {/* Real-time stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-12">
-          <StatsCard 
-            icon={Satellite}
-            value={`${farmerData.fieldHealth}%`}
-            label="Field Health"
-            color="from-green-400 to-cyan-400"
-            glow="shadow-green-400/50"
-          />
-          <StatsCard 
-            icon={TrendingUp}
-            value={`${farmerData.yieldPrediction}T/Ha`}
-            label="Yield Prediction"
-            color="from-purple-400 to-pink-400"
-            glow="shadow-purple-400/50"
-          />
-          <StatsCard 
-            icon={BarChart3}
-            value={`$${farmerData.marketValue}`}
-            label="Market Value"
-            color="from-orange-400 to-red-400"
-            glow="shadow-orange-400/50"
-          />
-          <StatsCard 
-            icon={Shield}
-            value="99.2%"
-            label="AI Accuracy"
-            color="from-cyan-400 to-blue-400"
-            glow="shadow-cyan-400/50"
-          />
-        </div>
-      </motion.div>
-    </div>
-  </div>
-);
-
-// 📊 STATS CARD - GLOWING METRICS
-const StatsCard = ({ icon: Icon, value, label, color, glow }) => (
+const StatsCard = ({ icon: Icon, value, label }: { icon: any, value: string, label: string }) => (
   <motion.div
-    whileHover={{ scale: 1.05, y: -10 }}
-    className={`relative p-6 rounded-2xl bg-gradient-to-br ${color} backdrop-blur-lg shadow-2xl ${glow}`}
+    whileHover={{ scale: 1.05 }}
+    className="bg-black/30 backdrop-blur-md rounded-xl p-6 border border-green-500/30"
   >
-    <div className="relative z-10">
-      <Icon className="w-8 h-8 text-white mb-4 mx-auto" />
-      <div className="text-3xl font-bold text-white mb-2">{value}</div>
-      <div className="text-white/80">{label}</div>
-    </div>
-    <div className="absolute inset-0 bg-white/10 rounded-2xl backdrop-blur-lg" />
+    <Icon className="w-8 h-8 text-green-400 mx-auto mb-4" />
+    <div className="text-3xl font-bold text-white mb-2">{value}</div>
+    <div className="text-green-200">{label}</div>
   </motion.div>
 );
 
-// 🎯 FEATURE GRID - INTERACTIVE INTELLIGENCE MODULES
-const FeatureGrid = ({ activeFeature }) => (
-  <div className="px-6 pb-16">
-    <div className="container mx-auto">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        <FeatureCard
-          icon={Satellite}
-          title="Satellite Intelligence"
-          description="Real NDVI analysis from Sentinel-2 imagery"
-          isActive={activeFeature === 'satellite'}
-          color="from-blue-500 to-cyan-500"
-        />
-        <FeatureCard
-          icon={Cloud}
-          title="Weather Prophecy"
-          description="5-day agricultural weather forecasts"
-          isActive={activeFeature === 'weather'}
-          color="from-purple-500 to-pink-500"
-        />
-        <FeatureCard
-          icon={Camera}
-          title="Disease Detection"
-          description="AI-powered crop disease identification"
-          isActive={activeFeature === 'disease'}
-          color="from-orange-500 to-red-500"
-        />
-        <FeatureCard
-          icon={TrendingUp}
-          title="Market Intelligence"
-          description="Real-time crop prices across Africa"
-          isActive={activeFeature === 'market'}
-          color="from-green-500 to-teal-500"
-        />
-      </div>
-    </div>
-  </div>
-);
+const FeatureCard = ({ 
+  icon: Icon, 
+  title, 
+  description, 
+  glow 
+}: { 
+  icon: any, 
+  title: string, 
+  description: string, 
+  glow: string 
+}) => {
+  const glowColors = {
+    green: 'shadow-green-500/20 border-green-500/30',
+    blue: 'shadow-blue-500/20 border-blue-500/30',
+    yellow: 'shadow-yellow-500/20 border-yellow-500/30',
+    red: 'shadow-red-500/20 border-red-500/30',
+    purple: 'shadow-purple-500/20 border-purple-500/30'
+  };
 
-// 🎨 FEATURE CARD - PREMIUM GLASS MORPHISM
-const FeatureCard = ({ icon: Icon, title, description, isActive, color }) => (
-  <motion.div
-    whileHover={{ scale: 1.05, rotateY: 5 }}
-    className={`relative p-8 rounded-3xl backdrop-blur-lg border border-white/10 cursor-pointer group
-      ${isActive ? 'bg-gradient-to-br ' + color : 'bg-white/5 hover:bg-white/10'}
-    `}
-  >
-    <div className="relative z-10">
-      <motion.div
-        whileHover={{ rotate: 360 }}
-        transition={{ duration: 0.5 }}
-        className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center mb-6 mx-auto`}
-      >
-        <Icon className="w-8 h-8 text-white" />
-      </motion.div>
-      <h3 className="text-xl font-bold text-white mb-3 text-center">{title}</h3>
-      <p className="text-gray-400 text-center">{description}</p>
-    </div>
-    
-    {/* Glow effect */}
-    <div className={`absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-20 bg-gradient-to-br ${color} transition-opacity duration-300`} />
-  </motion.div>
-);
-
-export default CropGeniusApp;
+  return (
+    <motion.div
+      whileHover={{ scale: 1.05, y: -5 }}
+      className={`bg-black/40 backdrop-blur-md rounded-xl p-6 border ${glowColors[glow]} shadow-xl hover:shadow-2xl transition-all duration-300`}
+    >
+      <Icon className="w-12 h-12 text-green-400 mb-4" />
+      <h3 className="text-xl font-bold text-white mb-3">{title}</h3>
+      <p className="text-green-100">{description}</p>
+    </motion.div>
+  );
+};
