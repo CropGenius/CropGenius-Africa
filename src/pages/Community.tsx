@@ -148,6 +148,7 @@ interface Badge {
 
 const Community = () => {
   // State hooks
+  const [selectedTab, setSelectedTab] = useState('questions');
   const [questions, setQuestions] = useState<Question[]>([
     {
       id: 1,
@@ -713,7 +714,7 @@ const Community = () => {
             </TabsTrigger>
             <TabsTrigger value="training" className="text-xs sm:text-sm">
               <Book className="h-4 w-4 mr-1 hidden sm:inline" />
-              Learning
+              Training
             </TabsTrigger>
             <TabsTrigger value="experts" className="text-xs sm:text-sm">
               <User className="h-4 w-4 mr-1 hidden sm:inline" />
