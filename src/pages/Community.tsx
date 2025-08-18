@@ -148,7 +148,7 @@ interface Badge {
 
 const Community = () => {
   // State hooks
-  const [selectedTab, setSelectedTab] = useState('questions');
+  // Tabs state is managed internally by the Tabs component
   const [questions, setQuestions] = useState<Question[]>([
     {
       id: 1,
@@ -370,7 +370,6 @@ const Community = () => {
     }
   ]);
   
-  const [selectedTab, setSelectedTab] = useState("questions");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [askingQuestion, setAskingQuestion] = useState(false);
@@ -706,7 +705,7 @@ const Community = () => {
         )}
 
         {/* Main Tabs Navigation */}
-        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="mb-6">
+        <Tabs defaultValue="questions" className="mb-6">
           <TabsList className="w-full bg-muted grid grid-cols-4">
             <TabsTrigger value="questions" className="text-xs sm:text-sm">
               <HelpCircle className="h-4 w-4 mr-1 hidden sm:inline" />
