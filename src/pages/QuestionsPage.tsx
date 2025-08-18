@@ -50,9 +50,7 @@ export const QuestionsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('questions');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
-
-  // SIMPLE TRAINING DATA - NO LOADING COMPLEXITY
-  const trainingResources = [
+  const [resources, setResources] = useState([
     {
       id: 1,
       title: "Organic Pest Management Master Course",
@@ -103,7 +101,19 @@ export const QuestionsPage: React.FC = () => {
       isAICertified: true,
       tags: ["Irrigation", "Water Conservation", "Installation"]
     }
-  ];
+  ]);
+
+  // Handle training enrollment
+  const enrollInTraining = (resourceId: number) => {
+    setResources(prevResources => {
+      const updatedResources = prevResources.map(resource => 
+        resource.id === resourceId 
+          ? { ...resource, progress: resource.progress ? resource.progress : 10 } 
+          : resource
+      );
+      return updatedResources;
+    });
+  };
 
   // STATIC MOCK DATA - NO LOADING COMPLEXITY
   const mockQuestions = [
@@ -275,7 +285,7 @@ export const QuestionsPage: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {trainingResources.map(resource => (
+                {resources.map(resource => (
                   <Card key={resource.id} className="hover:shadow-lg transition-shadow">
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between mb-3">
@@ -344,7 +354,12 @@ export const QuestionsPage: React.FC = () => {
                           {resource.isRecommended && <Star className="h-4 w-4 text-yellow-500 fill-current" />}
                         </div>
                         
-                        <Button size="sm" variant="outline" className="h-7 text-xs">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="h-7 text-xs"
+                          onClick={() => enrollInTraining(resource.id)}
+                        >
                           {resource.progress ? 'Continue' : (resource.isFree ? 'Start Free' : 'Enroll')}
                         </Button>
                       </div>
