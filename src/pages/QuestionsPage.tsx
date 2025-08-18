@@ -565,62 +565,64 @@ export const QuestionsPage: React.FC = () => {
 
           {/* Training Tab */}
           <TabsContent value="training">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-bold text-gray-800 flex items-center">
-                <Book className="h-5 w-5 mr-2 text-crop-green-600" />
-                AI-Certified Learning Resources
-              </h2>
-              <div className="flex space-x-2">
-                <Button variant="outline" size="sm" className="text-gray-600">
-                  <Filter className="h-4 w-4 mr-1" />
-                  Filter
-                </Button>
-                <Button variant="outline" size="sm" className="text-gray-600">
-                  My Learning
-                </Button>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-bold text-gray-800 flex items-center">
+                  <Book className="h-5 w-5 mr-2 text-crop-green-600" />
+                  AI-Certified Learning Resources
+                </h2>
+                <div className="flex space-x-2">
+                  <Button variant="outline" size="sm" className="text-gray-600">
+                    <Filter className="h-4 w-4 mr-1" />
+                    Filter
+                  </Button>
+                  <Button variant="outline" size="sm" className="text-gray-600">
+                    My Learning
+                  </Button>
+                </div>
               </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {trainingResources.map(resource => (
-                <Card key={resource.id} className="overflow-hidden">
-                  <div className="h-36 bg-gray-200 relative">
-                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                      <Library className="h-12 w-12 text-gray-400" />
-                    </div>
-                    <div className="absolute top-2 right-2">
-                      <Badge className={resource.isFree ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}>
-                        {resource.isFree ? 'Free' : 'Premium'}
-                      </Badge>
-                    </div>
-                  </div>
-                  
-                  <CardContent className="p-4">
-                    <div className="flex items-center mb-1">
-                      <span className="text-xs font-medium text-gray-500">
-                        {resource.type} • {resource.level} • {resource.duration}
-                      </span>
-                    </div>
-                    
-                    <h3 className="font-semibold text-gray-900">{resource.title}</h3>
-                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">{resource.description}</p>
-                    
-                    {resource.progress !== undefined && (
-                      <div className="mt-3">
-                        <div className="flex justify-between text-xs mb-1">
-                          <span>Progress</span>
-                          <span>{resource.progress}%</span>
-                        </div>
-                        <Progress value={resource.progress} className="h-1.5" />
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {trainingResources.map(resource => (
+                  <Card key={resource.id} className="overflow-hidden">
+                    <div className="h-36 bg-gray-200 relative">
+                      <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                        <Library className="h-12 w-12 text-gray-400" />
                       </div>
-                    )}
+                      <div className="absolute top-2 right-2">
+                        <Badge className={resource.isFree ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}>
+                          {resource.isFree ? 'Free' : 'Premium'}
+                        </Badge>
+                      </div>
+                    </div>
                     
-                    <Button className="w-full mt-4" variant="outline">
-                      {resource.progress ? 'Continue' : 'Start Learning'}
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                    <CardContent className="p-4">
+                      <div className="flex items-center mb-1">
+                        <span className="text-xs font-medium text-gray-500">
+                          {resource.type} • {resource.level} • {resource.duration}
+                        </span>
+                      </div>
+                      
+                      <h3 className="font-semibold text-gray-900">{resource.title}</h3>
+                      <p className="text-sm text-gray-600 mt-1 line-clamp-2">{resource.description}</p>
+                      
+                      {resource.progress !== undefined && (
+                        <div className="mt-3">
+                          <div className="flex justify-between text-xs mb-1">
+                            <span>Progress</span>
+                            <span>{resource.progress}%</span>
+                          </div>
+                          <Progress value={resource.progress} className="h-1.5" />
+                        </div>
+                      )}
+                      
+                      <Button className="w-full mt-4" variant="outline">
+                        {resource.progress ? 'Continue' : 'Start Learning'}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </div>
           </TabsContent>
         </Tabs>
