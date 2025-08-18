@@ -105,14 +105,20 @@ export const QuestionsPage: React.FC = () => {
 
   // Handle training enrollment
   const enrollInTraining = (resourceId: number) => {
-    setResources(prevResources => {
-      const updatedResources = prevResources.map(resource => 
-        resource.id === resourceId 
-          ? { ...resource, progress: resource.progress ? resource.progress : 10 } 
-          : resource
-      );
-      return updatedResources;
-    });
+    try {
+      setResources(prevResources => {
+        return prevResources.map(resource => 
+          resource.id === resourceId 
+            ? { 
+                ...resource, 
+                progress: resource.progress !== undefined ? resource.progress : 10 
+              } 
+            : resource
+        );
+      });
+    } catch (error) {
+      console.error('Error in enrollInTraining:', error);
+    }
   };
 
   // STATIC MOCK DATA - NO LOADING COMPLEXITY
