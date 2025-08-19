@@ -423,38 +423,6 @@ export const QuestionsPage: React.FC = () => {
                 ))}
               </CardContent>
             </Card>
-
-            {/* Categories */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Categories</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Button
-                  variant={!filters.category_id ? "default" : "ghost"}
-                  size="sm"
-                  className="w-full justify-start"
-                  onClick={() => handleFilterChange('category_id', '')}
-                >
-                  All Categories
-                </Button>
-                {categories.map((category) => (
-                  <Button
-                    key={category.id}
-                    variant={filters.category_id === category.id ? "default" : "ghost"}
-                    size="sm"
-                    className="w-full justify-start"
-                    onClick={() => handleFilterChange('category_id', category.id)}
-                  >
-                    <span className="mr-2">{category.icon}</span>
-                    {category.name}
-                    <Badge variant="outline" className="ml-auto text-xs">
-                      {category.question_count}
-                    </Badge>
-                  </Button>
-                ))}
-              </CardContent>
-            </Card>
           </div>
 
           {/* Main Content */}
