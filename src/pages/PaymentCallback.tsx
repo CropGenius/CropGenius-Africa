@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { checkPaymentStatus } from '@/services/pesapal';
+// Payment status checking will be handled via webhook
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import confetti from 'canvas-confetti';
@@ -21,12 +21,11 @@ const PaymentCallback = () => {
 
     const verifyPayment = async () => {
       try {
-        const result = await checkPaymentStatus(orderTrackingId);
-        setPaymentDetails(result);
+        // Check URL params for payment status
+        const paymentStatus = searchParams.get('payment_status') || searchParams.get('status');
         
-        if (result.status === 'COMPLETED') {
+        if (paymentStatus === 'COMPLETED' || paymentStatus === 'success') {
           setStatus('success');
-          // Trigger celebration
           confetti({
             particleCount: 200,
             spread: 70,
