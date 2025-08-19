@@ -62,9 +62,9 @@ export const DailyOrganicActionCard: React.FC<DailyOrganicActionCardProps> = ({
         crop_type: 'Mixed Crops',
         field_name: 'Your Farm',
         time_to_results: dailyAction.expectedResults.timeToResults,
-        why_now: `This organic solution improves soil health and crop resilience`,
+        why_now: dailyAction.whyNow || dailyAction.description,
         money_saved: 0,
-        yield_boost: 'Natural improvement',
+        yield_boost: dailyAction.expectedResults.yieldIncrease || 'Natural improvement',
         ingredients: dailyAction.ingredients.reduce((acc, ing) => {
           acc[ing.name] = ing.quantity;
           return acc;
@@ -110,9 +110,9 @@ export const DailyOrganicActionCard: React.FC<DailyOrganicActionCardProps> = ({
         crop_type: 'Mixed Crops',
         field_name: 'Your Farm',
         time_to_results: dailyAction.expectedResults.timeToResults,
-        why_now: `This organic solution improves soil health and crop resilience`,
+        why_now: dailyAction.whyNow || dailyAction.description,
         money_saved: 0,
-        yield_boost: 'Natural improvement',
+        yield_boost: dailyAction.expectedResults.yieldIncrease || 'Natural improvement',
         ingredients: dailyAction.ingredients.reduce((acc, ing) => {
           acc[ing.name] = ing.quantity;
           return acc;
