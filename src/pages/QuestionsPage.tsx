@@ -286,61 +286,6 @@ export const QuestionsPage: React.FC = () => {
       .order('is_featured', { ascending: false })
       .order('published_at', { ascending: false });
 
-    // Combine with hardcoded resources
-    const hardcodedResources: TrainingResource[] = [
-      {
-        id: 1,
-        title: "Organic Pest Management Master Course",
-        description: "Comprehensive training on controlling pests without chemical pesticides. Learn natural solutions that protect crops and biodiversity.",
-        category: "Pest Management",
-        type: 'course',
-        level: 'intermediate',
-        duration: "4 hours",
-        author: "International Organic Farming Institute",
-        authorType: 'organization',
-        datePublished: "2 months ago",
-        thumbnail: "https://images.unsplash.com/photo-1632634415872-7d402cd7fa32",
-        popularity: 1245,
-        isFree: false,
-        isAICertified: true,
-        tags: ["Organic", "Pest Control", "Certification"]
-      },
-      {
-        id: 2,
-        title: "Soil Health Fundamentals",
-        description: "Learn testing, maintaining, and improving your soil quality for maximum crop yields.",
-        category: "Soil Management",
-        type: 'tutorial',
-        level: 'beginner',
-        duration: "2 hours",
-        author: "Dr. Fertility",
-        authorType: 'expert',
-        datePublished: "3 weeks ago",
-        popularity: 856,
-        isFree: true,
-        isAICertified: true,
-        isRecommended: true,
-        progress: 65,
-        tags: ["Soil", "Nutrients", "Testing"]
-      },
-      {
-        id: 3,
-        title: "Drip Irrigation Implementation",
-        description: "Step-by-step guide to set up water-efficient irrigation systems for small farms.",
-        category: "Water Management",
-        type: 'video',
-        level: 'intermediate',
-        duration: "1.5 hours",
-        author: "WaterWise Farming",
-        authorType: 'organization',
-        datePublished: "1 month ago",
-        popularity: 723,
-        isFree: true,
-        isAICertified: true,
-        tags: ["Irrigation", "Water Conservation", "Installation"]
-      }
-    ];
-
     // Transform database resources to match interface
     const transformedDbResources: TrainingResource[] = (dbResources || []).map(resource => ({
       id: resource.id,
@@ -358,7 +303,7 @@ export const QuestionsPage: React.FC = () => {
       path: resource.path
     }));
 
-    setTrainingResources([...transformedDbResources, ...hardcodedResources]);
+    setTrainingResources(transformedDbResources);
   };
 
   const getResourceUrl = (resource: TrainingResource) => {
