@@ -54,6 +54,9 @@ import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { buildPublicUrl } from '@/lib/resourceUrl';
+import { useAuth } from '@/hooks/useAuth';
+import { premiumEngine } from '@/services/PremiumEngine';
+import { PremiumUpgrade } from '@/components/organic/PremiumUpgrade';
 
 interface FilterOptions {
   category_id?: string;
@@ -88,6 +91,7 @@ interface TrainingResource {
 
 export const QuestionsPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   // State management
   const [questions, setQuestions] = useState<CommunityQuestion[]>([]);
@@ -115,6 +119,8 @@ export const QuestionsPage: React.FC = () => {
   
   // Training resources state
   const [trainingResources, setTrainingResources] = useState<TrainingResource[]>([]);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const [pendingDownload, setPendingDownload] = useState<string | null>(null);
 
   // Load initial data
   useEffect(() => {
@@ -315,6 +321,36 @@ export const QuestionsPage: React.FC = () => {
       return buildPublicUrl(supabase, resource.bucket || 'resources', resource.path);
     }
     return null;
+  };
+
+  const handlePremiumDownload = (resource: TrainingResource) => {
+    if (!user) {
+      toast.error('Please sign in to download resources');
+      return;
+    }
+
+    const isPremium = premiumEngine.isPremiumUser(user.id);
+    
+    if (!isPremium) {
+      const url = getResourceUrl(resource);
+      setPendingDownload(url);
+      setShowUpgrade(true);
+      return;
+    }
+
+    // User is premium, download immediately
+    const url = getResourceUrl(resource);
+    if (url) {
+      window.open(url, '_blank');
+    }
+  };
+
+  const handleUpgradeComplete = () => {
+    setShowUpgrade(false);
+    if (pendingDownload) {
+      window.open(pendingDownload, '_blank');
+      setPendingDownload(null);
+    }
   };
 
   const enrollInTraining = (resourceId: number | string) => {
@@ -598,17 +634,13 @@ export const QuestionsPage: React.FC = () => {
                     {/* Action buttons */}
                     <div className="mt-4">
                       {getResourceUrl(resource) ? (
-                        <a
-                          href={getResourceUrl(resource)!}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          download
-                          className="inline-flex items-center justify-center w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium transition-colors"
-                          aria-label={`Download ${resource.title}`}
+                        <Button
+                          onClick={() => handlePremiumDownload(resource)}
+                          className="w-full bg-green-600 hover:bg-green-700 text-white"
                         >
                           <Download className="h-4 w-4 mr-2" />
                           Download PDF
-                        </a>
+                        </Button>
                       ) : resource.progress !== undefined ? (
                         <Button 
                           className="w-full bg-green-600 hover:bg-green-700 text-white"
@@ -631,6 +663,23 @@ export const QuestionsPage: React.FC = () => {
             </div>
           )}
         </div>
+        
+        {/* Premium Upgrade Modal */}
+        {showUpgrade && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="relative">
+                <button
+                  onClick={() => setShowUpgrade(false)}
+                  className="absolute top-4 right-4 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100"
+                >
+                  ✕
+                </button>
+                <PremiumUpgrade onUpgrade={handleUpgradeComplete} />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
