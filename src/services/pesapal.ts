@@ -1,5 +1,7 @@
-// Pesapal Payment Integration for CropGenius
-// Official Pesapal Documentation: https://developer.pesapal.com/
+// 🚀 COMPLETE PESAPAL INTEGRATION - PRODUCTION READY
+// Official Pesapal API v3.0 Documentation: https://developer.pesapal.com/
+
+import { supabase } from '@/integrations/supabase/client';
 
 export interface PesapalConfig {
   consumerKey: string;
@@ -28,10 +30,28 @@ export interface PaymentResponse {
   redirect_url: string;
 }
 
+export interface TransactionStatus {
+  payment_method: string;
+  amount: number;
+  created_date: string;
+  confirmation_code: string;
+  payment_status_description: string;
+  description: string;
+  message: string;
+  payment_account: string;
+  call_back_url: string;
+  status_code: number;
+  merchant_reference: string;
+  account_number: string;
+  order_tracking_id: string;
+  status: string;
+}
+
 class PesapalService {
   private config: PesapalConfig;
   private baseUrl: string;
   private accessToken: string | null = null;
+  private tokenExpiry: number = 0;
 
   constructor(config: PesapalConfig) {
     this.config = config;
@@ -40,9 +60,10 @@ class PesapalService {
       : 'https://cybqa.pesapal.com/pesapalv3';
   }
 
-  // Step 1: Get Access Token
   private async getAccessToken(): Promise<string> {
-    if (this.accessToken) return this.accessToken;
+    if (this.accessToken && Date.now() < this.tokenExpiry) {
+      return this.accessToken;
+    }
 
     const response = await fetch(`${this.baseUrl}/api/Auth/RequestToken`, {
       method: 'POST',
@@ -57,15 +78,15 @@ class PesapalService {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to get access token: ${response.statusText}`);
+      throw new Error(`Pesapal auth failed: ${response.statusText}`);
     }
 
     const data = await response.json();
     this.accessToken = data.token;
+    this.tokenExpiry = Date.now() + (data.expiryDate ? new Date(data.expiryDate).getTime() - Date.now() : 3600000);
     return this.accessToken;
   }
 
-  // Step 2: Register IPN URL (do this once)
   async registerIPN(url: string, ipn_notification_type: string = 'GET'): Promise<string> {
     const token = await this.getAccessToken();
     
@@ -83,19 +104,18 @@ class PesapalService {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to register IPN: ${response.statusText}`);
+      throw new Error(`IPN registration failed: ${response.statusText}`);
     }
 
     const data = await response.json();
     return data.ipn_id;
   }
 
-  // Step 3: Submit Order Request
   async submitOrderRequest(paymentRequest: PaymentRequest): Promise<PaymentResponse> {
     const token = await this.getAccessToken();
     
     const orderData = {
-      id: `CROP_${Date.now()}`, // Unique merchant reference
+      id: `CROP_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       currency: paymentRequest.currency,
       amount: paymentRequest.amount,
       description: paymentRequest.description,
@@ -115,10 +135,22 @@ class PesapalService {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to submit order: ${response.statusText}`);
+      const errorText = await response.text();
+      throw new Error(`Order submission failed: ${errorText}`);
     }
 
     const data = await response.json();
+    
+    // Store payment record in Supabase
+    await this.storePaymentRecord({
+      order_tracking_id: data.order_tracking_id,
+      merchant_reference: data.merchant_reference,
+      amount: paymentRequest.amount,
+      currency: paymentRequest.currency,
+      email: paymentRequest.billing_address.email_address,
+      status: 'PENDING'
+    });
+
     return {
       order_tracking_id: data.order_tracking_id,
       merchant_reference: data.merchant_reference,
@@ -126,8 +158,7 @@ class PesapalService {
     };
   }
 
-  // Step 4: Get Transaction Status
-  async getTransactionStatus(orderTrackingId: string): Promise<any> {
+  async getTransactionStatus(orderTrackingId: string): Promise<TransactionStatus> {
     const token = await this.getAccessToken();
     
     const response = await fetch(`${this.baseUrl}/api/Transactions/GetTransactionStatus?orderTrackingId=${orderTrackingId}`, {
@@ -139,14 +170,50 @@ class PesapalService {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to get transaction status: ${response.statusText}`);
+      throw new Error(`Status check failed: ${response.statusText}`);
     }
 
-    return response.json();
+    const status = await response.json();
+    
+    // Update payment record
+    await this.updatePaymentStatus(orderTrackingId, status);
+    
+    return status;
+  }
+
+  private async storePaymentRecord(payment: any) {
+    try {
+      await supabase.from('payments').insert({
+        order_tracking_id: payment.order_tracking_id,
+        merchant_reference: payment.merchant_reference,
+        amount: payment.amount,
+        currency: payment.currency,
+        user_email: payment.email,
+        status: payment.status,
+        created_at: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Failed to store payment record:', error);
+    }
+  }
+
+  private async updatePaymentStatus(orderTrackingId: string, status: TransactionStatus) {
+    try {
+      await supabase
+        .from('payments')
+        .update({
+          status: status.status,
+          payment_method: status.payment_method,
+          confirmation_code: status.confirmation_code,
+          updated_at: new Date().toISOString()
+        })
+        .eq('order_tracking_id', orderTrackingId);
+    } catch (error) {
+      console.error('Failed to update payment status:', error);
+    }
   }
 }
 
-// Initialize Pesapal service
 const pesapalConfig: PesapalConfig = {
   consumerKey: import.meta.env.VITE_PESAPAL_CONSUMER_KEY || '',
   consumerSecret: import.meta.env.VITE_PESAPAL_CONSUMER_SECRET || '',
@@ -155,7 +222,20 @@ const pesapalConfig: PesapalConfig = {
 
 export const pesapalService = new PesapalService(pesapalConfig);
 
-// Helper function to create payment for CropGenius subscription
+// 🎯 PSYCHOLOGICAL PRICING - IMPOSSIBLE TO IGNORE!
+export const CROPGENIUS_PRICING = {
+  annual: {
+    original: 11988, // KES 11,988 (999 × 12)
+    discounted: 999, // KES 999 - 92% OFF!
+    savings: 10989,  // Save KES 10,989
+    currency: 'KES'
+  },
+  monthly: {
+    price: 999,
+    currency: 'KES'
+  }
+};
+
 export async function createCropGeniusPayment(
   plan: 'monthly' | 'annual',
   userEmail: string,
@@ -163,23 +243,56 @@ export async function createCropGeniusPayment(
   firstName?: string,
   lastName?: string
 ): Promise<PaymentResponse> {
-  const amount = plan === 'annual' ? 120 : 12;
-  const description = `CropGenius ${plan === 'annual' ? 'Annual' : 'Monthly'} Subscription`;
+  const pricing = CROPGENIUS_PRICING[plan];
+  const amount = plan === 'annual' ? pricing.discounted : pricing.price;
+  const description = plan === 'annual' 
+    ? `CropGenius Annual Plan - SAVE 92% (KES ${CROPGENIUS_PRICING.annual.savings})`
+    : 'CropGenius Monthly Subscription';
   
   const paymentRequest: PaymentRequest = {
     amount,
-    currency: 'USD',
+    currency: 'KES',
     description,
     callback_url: `${window.location.origin}/payment/callback`,
     notification_id: import.meta.env.VITE_PESAPAL_IPN_ID || '',
     billing_address: {
       email_address: userEmail,
       phone_number: userPhone,
-      country_code: 'KE', // Default to Kenya
+      country_code: 'KE',
       first_name: firstName,
       last_name: lastName,
     },
   };
 
   return pesapalService.submitOrderRequest(paymentRequest);
+}
+
+// Payment status checker
+export async function checkPaymentStatus(orderTrackingId: string): Promise<TransactionStatus> {
+  return pesapalService.getTransactionStatus(orderTrackingId);
+}
+
+// IPN handler for webhooks
+export async function handlePesapalIPN(ipnData: any) {
+  try {
+    const status = await pesapalService.getTransactionStatus(ipnData.OrderTrackingId);
+    
+    if (status.status === 'COMPLETED') {
+      // Activate user subscription
+      await supabase
+        .from('user_subscriptions')
+        .upsert({
+          user_email: status.payment_account,
+          plan_type: status.description.includes('Annual') ? 'annual' : 'monthly',
+          status: 'active',
+          activated_at: new Date().toISOString(),
+          expires_at: new Date(Date.now() + (status.description.includes('Annual') ? 365 : 30) * 24 * 60 * 60 * 1000).toISOString()
+        });
+    }
+    
+    return status;
+  } catch (error) {
+    console.error('IPN handling failed:', error);
+    throw error;
+  }
 }

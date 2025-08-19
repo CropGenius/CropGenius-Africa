@@ -34,6 +34,7 @@ import UpgradePage from './pages/UpgradePage';
 import AddCrop from './pages/AddCrop';
 import ReferralsPage from './pages/ReferralsPage';
 import JoinPage from './pages/JoinPage';
+import PaymentCallback from './pages/PaymentCallback';
 
 function Protected({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuthContext();
@@ -82,6 +83,7 @@ export default function AppRoutes() {
       <Route path="/market-insights" element={<Protected><MarketInsightsPage /></Protected>} />
       <Route path="/mission-control" element={<Protected><MissionControlPage /></Protected>} />
       <Route path="/upgrade" element={<Protected><UpgradePage /></Protected>} />
+      <Route path="/payment/callback" element={<PaymentCallback />} />
       <Route path="/referrals" element={<Protected><ReferralsPage /></Protected>} />
       
       <Route path="*" element={<NotFound />} />
