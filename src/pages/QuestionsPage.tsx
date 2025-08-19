@@ -36,7 +36,8 @@ import {
   Book,
   BookOpen,
   Library,
-  FileCheck
+  FileCheck,
+  User
 } from 'lucide-react';
 import { QuestionCard } from '@/components/community/QuestionCard';
 import { AskQuestionForm } from '@/components/community/AskQuestionForm';
@@ -360,7 +361,7 @@ export const QuestionsPage: React.FC = () => {
         
         {/* Main Tabs */}
         <Tabs defaultValue="questions" className="mb-6">
-          <TabsList className="w-full bg-muted grid grid-cols-2">
+          <TabsList className="w-full bg-muted grid grid-cols-3">
             <TabsTrigger value="questions" className="text-sm">
               <MessageCircle className="h-4 w-4 mr-2" />
               Questions
@@ -368,6 +369,10 @@ export const QuestionsPage: React.FC = () => {
             <TabsTrigger value="training" className="text-sm">
               <Book className="h-4 w-4 mr-2" />
               Training
+            </TabsTrigger>
+            <TabsTrigger value="experts" className="text-sm" onClick={() => navigate('/404')}>
+              <User className="h-4 w-4 mr-2" />
+              Experts
             </TabsTrigger>
           </TabsList>
           
@@ -688,6 +693,11 @@ export const QuestionsPage: React.FC = () => {
                 </Card>
               ))}
             </div>
+          </TabsContent>
+          
+          {/* Experts Tab */}
+          <TabsContent value="experts" className="mt-6">
+            {/* This will never render as onClick navigates to 404 */}
           </TabsContent>
         </Tabs>
       </div>
