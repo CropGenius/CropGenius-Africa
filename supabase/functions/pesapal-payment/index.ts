@@ -96,7 +96,7 @@ serve(async (req) => {
       const { token, orderData } = requestBody;
       console.log("Submitting order:", JSON.stringify(orderData));
       
-      const orderResponse = await fetch(`${PESAPAL_BASE_URL}/api/SubmitOrderRequest`, {
+      const orderResponse = await fetch(`${PESAPAL_BASE_URL}/api/Transactions/SubmitOrderRequest`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
