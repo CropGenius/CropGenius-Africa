@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GlowingTab } from '@/components/ui/glowing-tab';
+import { SmartSearch } from '@/components/ui/smart-search';
 import { Progress } from '@/components/ui/progress';
 import { 
   Search,
@@ -427,69 +428,18 @@ export const QuestionsPage: React.FC = () => {
 
           {/* Main Content */}
           <div className="lg:col-span-3">
-            {/* Filters */}
-            <Card className="mb-6">
-              <CardContent className="pt-6">
-                <div className="flex flex-col sm:flex-row gap-4">
-                  {/* Search */}
-                  <div className="flex-1">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input
-                        placeholder="Search questions..."
-                        value={filters.search}
-                        onChange={(e) => handleSearch(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Status Filter */}
-                  <Select
-                    value={filters.status}
-                    onValueChange={(value) => handleFilterChange('status', value)}
-                  >
-                    <SelectTrigger className="w-full sm:w-40">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="open">Open</SelectItem>
-                      <SelectItem value="answered">Answered</SelectItem>
-                      <SelectItem value="closed">Closed</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  {/* Sort */}
-                  <Select
-                    value={filters.sort_by}
-                    onValueChange={(value) => handleFilterChange('sort_by', value)}
-                  >
-                    <SelectTrigger className="w-full sm:w-40">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="created_at">Latest</SelectItem>
-                      <SelectItem value="vote_score">Most Voted</SelectItem>
-                      <SelectItem value="answer_count">Most Answered</SelectItem>
-                      <SelectItem value="view_count">Most Viewed</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  {/* Clear Filters */}
-                  {getActiveFiltersCount() > 0 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={clearFilters}
-                      className="shrink-0"
-                    >
-                      <Filter className="h-4 w-4 mr-2" />
-                      Clear ({getActiveFiltersCount()})
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            {/* Smart Search */}
+            <div className="mb-6">
+              <SmartSearch
+                placeholder="Search questions..."
+                onSearch={handleSearch}
+                onStatusChange={(value) => handleFilterChange('status', value)}
+                onSortChange={(value) => handleFilterChange('sort_by', value)}
+                searchValue={filters.search}
+                statusValue={filters.status}
+                sortValue={filters.sort_by}
+              />
+            </div>
 
             {/* Questions List */}
             {isLoading ? (
