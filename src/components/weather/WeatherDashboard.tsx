@@ -111,7 +111,7 @@ export default function WeatherDashboard({ selectedField, onFieldChange }: Weath
           >
             {userFields.map(field => (
               <option key={field.id} value={field.id} className="text-black">
-
+                 {field.name} ({field.size} {field.size_unit})
               </option>
             ))}
           </select>
