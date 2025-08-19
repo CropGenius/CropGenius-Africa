@@ -11,16 +11,9 @@ export interface Subscription {
   expires_at: string;
 }
 
-export interface UserCredits {
-  id: string;
-  user_email: string;
-  credits: number;
-}
-
 export function useSubscription() {
   const { user } = useAuthContext();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
-  const [credits, setCredits] = useState<UserCredits | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,40 +22,28 @@ export function useSubscription() {
       return;
     }
 
-    const fetchSubscriptionData = async () => {
+    const fetchSubscription = async () => {
       try {
-        // Fetch subscription
-        const { data: subData } = await supabase
+        const { data } = await supabase
           .from('user_subscriptions')
           .select('*')
           .eq('user_email', user.email)
           .single();
 
-        if (subData) {
-          setSubscription(subData);
-        }
-
-        // Fetch credits
-        const { data: creditsData } = await supabase
-          .from('user_credits')
-          .select('*')
-          .eq('user_email', user.email)
-          .single();
-
-        if (creditsData) {
-          setCredits(creditsData);
+        if (data) {
+          setSubscription(data);
         }
       } catch (error) {
-        console.error('Error fetching subscription data:', error);
+        console.error('Error fetching subscription:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchSubscriptionData();
+    fetchSubscription();
 
     // Subscribe to real-time updates
-    const subscriptionChannel = supabase
+    const channel = supabase
       .channel('subscription_changes')
       .on(
         'postgres_changes',
@@ -80,43 +61,20 @@ export function useSubscription() {
           }
         }
       )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_credits',
-          filter: `user_email=eq.${user.email}`
-        },
-        (payload) => {
-          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-            setCredits(payload.new as UserCredits);
-          }
-        }
-      )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(subscriptionChannel);
+      supabase.removeChannel(channel);
     };
   }, [user?.email]);
 
   const isActive = subscription?.status === 'active' && new Date(subscription.expires_at) > new Date();
   const isPro = isActive;
-  const creditsRemaining = credits?.credits || 0;
 
   return {
     subscription,
-    credits,
     loading,
     isActive,
-    isPro,
-    creditsRemaining,
-    refresh: () => {
-      if (user?.email) {
-        setLoading(true);
-        // Trigger refetch
-      }
-    }
+    isPro
   };
 }

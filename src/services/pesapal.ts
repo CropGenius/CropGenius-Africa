@@ -278,7 +278,6 @@ export async function handlePesapalIPN(ipnData: any) {
     const status = await pesapalService.getTransactionStatus(ipnData.OrderTrackingId);
     
     if (status.status === 'COMPLETED') {
-      // Activate user subscription
       await supabase
         .from('user_subscriptions')
         .upsert({
