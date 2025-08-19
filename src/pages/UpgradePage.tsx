@@ -4,20 +4,16 @@ import { useAuthContext } from '@/providers/AuthProvider';
 import { createCropGeniusPayment, CROPGENIUS_PRICING } from '@/services/pesapal';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Sparkles } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { Sparkles } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 const UpgradePage = () => {
   const { user } = useAuthContext();
-  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleUpgrade = async (plan: 'monthly' | 'annual') => {
     if (!user?.email) {
       toast.error('Please login to upgrade your account');
-      navigate('/auth');
       return;
     }
 
@@ -59,66 +55,7 @@ const UpgradePage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-      {/* Header */}
-      <div className="container max-w-6xl pt-8 pb-4">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-4 mb-8"
-        >
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate(-1)}
-            className="gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
-          
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-6 w-6 text-primary" />
-            <h1 className="text-2xl font-bold">Upgrade to CropGenius Pro</h1>
-          </div>
-        </motion.div>
 
-        {/* Hero Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="text-center space-y-4 mb-8"
-        >
-          <h2 className="text-3xl md:text-4xl font-bold text-primary">
-            🚀 Transform Your Farming with AI Intelligence
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-            Join thousands of farmers already using CropGenius Pro to increase yields, 
-            reduce costs, and make data-driven decisions that boost profitability.
-          </p>
-        </motion.div>
-
-        {/* Success Stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12"
-        >
-          <div className="text-center p-6 bg-white/50 backdrop-blur-sm rounded-xl border">
-            <div className="text-3xl font-bold text-green-600 mb-2">+40%</div>
-            <div className="text-sm text-muted-foreground">Average Yield Increase</div>
-          </div>
-          <div className="text-center p-6 bg-white/50 backdrop-blur-sm rounded-xl border">
-            <div className="text-3xl font-bold text-blue-600 mb-2">-25%</div>
-            <div className="text-sm text-muted-foreground">Reduced Input Costs</div>
-          </div>
-          <div className="text-center p-6 bg-white/50 backdrop-blur-sm rounded-xl border">
-            <div className="text-3xl font-bold text-purple-600 mb-2">10k+</div>
-            <div className="text-sm text-muted-foreground">Satisfied Farmers</div>
-          </div>
-        </motion.div>
-      </div>
 
       {/* Pricing Component */}
       <motion.div
