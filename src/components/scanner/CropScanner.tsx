@@ -363,7 +363,6 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
                 ref={fileInputRef}
                 className="hidden"
                 accept="image/*"
-                capture="environment"
                 onChange={handleFileChange}
               />
             </div>
