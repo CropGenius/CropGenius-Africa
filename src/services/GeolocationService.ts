@@ -28,7 +28,7 @@ type LocationChangeCallback = (event: LocationChangeEvent) => void;
 export class GeolocationService {
   private static instance: GeolocationService;
   private cachedLocation: LocationCoordinates | null = null;
-  private readonly DEFAULT_LOCATION = { lat: -1.2921, lon: 36.8219, source: 'default' as const, timestamp: Date.now() };
+
   
   // Continuous tracking state
   private watchId: number | null = null;
@@ -78,11 +78,7 @@ export class GeolocationService {
       return enrichedLocation;
     }
 
-    // Fallback to default location (Nairobi)
-    console.log('🌍 Using default location (Nairobi)');
-    const defaultWithAddress = await this.enrichLocationWithAddress(this.DEFAULT_LOCATION);
-    this.cachedLocation = defaultWithAddress;
-    return defaultWithAddress;
+
   }
 
   /**
@@ -316,15 +312,7 @@ export class GeolocationService {
       console.warn('🌍 Reverse geocoding failed:', error);
     }
 
-    // Fallback with basic location names
-    const fallbackCity = location.lat < -1 ? 'Nairobi Region' : 'Central Kenya';
-    return {
-      ...location,
-      city: fallbackCity,
-      region: 'Kenya',
-      country: 'Kenya',
-      address: `${fallbackCity}, Kenya`
-    };
+
   }
 
   /**
