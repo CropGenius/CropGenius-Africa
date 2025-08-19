@@ -5,7 +5,7 @@ const PESAPAL_CONSUMER_SECRET = Deno.env.get("PESAPAL_CONSUMER_SECRET");
 const PESAPAL_BASE_URL = "https://pay.pesapal.com/v3";
 
 const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "https://www.cropgenius.africa",
+  "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
@@ -16,13 +16,20 @@ serve(async (req) => {
   }
 
   try {
+    console.log("Pesapal function called");
+    
     if (!PESAPAL_CONSUMER_KEY || !PESAPAL_CONSUMER_SECRET) {
+      console.error("Missing credentials");
       throw new Error("Pesapal credentials not configured");
     }
 
-    const { action, ...payload } = await req.json();
+    const requestBody = await req.json();
+    console.log("Request body:", JSON.stringify(requestBody));
+    
+    const { action } = requestBody;
 
     if (action === "get_token") {
+      console.log("Getting token...");
       const tokenResponse = await fetch(`${PESAPAL_BASE_URL}/api/Auth/RequestToken`, {
         method: "POST",
         headers: {
@@ -35,18 +42,21 @@ serve(async (req) => {
         }),
       });
 
+      const tokenData = await tokenResponse.json();
+      console.log("Token response:", tokenData);
+      
       if (!tokenResponse.ok) {
         throw new Error(`Token request failed: ${tokenResponse.status}`);
       }
 
-      const tokenData = await tokenResponse.json();
       return new Response(JSON.stringify(tokenData), {
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
       });
     }
 
     if (action === "register_ipn") {
-      const { token, ipn_url } = payload;
+      const { token, ipn_url } = requestBody;
+      console.log("Registering IPN:", ipn_url);
       
       const ipnResponse = await fetch(`${PESAPAL_BASE_URL}/api/URLSetup/RegisterIPN`, {
         method: "POST",
@@ -61,20 +71,23 @@ serve(async (req) => {
         }),
       });
 
+      const ipnData = await ipnResponse.json();
+      console.log("IPN response:", ipnData);
+      
       if (!ipnResponse.ok) {
         throw new Error(`IPN registration failed: ${ipnResponse.status}`);
       }
 
-      const ipnData = await ipnResponse.json();
       return new Response(JSON.stringify(ipnData), {
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
       });
     }
 
     if (action === "submit_order") {
-      const { token, orderData } = payload;
+      const { token, orderData } = requestBody;
+      console.log("Submitting order:", JSON.stringify(orderData));
       
-      const orderResponse = await fetch(`${PESAPAL_BASE_URL}/api/Transactions/SubmitOrderRequest`, {
+      const orderResponse = await fetch(`${PESAPAL_BASE_URL}/api/SubmitOrderRequest`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -84,12 +97,14 @@ serve(async (req) => {
         body: JSON.stringify(orderData),
       });
 
+      const orderResult = await orderResponse.json();
+      console.log("Order response:", orderResult);
+      
       if (!orderResponse.ok) {
-        const errorText = await orderResponse.text();
-        throw new Error(`Order submission failed: ${orderResponse.status} - ${errorText}`);
+        console.error("Order failed:", orderResult);
+        throw new Error(`Order submission failed: ${orderResponse.status}`);
       }
 
-      const orderResult = await orderResponse.json();
       return new Response(JSON.stringify(orderResult), {
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
       });
@@ -98,6 +113,7 @@ serve(async (req) => {
     throw new Error("Invalid action");
 
   } catch (error) {
+    console.error("Function error:", error.message);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
       status: 500,
