@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { GlowingTab } from '@/components/ui/glowing-tab';
 import { Progress } from '@/components/ui/progress';
 import { 
   Search,
@@ -361,19 +362,24 @@ export const QuestionsPage: React.FC = () => {
         
         {/* Main Tabs */}
         <Tabs defaultValue="questions" className="mb-6">
-          <TabsList className="w-full bg-muted grid grid-cols-3">
-            <TabsTrigger value="questions" className="text-sm">
+          <div className="flex justify-center space-x-4 mb-6">
+            <GlowingTab isActive={true}>
               <MessageCircle className="h-4 w-4 mr-2" />
               Questions
-            </TabsTrigger>
-            <TabsTrigger value="training" className="text-sm">
+            </GlowingTab>
+            <GlowingTab>
               <Book className="h-4 w-4 mr-2" />
               Training
-            </TabsTrigger>
-            <TabsTrigger value="experts" className="text-sm" onClick={() => navigate('/404')}>
+            </GlowingTab>
+            <GlowingTab onClick={() => navigate('/404')}>
               <User className="h-4 w-4 mr-2" />
               Experts
-            </TabsTrigger>
+            </GlowingTab>
+          </div>
+          <TabsList className="hidden">
+            <TabsTrigger value="questions" />
+            <TabsTrigger value="training" />
+            <TabsTrigger value="experts" />
           </TabsList>
           
           {/* Questions Tab */}
