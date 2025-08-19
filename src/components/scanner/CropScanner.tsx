@@ -281,7 +281,7 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-5 pb-24 animate-fade-in">
+    <div className="min-h-screen bg-background p-5 pb-24 animate-fade-in">
       <div className="mb-5">
         <h1 className="text-2xl font-bold text-crop-green-700">AI Crop Scanner</h1>
         <p className="text-gray-600">Instantly diagnose plant diseases and get treatment advice</p>
