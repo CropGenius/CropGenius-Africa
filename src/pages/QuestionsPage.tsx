@@ -21,6 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
 import { 
   Search,
   Filter,
@@ -30,7 +32,11 @@ import {
   MessageCircle,
   Sparkles,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  Book,
+  BookOpen,
+  Library,
+  FileCheck
 } from 'lucide-react';
 import { QuestionCard } from '@/components/community/QuestionCard';
 import { AskQuestionForm } from '@/components/community/AskQuestionForm';
@@ -49,6 +55,26 @@ interface FilterOptions {
   search?: string;
   sort_by?: 'created_at' | 'vote_score' | 'answer_count' | 'view_count';
   sort_order?: 'asc' | 'desc';
+}
+
+interface TrainingResource {
+  id: number;
+  title: string;
+  description: string;
+  category: string;
+  type: 'course' | 'tutorial' | 'video' | 'article';
+  level: 'beginner' | 'intermediate' | 'advanced';
+  duration: string;
+  author: string;
+  authorType: 'expert' | 'organization' | 'ai';
+  datePublished: string;
+  thumbnail?: string;
+  popularity: number;
+  isFree: boolean;
+  isAICertified: boolean;
+  isRecommended?: boolean;
+  progress?: number;
+  tags: string[];
 }
 
 export const QuestionsPage: React.FC = () => {
@@ -76,6 +102,61 @@ export const QuestionsPage: React.FC = () => {
 
   // Real-time subscription
   const [subscription, setSubscription] = useState<any>(null);
+  
+  // Training resources state
+  const [trainingResources] = useState<TrainingResource[]>([
+    {
+      id: 1,
+      title: "Organic Pest Management Master Course",
+      description: "Comprehensive training on controlling pests without chemical pesticides. Learn natural solutions that protect crops and biodiversity.",
+      category: "Pest Management",
+      type: 'course',
+      level: 'intermediate',
+      duration: "4 hours",
+      author: "International Organic Farming Institute",
+      authorType: 'organization',
+      datePublished: "2 months ago",
+      thumbnail: "https://images.unsplash.com/photo-1632634415872-7d402cd7fa32",
+      popularity: 1245,
+      isFree: false,
+      isAICertified: true,
+      tags: ["Organic", "Pest Control", "Certification"]
+    },
+    {
+      id: 2,
+      title: "Soil Health Fundamentals",
+      description: "Learn testing, maintaining, and improving your soil quality for maximum crop yields.",
+      category: "Soil Management",
+      type: 'tutorial',
+      level: 'beginner',
+      duration: "2 hours",
+      author: "Dr. Fertility",
+      authorType: 'expert',
+      datePublished: "3 weeks ago",
+      popularity: 856,
+      isFree: true,
+      isAICertified: true,
+      isRecommended: true,
+      progress: 65,
+      tags: ["Soil", "Nutrients", "Testing"]
+    },
+    {
+      id: 3,
+      title: "Drip Irrigation Implementation",
+      description: "Step-by-step guide to set up water-efficient irrigation systems for small farms.",
+      category: "Water Management",
+      type: 'video',
+      level: 'intermediate',
+      duration: "1.5 hours",
+      author: "WaterWise Farming",
+      authorType: 'organization',
+      datePublished: "1 month ago",
+      popularity: 723,
+      isFree: true,
+      isAICertified: true,
+      tags: ["Irrigation", "Water Conservation", "Installation"]
+    }
+  ]);
 
   // Load initial data
   useEffect(() => {
@@ -235,6 +316,12 @@ export const QuestionsPage: React.FC = () => {
     if (filters.sort_by !== 'created_at') count++;
     return count;
   };
+  
+  const enrollInTraining = (resourceId: number) => {
+    toast.success(`Enrolled in training resource ${resourceId}`, {
+      description: "Your learning materials are now available",
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -243,9 +330,9 @@ export const QuestionsPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div>
-              <h1 className="text-2xl font-bold text-green-700">Community Questions</h1>
+              <h1 className="text-2xl font-bold text-green-700">Community Hub</h1>
               <p className="text-sm text-gray-600">
-                {totalQuestions.toLocaleString()} questions from farmers worldwide
+                Questions, Training & Expert Knowledge
               </p>
             </div>
             
@@ -270,8 +357,23 @@ export const QuestionsPage: React.FC = () => {
             />
           </div>
         )}
-
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        
+        {/* Main Tabs */}
+        <Tabs defaultValue="questions" className="mb-6">
+          <TabsList className="w-full bg-muted grid grid-cols-2">
+            <TabsTrigger value="questions" className="text-sm">
+              <MessageCircle className="h-4 w-4 mr-2" />
+              Questions
+            </TabsTrigger>
+            <TabsTrigger value="training" className="text-sm">
+              <Book className="h-4 w-4 mr-2" />
+              Training
+            </TabsTrigger>
+          </TabsList>
+          
+          {/* Questions Tab */}
+          <TabsContent value="questions" className="mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar */}
           <div className="lg:col-span-1">
             {/* Trending Questions */}
@@ -480,6 +582,114 @@ export const QuestionsPage: React.FC = () => {
             )}
           </div>
         </div>
+          </TabsContent>
+          
+          {/* Training Tab */}
+          <TabsContent value="training" className="mt-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold text-gray-800 flex items-center">
+                <Book className="h-5 w-5 mr-2 text-green-600" />
+                AI-Certified Learning Resources
+              </h2>
+              <div className="flex space-x-2">
+                <Button variant="outline" size="sm" className="text-gray-600">
+                  <Filter className="h-4 w-4 mr-1" />
+                  Filter
+                </Button>
+                <Button variant="outline" size="sm" className="text-gray-600">
+                  My Learning
+                </Button>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {trainingResources.map(resource => (
+                <Card key={resource.id} className="overflow-hidden">
+                  <div className="h-36 bg-gray-200 relative">
+                    {resource.thumbnail ? (
+                      <div className="w-full h-full bg-center bg-cover" style={{ backgroundImage: `url(${resource.thumbnail})` }}></div>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                        <Library className="h-12 w-12 text-gray-400" />
+                      </div>
+                    )}
+                    <div className="absolute top-2 right-2 flex space-x-1">
+                      <Badge className={resource.isFree ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}>
+                        {resource.isFree ? 'Free' : 'Premium'}
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="flex items-center">
+                          {resource.type === 'course' && <Book className="h-4 w-4 text-green-600 mr-1" />}
+                          {resource.type === 'tutorial' && <FileCheck className="h-4 w-4 text-blue-600 mr-1" />}
+                          {resource.type === 'video' && <Library className="h-4 w-4 text-amber-600 mr-1" />}
+                          {resource.type === 'article' && <BookOpen className="h-4 w-4 text-purple-600 mr-1" />}
+                          <span className="text-xs font-medium uppercase text-gray-500">{resource.type}</span>
+                          <span className="mx-1">•</span>
+                          <span className="text-xs text-gray-500">{resource.level}</span>
+                          <span className="mx-1">•</span>
+                          <span className="text-xs text-gray-500">{resource.duration}</span>
+                        </div>
+                        
+                        <h3 className="font-semibold text-gray-900 mt-1">{resource.title}</h3>
+                        
+                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">{resource.description}</p>
+                        
+                        <div className="mt-2 flex items-center">
+                          <span className="text-xs text-gray-500">{resource.author}</span>
+                          <span className="mx-1">•</span>
+                          <span className="text-xs text-gray-500">{resource.popularity} learners</span>
+                        </div>
+                        
+                        {resource.progress !== undefined && (
+                          <div className="mt-2">
+                            <div className="flex justify-between text-xs mb-1">
+                              <span>Progress</span>
+                              <span>{resource.progress}%</span>
+                            </div>
+                            <Progress value={resource.progress} className="h-1.5" />
+                          </div>
+                        )}
+                        
+                        <div className="mt-3 flex flex-wrap gap-1">
+                          <Badge className="bg-gray-100 text-gray-800 border-0">{resource.category}</Badge>
+                          {resource.tags.slice(0, 2).map((tag, index) => (
+                            <Badge key={index} variant="outline" className="text-gray-600">{tag}</Badge>
+                          ))}
+                          {resource.tags.length > 2 && (
+                            <Badge variant="outline" className="text-gray-600">+{resource.tags.length - 2}</Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Action buttons */}
+                    <div className="mt-4">
+                      {resource.progress !== undefined ? (
+                        <Button 
+                          className="w-full bg-green-600 hover:bg-green-700 text-white"
+                        >
+                          Continue Learning
+                        </Button>
+                      ) : (
+                        <Button 
+                          className="w-full bg-green-600 hover:bg-green-700 text-white"
+                          onClick={() => enrollInTraining(resource.id)}
+                        >
+                          Enroll Now
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
