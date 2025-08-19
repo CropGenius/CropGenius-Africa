@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, Zap, ZapOff } from 'lucide-react';
-import { CommunityIcon } from '@/components/icons/CommunityIcon';
+import { Menu, Users, Zap, ZapOff } from 'lucide-react';
 
 const TopNav = () => {
   const navigate = useNavigate();
@@ -42,9 +41,9 @@ const TopNav = () => {
           {/* Community */}
           <button 
             onClick={() => navigate('/community')}
-            className="p-2 text-purple-300 hover:text-purple-200 hover:bg-purple-500/20 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-purple-500/30"
+            className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95"
           >
-            <CommunityIcon className="w-6 h-6" />
+            <Users className="w-6 h-6" />
           </button>
         </div>
       </div>
