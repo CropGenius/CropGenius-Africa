@@ -565,7 +565,7 @@ export const QuestionsPage: React.FC = () => {
                         
                         <h3 className="font-semibold text-gray-900 mt-1">{resource.title}</h3>
                         
-                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">{resource.description}</p>
+                        <p className="text-sm text-gray-600 mt-1">{resource.description}</p>
                         
                         <div className="mt-2 flex items-center">
                           <span className="text-xs text-gray-500">{resource.author}</span>
