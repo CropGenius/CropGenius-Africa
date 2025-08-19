@@ -599,7 +599,8 @@ export const QuestionsPage: React.FC = () => {
           
           {/* Training Content */}
           {activeTab === 'training' && (
-            <div className="flex justify-between items-center mb-4">
+            <div>
+              <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold text-gray-800 flex items-center">
                 <Book className="h-5 w-5 mr-2 text-green-600" />
                 AI-Certified Learning Resources
@@ -700,6 +701,7 @@ export const QuestionsPage: React.FC = () => {
                   </CardContent>
                 </Card>
               ))}
+              </div>
             </div>
           )}
         </div>
