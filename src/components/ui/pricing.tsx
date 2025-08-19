@@ -212,11 +212,9 @@ export function Pricing({
 
             <RainbowButton
               onClick={() => onUpgrade?.(isAnnual ? 'annual' : 'monthly')}
-              className="w-full text-lg font-semibold transform transition-all hover:scale-105"
+              className="w-full text-lg font-semibold transform transition-all hover:scale-105 flex items-center justify-center"
             >
-              {isAnnual 
-                ? `🚀 Get Annual Deal - Save ${savingsPercent}%`
-                : "Start Monthly - KES " + monthlyPrice + "/mo"}
+              {isAnnual ? `🚀 Save ${savingsPercent}% - Get Annual` : `Start Monthly KES ${monthlyPrice}`}
             </RainbowButton>
 
             <div className="mt-6 pt-6 border-t space-y-2">
