@@ -92,6 +92,7 @@ export const QuestionsPage: React.FC = () => {
   const [hasMore, setHasMore] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalQuestions, setTotalQuestions] = useState(0);
+  const [activeTab, setActiveTab] = useState('questions');
   
   // Filter state
   const [filters, setFilters] = useState<FilterOptions>({
@@ -361,13 +362,19 @@ export const QuestionsPage: React.FC = () => {
         )}
         
         {/* Main Tabs */}
-        <Tabs defaultValue="questions" className="mb-6">
+        <div className="mb-6">
           <div className="flex justify-center space-x-4 mb-6">
-            <GlowingTab isActive={true}>
+            <GlowingTab 
+              isActive={activeTab === 'questions'} 
+              onClick={() => setActiveTab('questions')}
+            >
               <MessageCircle className="h-4 w-4 mr-2" />
               Questions
             </GlowingTab>
-            <GlowingTab>
+            <GlowingTab 
+              isActive={activeTab === 'training'} 
+              onClick={() => setActiveTab('training')}
+            >
               <Book className="h-4 w-4 mr-2" />
               Training
             </GlowingTab>
@@ -376,14 +383,9 @@ export const QuestionsPage: React.FC = () => {
               Experts
             </GlowingTab>
           </div>
-          <TabsList className="hidden">
-            <TabsTrigger value="questions" />
-            <TabsTrigger value="training" />
-            <TabsTrigger value="experts" />
-          </TabsList>
           
-          {/* Questions Tab */}
-          <TabsContent value="questions" className="mt-6">
+          {/* Questions Content */}
+          {activeTab === 'questions' && (
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar */}
           <div className="lg:col-span-1">
@@ -593,10 +595,10 @@ export const QuestionsPage: React.FC = () => {
             )}
           </div>
         </div>
-          </TabsContent>
+          )}
           
-          {/* Training Tab */}
-          <TabsContent value="training" className="mt-6">
+          {/* Training Content */}
+          {activeTab === 'training' && (
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold text-gray-800 flex items-center">
                 <Book className="h-5 w-5 mr-2 text-green-600" />
@@ -699,13 +701,8 @@ export const QuestionsPage: React.FC = () => {
                 </Card>
               ))}
             </div>
-          </TabsContent>
-          
-          {/* Experts Tab */}
-          <TabsContent value="experts" className="mt-6">
-            {/* This will never render as onClick navigates to 404 */}
-          </TabsContent>
-        </Tabs>
+          )}
+        </div>
       </div>
     </div>
   );
