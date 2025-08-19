@@ -18,6 +18,7 @@ class OfficialPesapalService {
     });
 
     if (error) throw new Error(`Token request failed: ${error.message}`);
+    if (!data?.token) throw new Error(`Invalid token response: ${JSON.stringify(data)}`);
     
     this.token = data.token;
     return this.token;
@@ -38,6 +39,7 @@ class OfficialPesapalService {
     });
 
     if (error) throw new Error(`IPN registration failed: ${error.message}`);
+    if (!data?.ipn_id) throw new Error(`Invalid IPN response: ${JSON.stringify(data)}`);
     
     this.ipnId = data.ipn_id;
     return this.ipnId;
@@ -78,6 +80,7 @@ class OfficialPesapalService {
     });
 
     if (error) throw new Error(`Payment creation failed: ${error.message}`);
+    if (!data?.order_tracking_id) throw new Error(`Invalid payment response: ${JSON.stringify(data)}`);
     
     // Store payment record
     await supabase.from('payments').insert({

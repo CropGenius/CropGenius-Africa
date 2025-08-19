@@ -42,11 +42,18 @@ serve(async (req) => {
         }),
       });
 
+      if (!tokenResponse.ok) {
+        const errorText = await tokenResponse.text();
+        console.error("Token request failed:", tokenResponse.status, errorText);
+        throw new Error(`Token request failed: ${tokenResponse.status} - ${errorText}`);
+      }
+
       const tokenData = await tokenResponse.json();
       console.log("Token response:", tokenData);
       
-      if (!tokenResponse.ok) {
-        throw new Error(`Token request failed: ${tokenResponse.status}`);
+      if (!tokenData.token) {
+        console.error("No token in response:", tokenData);
+        throw new Error("Invalid token response from Pesapal");
       }
 
       return new Response(JSON.stringify(tokenData), {
@@ -71,12 +78,14 @@ serve(async (req) => {
         }),
       });
 
+      if (!ipnResponse.ok) {
+        const errorText = await ipnResponse.text();
+        console.error("IPN registration failed:", ipnResponse.status, errorText);
+        throw new Error(`IPN registration failed: ${ipnResponse.status} - ${errorText}`);
+      }
+
       const ipnData = await ipnResponse.json();
       console.log("IPN response:", ipnData);
-      
-      if (!ipnResponse.ok) {
-        throw new Error(`IPN registration failed: ${ipnResponse.status}`);
-      }
 
       return new Response(JSON.stringify(ipnData), {
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
@@ -97,13 +106,14 @@ serve(async (req) => {
         body: JSON.stringify(orderData),
       });
 
+      if (!orderResponse.ok) {
+        const errorText = await orderResponse.text();
+        console.error("Order submission failed:", orderResponse.status, errorText);
+        throw new Error(`Order submission failed: ${orderResponse.status} - ${errorText}`);
+      }
+
       const orderResult = await orderResponse.json();
       console.log("Order response:", orderResult);
-      
-      if (!orderResponse.ok) {
-        console.error("Order failed:", orderResult);
-        throw new Error(`Order submission failed: ${orderResponse.status}`);
-      }
 
       return new Response(JSON.stringify(orderResult), {
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
