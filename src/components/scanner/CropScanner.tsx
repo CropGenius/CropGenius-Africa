@@ -675,10 +675,10 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
             const econ = computeEconomicImpact(scanResults);
             return (
               <Card className="glass-card p-4 mb-5 bg-amber-50">
-                <h3 className="font-semibold text-amber-800 mb-3">💰 Economic Impact</h3>
+                <h3 className="font-semibold text-amber-800 mb-3"></h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-amber-700">Revenue Loss</p>
+                    <p className="text-sm text-amber-700"></p>
                     <p className="text-lg font-bold text-amber-800">${econ.revenue_loss_usd}</p>
                   </div>
                   <div>
@@ -738,8 +738,8 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
                 size="sm" 
                 className="bg-crop-green-600"
                 onClick={() => {
-                  toast.success('Farm Clan invitation sent!', {
-                    description: 'Join 2,847 farmers for enhanced AI predictions'
+                  toast.success('', {
+                    description: 'navigate('/community');'
                   });
                 }}
               >

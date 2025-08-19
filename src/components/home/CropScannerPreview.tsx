@@ -110,18 +110,8 @@ export default function CropScannerPreview() {
     } catch (error) {
       console.error('Failed to load scan history:', error);
       
-      // Fallback to basic history if API fails
-      setScanHistory([
-        {
-          id: "scan-123",
-          cropType: "Maize",
-          status: "healthy",
-          date: "Today, 8:45 AM",
-          imageUrl: "/placeholder.svg",
-          confidence: 96,
-          recommendations: ["Continue current irrigation schedule", "Monitor for any signs of pests"]
-        }
-      ]);
+      // No fallback data - show empty state
+      setScanHistory([]);
       setLoading(false);
     }
   };
