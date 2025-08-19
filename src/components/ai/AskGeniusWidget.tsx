@@ -61,7 +61,7 @@ export const AskGeniusWidget: React.FC = () => {
     setMessages(prev => [...prev, aiMessage]);
 
     try {
-      const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyD30Ud6DJ0yMPebP9FlIF75F2sMclZSmnA', {
+      const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyC1Ql3ozHA0em2CvlMAyxltA9DB9PTparQ', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
