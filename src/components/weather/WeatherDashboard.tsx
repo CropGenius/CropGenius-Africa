@@ -56,9 +56,9 @@ export default function WeatherDashboard({ selectedField, onFieldChange }: Weath
       latitude: location.lat,
       longitude: location.lon,
       size: 10,
-      size_unit: 'acres',
-      crop_type: 'mixed',
-      user_id: 'current-user'
+
+
+
     };
   };
 
