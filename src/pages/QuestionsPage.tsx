@@ -383,6 +383,7 @@ export const QuestionsPage: React.FC = () => {
                 ))}
               </div>
             </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
