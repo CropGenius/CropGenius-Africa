@@ -41,7 +41,7 @@ const UpgradePage = () => {
       });
 
       // Redirect to Pesapal payment page
-      window.open(paymentResponse.redirect_url, '_blank');
+      window.location.href = paymentResponse.redirect_url;
       
     } catch (error) {
       console.error('Payment initialization failed:', error);
