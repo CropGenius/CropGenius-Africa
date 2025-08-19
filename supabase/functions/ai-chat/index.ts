@@ -4,6 +4,10 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
 
+if (!geminiApiKey) {
+  console.error('GEMINI_API_KEY not found in environment variables');
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -116,6 +120,11 @@ SAFETY GUIDELINES:
     });
 
     const data = await response.json();
+    
+    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
+      throw new Error('Invalid response from Gemini API');
+    }
+    
     const aiResponse = data.candidates[0].content.parts[0].text;
 
     // Save conversation to database
