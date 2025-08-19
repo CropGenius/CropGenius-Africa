@@ -226,8 +226,8 @@ export const pesapalService = new PesapalService(pesapalConfig);
 export const CROPGENIUS_PRICING = {
   annual: {
     original: 11988, // KES 11,988 (999 × 12)
-    discounted: 999, // KES 999 - 92% OFF!
-    savings: 10989,  // Save KES 10,989
+    discounted: 5999, // KES 5,999 (499.98/month equivalent)
+    savings: 5989,   // Save KES 5,989
     currency: 'KES'
   },
   monthly: {

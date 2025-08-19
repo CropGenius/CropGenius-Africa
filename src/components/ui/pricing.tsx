@@ -153,7 +153,14 @@ export function Pricing({
             <div className="text-center mb-6">
               <div className="flex items-baseline justify-center gap-2">
                 <span className="text-5xl font-bold tracking-tight text-foreground">
-                  KES {isAnnual ? annualPrice : monthlyPrice}
+                  KES <NumberFlow
+                    value={isAnnual ? annualPrice : monthlyPrice}
+                    transformTiming={{
+                      duration: 500,
+                      easing: "ease-out",
+                    }}
+                    willChange
+                  />
                 </span>
                 <span className="text-lg text-muted-foreground">
                   /{isAnnual ? "year" : "month"}
@@ -163,7 +170,7 @@ export function Pricing({
               {isAnnual ? (
                 <div className="mt-2 space-y-1">
                   <p className="text-sm text-muted-foreground">
-                    Equivalent to KES {monthlyEquivalent}/month
+                    Equivalent to KES 499.98/month
                   </p>
                   <p className="text-sm text-muted-foreground line-through">
                     KES {monthlyTotal}/year if paid monthly
@@ -215,8 +222,8 @@ export function Pricing({
               )}
             >
               {isAnnual 
-                ? `Upgrade — Best Value (Save ${savingsPercent}%)`
-                : "Start Monthly — KES " + monthlyPrice + "/mo"}
+                ? `🚀 Get Annual Deal - Save ${savingsPercent}%`
+                : "Start Monthly - KES " + monthlyPrice + "/mo"}
             </button>
 
             <div className="mt-6 pt-6 border-t space-y-2">

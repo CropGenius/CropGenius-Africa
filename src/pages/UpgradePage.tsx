@@ -127,8 +127,8 @@ const UpgradePage = () => {
         transition={{ delay: 0.3 }}
       >
         <Pricing
-          monthlyPrice={CROPGENIUS_PRICING.monthly.price}
-          annualPrice={CROPGENIUS_PRICING.annual.discounted}
+          monthlyPrice={999}
+          annualPrice={5999}
           title="Choose Your CropGenius Pro Plan"
           description="Get unlimited access to all AI-powered farming tools and features"
           onUpgrade={handleUpgrade}
