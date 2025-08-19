@@ -140,7 +140,7 @@ export default function TodaysFarmPlan() {
             recommendation: "Complete before noon for optimal water absorption"
           },
           aiImportance: 9,
-          impact: "Prevents yield loss of up to 30%",
+
           isOverdue: false
         },
         {
@@ -212,7 +212,7 @@ export default function TodaysFarmPlan() {
             recommendation: "Apply organic pesticide immediately to prevent spread"
           },
           aiImportance: 10,
-          impact: "Prevents potential crop loss of 40-60%",
+
           isOverdue: false
         };
         

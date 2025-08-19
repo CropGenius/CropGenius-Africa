@@ -197,18 +197,7 @@ export const DailyOrganicActionCard: React.FC<DailyOrganicActionCardProps> = ({
             </div>
           </div>
           
-          <div className="ml-4 text-center">
-            <div className="bg-white rounded-lg p-3 shadow-sm border">
-              <Coins className="h-6 w-6 mx-auto mb-1 text-green-600" />
-              <div className="text-xl font-bold text-green-600 mb-1">
-                ₦{((action.money_saved || 0) / 1000).toFixed(1)}K
-              </div>
-              <div className="text-xs text-gray-600 mb-2">You'll Save</div>
-              <div className="text-xs text-green-600 font-medium">
-                {action.yield_boost}
-              </div>
-            </div>
-          </div>
+
         </div>
       </CardHeader>
 

@@ -68,11 +68,7 @@ export const EconomicImpactTracker: React.FC = () => {
           </div>
         </div>
         
-        <div className="text-center mt-4 p-3 bg-white rounded-lg">
-          <p className="text-sm font-bold text-gray-800">
-            💰 You're saving <span className="text-green-600">${Math.round(stats.totalSavings * 12 / Math.max(1, new Date().getMonth() + 1))}</span> per year!
-          </p>
-        </div>
+
       </CardContent>
     </Card>
   );
