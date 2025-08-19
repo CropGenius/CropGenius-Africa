@@ -41,32 +41,7 @@ class SecurePesapalService {
       throw new Error(`Payment initiation failed: ${error.message}`);
     }
 
-    await this.storePaymentRecord({
-      order_tracking_id: data.order_tracking_id,
-      merchant_reference: data.merchant_reference,
-      amount: paymentRequest.amount,
-      currency: paymentRequest.currency,
-      email: paymentRequest.billing_address.email_address,
-      status: 'PENDING'
-    });
-
     return data;
-  }
-
-  private async storePaymentRecord(payment: any) {
-    try {
-      await supabase.from('payments').insert({
-        order_tracking_id: payment.order_tracking_id,
-        merchant_reference: payment.merchant_reference,
-        amount: payment.amount,
-        currency: payment.currency,
-        user_email: payment.email,
-        status: payment.status,
-        created_at: new Date().toISOString()
-      });
-    } catch (error) {
-      console.error('Failed to store payment record:', error);
-    }
   }
 }
 

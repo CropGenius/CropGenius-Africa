@@ -3,35 +3,26 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 const PESAPAL_CONSUMER_KEY = Deno.env.get("PESAPAL_CONSUMER_KEY");
 const PESAPAL_CONSUMER_SECRET = Deno.env.get("PESAPAL_CONSUMER_SECRET");
 const PESAPAL_API_URL = "https://pay.pesapal.com/v3";
+const ALLOWED_ORIGIN = "https://www.cropgenius.africa";
 
-if (!PESAPAL_CONSUMER_KEY || !PESAPAL_CONSUMER_SECRET) {
-  console.error("FATAL: Pesapal consumer key or secret is not configured in environment variables.");
-}
-
-function handleCors(req: Request): Response | null {
-  const corsHeaders = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-  };
-
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
-
-  return null;
-}
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
 
 serve(async (req) => {
-  const corsResponse = handleCors(req);
-  if (corsResponse) {
-    return corsResponse;
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: CORS_HEADERS });
   }
 
   try {
+    if (!PESAPAL_CONSUMER_KEY || !PESAPAL_CONSUMER_SECRET) {
+      throw new Error("Server configuration error: Payment provider credentials missing.");
+    }
+
     const orderDetails = await req.json();
 
-    console.log("Requesting Pesapal Access Token...");
     const tokenResponse = await fetch(`${PESAPAL_API_URL}/api/Auth/RequestToken`, {
       method: "POST",
       headers: {
@@ -46,19 +37,17 @@ serve(async (req) => {
 
     if (!tokenResponse.ok) {
       const errorBody = await tokenResponse.text();
-      throw new Error(`Pesapal token request failed: ${tokenResponse.status} ${errorBody}`);
+      throw new Error(`Upstream Error: Failed to authenticate with payment provider. Status: ${tokenResponse.status}`);
     }
 
     const tokenData = await tokenResponse.json();
     const accessToken = tokenData.token;
 
     if (!accessToken) {
-      throw new Error("Pesapal access token was not returned.");
+      throw new Error("Upstream Error: Invalid response from payment provider, token missing.");
     }
-    console.log("Successfully obtained Pesapal Access Token.");
 
-    console.log("Submitting order to Pesapal...");
-    const submitOrderResponse = await fetch(`${PESAPAL_API_URL}/api/SubmitOrderRequest`, {
+    const submitOrderResponse = await fetch(`${PESAPAL_API_URL}/api/Transactions/SubmitOrderRequest`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -70,24 +59,19 @@ serve(async (req) => {
 
     if (!submitOrderResponse.ok) {
       const errorBody = await submitOrderResponse.text();
-      throw new Error(`Pesapal submit order failed: ${submitOrderResponse.status} ${errorBody}`);
+      throw new Error(`Upstream Error: Failed to submit order. Status: ${submitOrderResponse.status}`);
     }
 
     const paymentData = await submitOrderResponse.json();
-    console.log("Successfully submitted order. Returning redirect URL to client.");
 
     return new Response(JSON.stringify(paymentData), {
-      headers: { 
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
+      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
       status: 200,
     });
 
   } catch (error) {
-    console.error("Pesapal proxy error:", error.message);
     return new Response(JSON.stringify({ error: error.message }), {
-      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
       status: 500,
     });
   }
