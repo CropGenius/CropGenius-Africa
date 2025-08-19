@@ -739,7 +739,7 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
                 className="bg-crop-green-600"
                 onClick={() => {
                   toast.success('', {
-                    description: 'navigate('/community');'
+                onClick={() => navigate('/community')}
                   });
                 }}
               >
