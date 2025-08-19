@@ -48,11 +48,7 @@ export default function WeatherDashboard({ selectedField, onFieldChange }: Weath
   const createRealLocationField = async (): Promise<Field> => {
     const location = await geolocationService.getCurrentLocation();
     
-    const locationName = location.source === 'gps' 
-      ? '📍 Your Current Location'
-      : location.source === 'ip'
-      ? '🌍 Your Area'
-      : '🌾 Central Kenya';
+    const locationName = location.address || location.city || location.country || 'Unknown Location';
     
     return {
       id: 'current-location-' + Date.now(),
