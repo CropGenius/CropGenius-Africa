@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
+import { Pricing } from '@/components/ui/pricing';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { createCropGeniusPayment, CROPGENIUS_PRICING } from '@/services/pesapal';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Sparkles, Zap, Shield, Star } from 'lucide-react';
+import { ArrowLeft, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import confetti from 'canvas-confetti';
 
 const UpgradePage = () => {
@@ -120,118 +120,19 @@ const UpgradePage = () => {
         </motion.div>
       </div>
 
-      {/* Pricing Cards */}
+      {/* Pricing Component */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="container max-w-4xl"
       >
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold mb-4">Choose Your Plan</h2>
-          <p className="text-muted-foreground">Unlock the full power of AI farming intelligence</p>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Monthly Plan */}
-          <Card className="relative">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Zap className="h-5 w-5 text-blue-500" />
-                Monthly Plan
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-center">
-                <div className="text-4xl font-bold">KES {CROPGENIUS_PRICING.monthly.price}</div>
-                <div className="text-muted-foreground">per month</div>
-              </div>
-              <ul className="space-y-2 text-sm">
-                <li className="flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-green-500" />
-                  AI Crop Disease Detection
-                </li>
-                <li className="flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-green-500" />
-                  Weather Intelligence
-                </li>
-                <li className="flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-green-500" />
-                  Market Price Alerts
-                </li>
-                <li className="flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-green-500" />
-                  WhatsApp Support
-                </li>
-              </ul>
-              <Button 
-                onClick={() => handleUpgrade('monthly')}
-                disabled={isLoading}
-                className="w-full"
-              >
-                {isLoading ? 'Processing...' : 'Choose Monthly'}
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Annual Plan - FEATURED */}
-          <Card className="relative border-2 border-primary shadow-lg">
-            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-              <div className="bg-gradient-to-r from-primary to-secondary text-white px-4 py-1 rounded-full text-sm font-medium flex items-center gap-1">
-                <Star className="h-4 w-4" />
-                BEST VALUE - 92% OFF!
-              </div>
-            </div>
-            <CardHeader className="pt-8">
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-primary" />
-                Annual Plan
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-2">
-                  <span className="text-2xl line-through text-muted-foreground">KES {CROPGENIUS_PRICING.annual.original}</span>
-                  <div className="text-4xl font-bold text-primary">KES {CROPGENIUS_PRICING.annual.discounted}</div>
-                </div>
-                <div className="text-muted-foreground">for entire year</div>
-                <div className="text-green-600 font-semibold mt-1">
-                  💰 Save KES {CROPGENIUS_PRICING.annual.savings}!
-                </div>
-              </div>
-              <ul className="space-y-2 text-sm">
-                <li className="flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-green-500" />
-                  Everything in Monthly +
-                </li>
-                <li className="flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-green-500" />
-                  Satellite Field Analysis
-                </li>
-                <li className="flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-green-500" />
-                  Advanced Yield Predictions
-                </li>
-                <li className="flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-green-500" />
-                  Priority Support
-                </li>
-                <li className="flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-green-500" />
-                  Offline Mode Access
-                </li>
-              </ul>
-              <Button 
-                onClick={() => handleUpgrade('annual')}
-                disabled={isLoading}
-                className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90"
-                size="lg"
-              >
-                {isLoading ? 'Processing...' : '🚀 Claim 92% Discount'}
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+        <Pricing
+          monthlyPrice={CROPGENIUS_PRICING.monthly.price}
+          annualPrice={CROPGENIUS_PRICING.annual.discounted}
+          title="Choose Your CropGenius Pro Plan"
+          description="Get unlimited access to all AI-powered farming tools and features"
+          onUpgrade={handleUpgrade}
+        />
       </motion.div>
 
       {/* Bottom CTA */}
