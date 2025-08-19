@@ -37,6 +37,7 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
   const [scanProgress, setScanProgress] = useState(0);
   const [scanResults, setScanResults] = useState<DiseaseDetectionResult | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [scanHistory, setScanHistory] = useState<any[]>([]);
   const navigate = useNavigate();
 
   // Refs
@@ -200,6 +201,7 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
             source_api: results.source_api || 'gemini-2.5-flash',
             result_data: results
           });
+          loadScanHistory(); // Refresh history after new scan
         }
       } catch {}
 
@@ -291,12 +293,28 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
     } catch {}
   };
 
-  // Redirect to upgrade if needed when component mounts
+  // Load scan history and redirect to upgrade if needed when component mounts
   useEffect(() => {
     if (!canScan()) {
       navigate('/upgrade');
     }
+    loadScanHistory();
   }, []);
+
+  const loadScanHistory = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase
+          .from('crop_scans')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(5);
+        setScanHistory(data || []);
+      }
+    } catch {}
+  };
 
   const canScan = () => {
     try {
@@ -409,6 +427,26 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
                 </div>
               </div>
             </div>
+          </div>
+        </Card>
+      )}
+
+      {/* SCAN HISTORY */}
+      {scanHistory.length > 0 && (
+        <Card className="glass-card p-4 mb-5">
+          <h3 className="font-semibold text-gray-800 mb-3">Recent Scans</h3>
+          <div className="space-y-2">
+            {scanHistory.map((scan) => (
+              <div key={scan.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                <div>
+                  <p className="text-sm font-medium">{scan.disease_name}</p>
+                  <p className="text-xs text-gray-500">{scan.crop_type} • {new Date(scan.created_at).toLocaleDateString()}</p>
+                </div>
+                <Badge className={getSeverityColor(scan.severity)}>
+                  {scan.severity}
+                </Badge>
+              </div>
+            ))}
           </div>
         </Card>
       )}
