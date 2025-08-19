@@ -170,6 +170,39 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
       setScanResults(results);
       setScanState("results");
 
+      // Save scan to database
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && results) {
+          const econ = computeEconomicImpact(results);
+          await supabase.from('crop_scans').insert({
+            user_id: user.id,
+            crop_type: cropType,
+            disease_name: results.disease_name,
+            scientific_name: results.scientific_name,
+            confidence_score: (results.confidence || 0) / 100,
+            severity: results.severity,
+            affected_area_percentage: results.affected_area_percentage,
+            location_lat: location.lat || -1.2921,
+            location_lng: location.lng || 36.8219,
+            location_country: location.country || 'Kenya',
+            symptoms: results.symptoms || [],
+            immediate_actions: results.immediate_actions || [],
+            preventive_measures: results.preventive_measures || [],
+            organic_solutions: results.organic_solutions || [],
+            inorganic_solutions: results.inorganic_solutions || [],
+            recommended_products: results.recommended_products || [],
+            yield_loss_percentage: econ.yield_loss_percentage,
+            revenue_loss_usd: econ.revenue_loss_usd,
+            treatment_cost_usd: econ.treatment_cost_usd,
+            recovery_timeline: results.recovery_timeline,
+            spread_risk: results.spread_risk,
+            source_api: results.source_api || 'gemini-2.5-flash',
+            result_data: results
+          });
+        }
+      } catch {}
+
       // Increment monthly scan counter for FREE users
       try {
         const isPro = getIsPro();
