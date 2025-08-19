@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, Tractor, Zap, ZapOff } from 'lucide-react';
+import { Menu, Zap, ZapOff } from 'lucide-react';
+import { CommunityIcon } from '@/components/icons/CommunityIcon';
 
 const TopNav = () => {
   const navigate = useNavigate();
@@ -38,12 +39,12 @@ const TopNav = () => {
             }, [])}
           </div>
           
-          {/* Manage Fields */}
+          {/* Community */}
           <button 
-            onClick={() => navigate('/manage-fields')}
+            onClick={() => navigate('/community')}
             className="p-2 text-purple-300 hover:text-purple-200 hover:bg-purple-500/20 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-purple-500/30"
           >
-            <Tractor className="w-6 h-6" />
+            <CommunityIcon className="w-6 h-6" />
           </button>
         </div>
       </div>
