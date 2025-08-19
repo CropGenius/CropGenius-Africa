@@ -39,7 +39,8 @@ import {
   BookOpen,
   Library,
   FileCheck,
-  User
+  User,
+  Download
 } from 'lucide-react';
 import { QuestionCard } from '@/components/community/QuestionCard';
 import { AskQuestionForm } from '@/components/community/AskQuestionForm';
@@ -51,6 +52,8 @@ import {
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { buildPublicUrl } from '@/lib/resourceUrl';
 
 interface FilterOptions {
   category_id?: string;
@@ -61,23 +64,26 @@ interface FilterOptions {
 }
 
 interface TrainingResource {
-  id: number;
+  id: number | string;
   title: string;
   description: string;
   category: string;
-  type: 'course' | 'tutorial' | 'video' | 'article';
+  type: 'course' | 'tutorial' | 'video' | 'article' | 'ebook';
   level: 'beginner' | 'intermediate' | 'advanced';
-  duration: string;
+  duration?: string;
   author: string;
-  authorType: 'expert' | 'organization' | 'ai';
+  authorType?: 'expert' | 'organization' | 'ai';
   datePublished: string;
   thumbnail?: string;
-  popularity: number;
+  popularity?: number;
   isFree: boolean;
-  isAICertified: boolean;
+  isAICertified?: boolean;
   isRecommended?: boolean;
   progress?: number;
   tags: string[];
+  slug?: string;
+  bucket?: string;
+  path?: string;
 }
 
 export const QuestionsPage: React.FC = () => {
@@ -108,63 +114,12 @@ export const QuestionsPage: React.FC = () => {
   const [subscription, setSubscription] = useState<any>(null);
   
   // Training resources state
-  const [trainingResources] = useState<TrainingResource[]>([
-    {
-      id: 1,
-      title: "Organic Pest Management Master Course",
-      description: "Comprehensive training on controlling pests without chemical pesticides. Learn natural solutions that protect crops and biodiversity.",
-      category: "Pest Management",
-      type: 'course',
-      level: 'intermediate',
-      duration: "4 hours",
-      author: "International Organic Farming Institute",
-      authorType: 'organization',
-      datePublished: "2 months ago",
-      thumbnail: "https://images.unsplash.com/photo-1632634415872-7d402cd7fa32",
-      popularity: 1245,
-      isFree: false,
-      isAICertified: true,
-      tags: ["Organic", "Pest Control", "Certification"]
-    },
-    {
-      id: 2,
-      title: "Soil Health Fundamentals",
-      description: "Learn testing, maintaining, and improving your soil quality for maximum crop yields.",
-      category: "Soil Management",
-      type: 'tutorial',
-      level: 'beginner',
-      duration: "2 hours",
-      author: "Dr. Fertility",
-      authorType: 'expert',
-      datePublished: "3 weeks ago",
-      popularity: 856,
-      isFree: true,
-      isAICertified: true,
-      isRecommended: true,
-      progress: 65,
-      tags: ["Soil", "Nutrients", "Testing"]
-    },
-    {
-      id: 3,
-      title: "Drip Irrigation Implementation",
-      description: "Step-by-step guide to set up water-efficient irrigation systems for small farms.",
-      category: "Water Management",
-      type: 'video',
-      level: 'intermediate',
-      duration: "1.5 hours",
-      author: "WaterWise Farming",
-      authorType: 'organization',
-      datePublished: "1 month ago",
-      popularity: 723,
-      isFree: true,
-      isAICertified: true,
-      tags: ["Irrigation", "Water Conservation", "Installation"]
-    }
-  ]);
+  const [trainingResources, setTrainingResources] = useState<TrainingResource[]>([]);
 
   // Load initial data
   useEffect(() => {
     loadInitialData();
+    loadTrainingResources();
     
     // Delay subscription to avoid conflicts
     const timer = setTimeout(() => {
@@ -321,7 +276,103 @@ export const QuestionsPage: React.FC = () => {
     return count;
   };
   
-  const enrollInTraining = (resourceId: number) => {
+  const loadTrainingResources = async () => {
+    // Load from database
+    const { data: dbResources } = await supabase
+      .from('resources')
+      .select('id, slug, title, description, category, type, level, tags, bucket, path, author, is_public, is_active, is_featured, published_at')
+      .eq('is_public', true)
+      .eq('is_active', true)
+      .order('is_featured', { ascending: false })
+      .order('published_at', { ascending: false });
+
+    // Combine with hardcoded resources
+    const hardcodedResources: TrainingResource[] = [
+      {
+        id: 1,
+        title: "Organic Pest Management Master Course",
+        description: "Comprehensive training on controlling pests without chemical pesticides. Learn natural solutions that protect crops and biodiversity.",
+        category: "Pest Management",
+        type: 'course',
+        level: 'intermediate',
+        duration: "4 hours",
+        author: "International Organic Farming Institute",
+        authorType: 'organization',
+        datePublished: "2 months ago",
+        thumbnail: "https://images.unsplash.com/photo-1632634415872-7d402cd7fa32",
+        popularity: 1245,
+        isFree: false,
+        isAICertified: true,
+        tags: ["Organic", "Pest Control", "Certification"]
+      },
+      {
+        id: 2,
+        title: "Soil Health Fundamentals",
+        description: "Learn testing, maintaining, and improving your soil quality for maximum crop yields.",
+        category: "Soil Management",
+        type: 'tutorial',
+        level: 'beginner',
+        duration: "2 hours",
+        author: "Dr. Fertility",
+        authorType: 'expert',
+        datePublished: "3 weeks ago",
+        popularity: 856,
+        isFree: true,
+        isAICertified: true,
+        isRecommended: true,
+        progress: 65,
+        tags: ["Soil", "Nutrients", "Testing"]
+      },
+      {
+        id: 3,
+        title: "Drip Irrigation Implementation",
+        description: "Step-by-step guide to set up water-efficient irrigation systems for small farms.",
+        category: "Water Management",
+        type: 'video',
+        level: 'intermediate',
+        duration: "1.5 hours",
+        author: "WaterWise Farming",
+        authorType: 'organization',
+        datePublished: "1 month ago",
+        popularity: 723,
+        isFree: true,
+        isAICertified: true,
+        tags: ["Irrigation", "Water Conservation", "Installation"]
+      }
+    ];
+
+    // Transform database resources to match interface
+    const transformedDbResources: TrainingResource[] = (dbResources || []).map(resource => ({
+      id: resource.id,
+      slug: resource.slug,
+      title: resource.title,
+      description: resource.description || '',
+      category: resource.category,
+      type: resource.type as TrainingResource['type'],
+      level: resource.level as TrainingResource['level'],
+      author: resource.author || 'Unknown',
+      datePublished: new Date(resource.published_at).toLocaleDateString(),
+      isFree: true,
+      tags: Array.isArray(resource.tags) ? resource.tags : [],
+      bucket: resource.bucket,
+      path: resource.path
+    }));
+
+    setTrainingResources([...transformedDbResources, ...hardcodedResources]);
+  };
+
+  const getResourceUrl = (resource: TrainingResource) => {
+    if (resource.slug === 'ultimate-organic-farming-guide') {
+      // Runtime fallback for the PDF
+      if (!resource.path || resource.path.includes('books/')) {
+        return 'https://bapqlyvfwxsichlyjxpd.supabase.co/storage/v1/object/public/resources/The_Ultimate_Organic_Farming_Guide.pdf';
+      }
+      return buildPublicUrl(supabase, resource.bucket || 'resources', resource.path);
+    }
+    return null;
+  };
+
+  const enrollInTraining = (resourceId: number | string) => {
     toast.success(`Enrolled in training resource ${resourceId}`, {
       description: "Your learning materials are now available",
     });
@@ -601,7 +652,19 @@ export const QuestionsPage: React.FC = () => {
                     
                     {/* Action buttons */}
                     <div className="mt-4">
-                      {resource.progress !== undefined ? (
+                      {getResourceUrl(resource) ? (
+                        <a
+                          href={getResourceUrl(resource)!}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          download
+                          className="inline-flex items-center justify-center w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium transition-colors"
+                          aria-label={`Download ${resource.title}`}
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Download PDF
+                        </a>
+                      ) : resource.progress !== undefined ? (
                         <Button 
                           className="w-full bg-green-600 hover:bg-green-700 text-white"
                         >
