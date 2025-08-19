@@ -451,12 +451,12 @@
 
 /* 🚀 PREMIUM NAVBAR UPGRADE - 2030 GLASSMORPHISM EFFECT */
 nav.premium-navbar {
-  /* Gradient Background - Green to Transparent (Diffused Effect) */
+  /* Gradient Background - Primary Green to Transparent (Diffused Effect) */
   background: linear-gradient(
     to bottom, 
-    rgba(76, 175, 80, 0.95) 0%,
-    rgba(76, 175, 80, 0.8) 70%,
-    rgba(76, 175, 80, 0) 100%
+    hsl(142.1, 70.6%, 45.3%, 0.95) 0%,
+    hsl(142.1, 70.6%, 45.3%, 0.8) 70%,
+    hsl(142.1, 70.6%, 45.3%, 0) 100%
   ) !important;
   
   /* Glassmorphism Effect - Backdrop Blur */
@@ -497,7 +497,7 @@ nav.premium-navbar {
 /* Fallback for Older Browsers */
 @supports not (backdrop-filter: blur(12px)) {
   nav.premium-navbar {
-    background: rgba(76, 175, 80, 0.9);
+    background: hsl(142.1, 70.6%, 45.3%, 0.9);
   }
 }
 
