@@ -62,9 +62,9 @@ export const DailyOrganicActionCard: React.FC<DailyOrganicActionCardProps> = ({
         crop_type: 'Mixed Crops',
         field_name: 'Your Farm',
         time_to_results: dailyAction.expectedResults.timeToResults,
-        why_now: `This organic solution can save you ₦${dailyAction.expectedResults.moneySaved * 1000} and increase your yield by ${dailyAction.expectedResults.yieldIncrease}`,
-        money_saved: dailyAction.expectedResults.moneySaved * 1000,
-        yield_boost: dailyAction.expectedResults.yieldIncrease,
+        why_now: `This organic solution improves soil health and crop resilience`,
+        money_saved: 0,
+        yield_boost: 'Natural improvement',
         ingredients: dailyAction.ingredients.reduce((acc, ing) => {
           acc[ing.name] = ing.quantity;
           return acc;
@@ -110,9 +110,9 @@ export const DailyOrganicActionCard: React.FC<DailyOrganicActionCardProps> = ({
         crop_type: 'Mixed Crops',
         field_name: 'Your Farm',
         time_to_results: dailyAction.expectedResults.timeToResults,
-        why_now: `This organic solution can save you ₦${dailyAction.expectedResults.moneySaved * 1000} and increase your yield by ${dailyAction.expectedResults.yieldIncrease}`,
-        money_saved: dailyAction.expectedResults.moneySaved * 1000,
-        yield_boost: dailyAction.expectedResults.yieldIncrease,
+        why_now: `This organic solution improves soil health and crop resilience`,
+        money_saved: 0,
+        yield_boost: 'Natural improvement',
         ingredients: dailyAction.ingredients.reduce((acc, ing) => {
           acc[ing.name] = ing.quantity;
           return acc;
@@ -196,8 +196,6 @@ export const DailyOrganicActionCard: React.FC<DailyOrganicActionCardProps> = ({
               <p className="text-yellow-700 text-sm">{action.why_now}</p>
             </div>
           </div>
-          
-
         </div>
       </CardHeader>
 
@@ -303,7 +301,7 @@ export const DailyOrganicActionCard: React.FC<DailyOrganicActionCardProps> = ({
                 <span className="font-bold">Action Completed!</span>
               </div>
               <div className="text-sm text-gray-600 mt-1">
-                You saved ₦{((action.money_saved || 0) / 1000).toFixed(1)}K and earned {action.organic_score_points} organic points
+                Great job! You earned {action.organic_score_points} organic points
               </div>
             </div>
           )}
