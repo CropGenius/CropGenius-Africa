@@ -431,26 +431,6 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
         </Card>
       )}
 
-      {/* SCAN HISTORY */}
-      {scanHistory.length > 0 && (
-        <Card className="glass-card p-4 mb-5">
-          <h3 className="font-semibold text-gray-800 mb-3">Recent Scans</h3>
-          <div className="space-y-2">
-            {scanHistory.map((scan) => (
-              <div key={scan.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="text-sm font-medium">{scan.disease_name}</p>
-                  <p className="text-xs text-gray-500">{scan.crop_type} • {new Date(scan.created_at).toLocaleDateString()}</p>
-                </div>
-                <Badge className={getSeverityColor(scan.severity)}>
-                  {scan.severity}
-                </Badge>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
-
       {/* SCANNING STATE */}
       {scanState === "scanning" && (
         <Card className="glass-card p-5 mb-5">
@@ -768,6 +748,29 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
             </div>
           </Card>
         </>
+      )}
+    </div>
+  );
+};
+
+      {/* SCAN HISTORY - Only show in idle state */}
+      {scanState === "idle" && scanHistory.length > 0 && (
+        <Card className="glass-card p-4 mb-5">
+          <h3 className="font-semibold text-gray-800 mb-3">Recent Scans</h3>
+          <div className="space-y-2">
+            {scanHistory.map((scan) => (
+              <div key={scan.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                <div>
+                  <p className="text-sm font-medium">{scan.disease_name}</p>
+                  <p className="text-xs text-gray-500">{scan.crop_type} • {new Date(scan.created_at).toLocaleDateString()}</p>
+                </div>
+                <Badge className={getSeverityColor(scan.severity)}>
+                  {scan.severity}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        </Card>
       )}
     </div>
   );
