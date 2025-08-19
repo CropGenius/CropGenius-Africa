@@ -10,6 +10,7 @@ import { Check, Shield, TrendingUp, Users, Zap, Award, Lock, HeadphonesIcon } fr
 import { useState, useRef } from "react";
 import confetti from "canvas-confetti";
 import NumberFlow from "@number-flow/react";
+import { RainbowButton } from "@/components/ui/rainbow-button";
 
 interface PricingProps {
   monthlyPrice?: number;
@@ -209,22 +210,14 @@ export function Pricing({
               </ul>
             </div>
 
-            <button
+            <RainbowButton
               onClick={() => onUpgrade?.(isAnnual ? 'annual' : 'monthly')}
-              className={cn(
-                buttonVariants({
-                  variant: "default",
-                  size: "lg",
-                }),
-                "w-full text-lg font-semibold",
-                "bg-primary hover:bg-primary/90",
-                "transform transition-all hover:scale-105"
-              )}
+              className="w-full text-lg font-semibold transform transition-all hover:scale-105"
             >
               {isAnnual 
                 ? `🚀 Get Annual Deal - Save ${savingsPercent}%`
                 : "Start Monthly - KES " + monthlyPrice + "/mo"}
-            </button>
+            </RainbowButton>
 
             <div className="mt-6 pt-6 border-t space-y-2">
               <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">

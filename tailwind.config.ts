@@ -58,7 +58,12 @@ const config = {
           100: 'rgba(255, 255, 255, 0.10)',
           200: 'rgba(255, 255, 255, 0.15)',
           300: 'rgba(255, 255, 255, 0.20)',
-        }
+        },
+        "color-1": "hsl(var(--color-1))",
+        "color-2": "hsl(var(--color-2))",
+        "color-3": "hsl(var(--color-3))",
+        "color-4": "hsl(var(--color-4))",
+        "color-5": "hsl(var(--color-5))",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -81,13 +86,18 @@ const config = {
         'shimmer': {
           '0%': { transform: 'translateX(-100%)' },
           '100%': { transform: 'translateX(100%)' },
-        }
+        },
+        rainbow: {
+          "0%": { "background-position": "0%" },
+          "100%": { "background-position": "200%" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         'glow-pulse': 'glow-pulse 2s ease-in-out infinite',
         'shimmer': 'shimmer 2s infinite',
+        rainbow: "rainbow var(--speed, 2s) infinite linear",
       },
       boxShadow: {
         'glow-green': '0 8px 30px rgba(16, 185, 129, 0.4)',
