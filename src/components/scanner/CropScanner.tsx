@@ -670,26 +670,6 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
             </div>
           </div>
 
-          {/* Economic Impact */}
-          {(() => {
-            const econ = computeEconomicImpact(scanResults);
-            return (
-              <Card className="glass-card p-4 mb-5 bg-amber-50">
-                <h3 className="font-semibold text-amber-800 mb-3"></h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-amber-700"></p>
-                    <p className="text-lg font-bold text-amber-800">${econ.revenue_loss_usd}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-amber-700">Treatment Cost</p>
-                    <p className="text-lg font-bold text-amber-800">${econ.treatment_cost_usd}</p>
-                  </div>
-                </div>
-              </Card>
-            );
-          })()}
-
           <div className="flex gap-4 mb-10">
             <Button
               className="flex-1 bg-crop-green-600 hover:bg-crop-green-700 text-white"
@@ -737,11 +717,7 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
                 variant="default" 
                 size="sm" 
                 className="bg-crop-green-600"
-                onClick={() => {
-                  toast.success('', {
                 onClick={() => navigate('/community')}
-                  });
-                }}
               >
                 Join Now <ArrowRight className="ml-1 w-4 h-4" />
               </Button>
@@ -749,9 +725,6 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
           </Card>
         </>
       )}
-    </div>
-  );
-};
 
       {/* SCAN HISTORY - Only show in idle state */}
       {scanState === "idle" && scanHistory.length > 0 && (
