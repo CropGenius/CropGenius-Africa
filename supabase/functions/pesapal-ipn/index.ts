@@ -72,6 +72,14 @@ serve(async (req) => {
       });
     }
 
+    // Add immediate acknowledgment logging
+    await logPaymentEvent("ipn_acknowledged", {
+      orderTrackingId,
+      merchantReference,
+      notificationType,
+      processingTime: Date.now()
+    });
+
     // Return required response format for Pesapal
     const response = `pesapal_notification_type=${notificationType}&pesapal_transaction_tracking_id=${orderTrackingId}&pesapal_merchant_reference=${merchantReference}`;
     
@@ -97,8 +105,26 @@ async function handlePaymentStatusChange(trackingId: string) {
     console.log(`Processing payment status change for: ${trackingId}`);
     
     await logPaymentEvent("status_check_started", {
-      trackingId
+      trackingId,
+      timestamp: new Date().toISOString()
     });
+
+    // Check if payment already processed to avoid duplicate processing
+    const { data: existingPayment } = await supabase
+      .from("payments")
+      .select("status, updated_at")
+      .eq("order_tracking_id", trackingId)
+      .single();
+
+    if (existingPayment && existingPayment.status === "COMPLETED") {
+      console.log(`Payment ${trackingId} already completed, skipping processing`);
+      await logPaymentEvent("payment_already_completed", {
+        trackingId,
+        existingStatus: existingPayment.status,
+        lastUpdated: existingPayment.updated_at
+      });
+      return;
+    }
     
     // Get Pesapal access token
     const tokenResponse = await fetch(`${pesapalBaseUrl}/api/Auth/RequestToken`, {
@@ -140,11 +166,25 @@ async function handlePaymentStatusChange(trackingId: string) {
       status
     });
 
+    // Map Pesapal status to our system status
+    let systemStatus = "PENDING";
+    if (status.payment_status_description === "COMPLETED") {
+      systemStatus = "COMPLETED";
+    } else if (status.payment_status_description === "FAILED") {
+      systemStatus = "FAILED";
+    } else if (status.payment_status_description === "REVERSED") {
+      systemStatus = "CANCELLED";
+    } else if (status.payment_status_description === "INVALID") {
+      systemStatus = "FAILED";
+    }
+
+    console.log(`Mapping Pesapal status '${status.payment_status_description}' to system status '${systemStatus}'`);
+
     // Update payment record in database
     const { error: paymentError } = await supabase
       .from("payments")
       .update({
-        status: "COMPLETED",
+        status: systemStatus,
         payment_method: status.payment_method,
         confirmation_code: status.confirmation_code,
         updated_at: new Date().toISOString()
@@ -167,8 +207,8 @@ async function handlePaymentStatusChange(trackingId: string) {
       status: status.status_description || status.payment_status_description
     });
 
-    // Always activate subscription when IPN is received (payment successful)
-    {
+    // Only activate subscription if payment was actually completed
+    if (systemStatus === "COMPLETED") {
       const { data: payment } = await supabase
         .from("payments")
         .select("user_email, amount")
