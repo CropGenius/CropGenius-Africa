@@ -1043,6 +1043,54 @@ export type Database = {
         }
         Relationships: []
       }
+      email_templates: {
+        Row: {
+          active: boolean | null
+          category: string
+          created_at: string | null
+          created_by: string | null
+          html_content: string
+          id: string
+          language: string | null
+          name: string
+          subject: string
+          text_content: string
+          updated_at: string | null
+          variables: Json | null
+          version: number | null
+        }
+        Insert: {
+          active?: boolean | null
+          category: string
+          created_at?: string | null
+          created_by?: string | null
+          html_content: string
+          id?: string
+          language?: string | null
+          name: string
+          subject: string
+          text_content: string
+          updated_at?: string | null
+          variables?: Json | null
+          version?: number | null
+        }
+        Update: {
+          active?: boolean | null
+          category?: string
+          created_at?: string | null
+          created_by?: string | null
+          html_content?: string
+          id?: string
+          language?: string | null
+          name?: string
+          subject?: string
+          text_content?: string
+          updated_at?: string | null
+          variables?: Json | null
+          version?: number | null
+        }
+        Relationships: []
+      }
       error_logs: {
         Row: {
           category: string
@@ -1886,6 +1934,296 @@ export type Database = {
           },
         ]
       }
+      notification_analytics: {
+        Row: {
+          average_delivery_time: unknown | null
+          bounce_rate: number | null
+          click_through_rate: number | null
+          date: string
+          email_opened: number | null
+          email_sent: number | null
+          id: string
+          market_notifications: number | null
+          notifications_clicked: number | null
+          notifications_delivered: number | null
+          notifications_opened: number | null
+          notifications_sent: number | null
+          push_clicked: number | null
+          push_sent: number | null
+          system_notifications: number | null
+          task_notifications: number | null
+          user_id: string | null
+          weather_notifications: number | null
+          whatsapp_delivered: number | null
+          whatsapp_sent: number | null
+        }
+        Insert: {
+          average_delivery_time?: unknown | null
+          bounce_rate?: number | null
+          click_through_rate?: number | null
+          date?: string
+          email_opened?: number | null
+          email_sent?: number | null
+          id?: string
+          market_notifications?: number | null
+          notifications_clicked?: number | null
+          notifications_delivered?: number | null
+          notifications_opened?: number | null
+          notifications_sent?: number | null
+          push_clicked?: number | null
+          push_sent?: number | null
+          system_notifications?: number | null
+          task_notifications?: number | null
+          user_id?: string | null
+          weather_notifications?: number | null
+          whatsapp_delivered?: number | null
+          whatsapp_sent?: number | null
+        }
+        Update: {
+          average_delivery_time?: unknown | null
+          bounce_rate?: number | null
+          click_through_rate?: number | null
+          date?: string
+          email_opened?: number | null
+          email_sent?: number | null
+          id?: string
+          market_notifications?: number | null
+          notifications_clicked?: number | null
+          notifications_delivered?: number | null
+          notifications_opened?: number | null
+          notifications_sent?: number | null
+          push_clicked?: number | null
+          push_sent?: number | null
+          system_notifications?: number | null
+          task_notifications?: number | null
+          user_id?: string | null
+          weather_notifications?: number | null
+          whatsapp_delivered?: number | null
+          whatsapp_sent?: number | null
+        }
+        Relationships: []
+      }
+      notification_log: {
+        Row: {
+          channel: string
+          clicked_at: string | null
+          delivered_at: string | null
+          error_code: string | null
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          notification_id: string | null
+          opened_at: string | null
+          provider_id: string | null
+          provider_response: Json | null
+          retry_count: number | null
+          sent_at: string | null
+          status: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          channel: string
+          clicked_at?: string | null
+          delivered_at?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          notification_id?: string | null
+          opened_at?: string | null
+          provider_id?: string | null
+          provider_response?: Json | null
+          retry_count?: number | null
+          sent_at?: string | null
+          status: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          channel?: string
+          clicked_at?: string | null
+          delivered_at?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          notification_id?: string | null
+          opened_at?: string | null
+          provider_id?: string | null
+          provider_response?: Json | null
+          retry_count?: number | null
+          sent_at?: string | null
+          status?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_log_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notification_queue"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_preferences: {
+        Row: {
+          created_at: string | null
+          email_enabled: boolean | null
+          emergency_alerts: boolean | null
+          id: string
+          market_alerts: boolean | null
+          max_daily_notifications: number | null
+          max_hourly_notifications: number | null
+          push_enabled: boolean | null
+          quiet_hours_end: string | null
+          quiet_hours_start: string | null
+          sms_enabled: boolean | null
+          sms_number: string | null
+          sms_verified: boolean | null
+          system_notifications: boolean | null
+          task_reminders: boolean | null
+          timezone: string | null
+          updated_at: string | null
+          user_id: string
+          weather_alerts: boolean | null
+          weekly_reports: boolean | null
+          whatsapp_enabled: boolean | null
+          whatsapp_number: string | null
+          whatsapp_verified: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          email_enabled?: boolean | null
+          emergency_alerts?: boolean | null
+          id?: string
+          market_alerts?: boolean | null
+          max_daily_notifications?: number | null
+          max_hourly_notifications?: number | null
+          push_enabled?: boolean | null
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          sms_enabled?: boolean | null
+          sms_number?: string | null
+          sms_verified?: boolean | null
+          system_notifications?: boolean | null
+          task_reminders?: boolean | null
+          timezone?: string | null
+          updated_at?: string | null
+          user_id: string
+          weather_alerts?: boolean | null
+          weekly_reports?: boolean | null
+          whatsapp_enabled?: boolean | null
+          whatsapp_number?: string | null
+          whatsapp_verified?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          email_enabled?: boolean | null
+          emergency_alerts?: boolean | null
+          id?: string
+          market_alerts?: boolean | null
+          max_daily_notifications?: number | null
+          max_hourly_notifications?: number | null
+          push_enabled?: boolean | null
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          sms_enabled?: boolean | null
+          sms_number?: string | null
+          sms_verified?: boolean | null
+          system_notifications?: boolean | null
+          task_reminders?: boolean | null
+          timezone?: string | null
+          updated_at?: string | null
+          user_id?: string
+          weather_alerts?: boolean | null
+          weekly_reports?: boolean | null
+          whatsapp_enabled?: boolean | null
+          whatsapp_number?: string | null
+          whatsapp_verified?: boolean | null
+        }
+        Relationships: []
+      }
+      notification_queue: {
+        Row: {
+          action_text: string | null
+          action_url: string | null
+          attempts: number | null
+          channel: string
+          clicked_at: string | null
+          created_at: string | null
+          data: Json | null
+          delivered_at: string | null
+          device_info: Json | null
+          error_message: string | null
+          expires_at: string | null
+          id: string
+          location_info: Json | null
+          max_attempts: number | null
+          message: string
+          next_retry_at: string | null
+          priority: number
+          scheduled_for: string
+          sent_at: string | null
+          status: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          action_text?: string | null
+          action_url?: string | null
+          attempts?: number | null
+          channel: string
+          clicked_at?: string | null
+          created_at?: string | null
+          data?: Json | null
+          delivered_at?: string | null
+          device_info?: Json | null
+          error_message?: string | null
+          expires_at?: string | null
+          id?: string
+          location_info?: Json | null
+          max_attempts?: number | null
+          message: string
+          next_retry_at?: string | null
+          priority?: number
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          action_text?: string | null
+          action_url?: string | null
+          attempts?: number | null
+          channel?: string
+          clicked_at?: string | null
+          created_at?: string | null
+          data?: Json | null
+          delivered_at?: string | null
+          device_info?: Json | null
+          error_message?: string | null
+          expires_at?: string | null
+          id?: string
+          location_info?: Json | null
+          max_attempts?: number | null
+          message?: string
+          next_retry_at?: string | null
+          priority?: number
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: string
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       onboarding: {
         Row: {
           completed: boolean
@@ -2441,6 +2779,117 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_logs: {
+        Row: {
+          created_at: string | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          timestamp: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          timestamp?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          timestamp?: string | null
+        }
+        Relationships: []
+      }
+      payment_sessions: {
+        Row: {
+          amount: number
+          completed_at: string | null
+          created_at: string | null
+          currency: string
+          id: string
+          payment_data: Json | null
+          pesapal_data: Json | null
+          pesapal_order_tracking_id: string | null
+          plan_type: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          completed_at?: string | null
+          created_at?: string | null
+          currency?: string
+          id: string
+          payment_data?: Json | null
+          pesapal_data?: Json | null
+          pesapal_order_tracking_id?: string | null
+          plan_type: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          completed_at?: string | null
+          created_at?: string | null
+          currency?: string
+          id?: string
+          payment_data?: Json | null
+          pesapal_data?: Json | null
+          pesapal_order_tracking_id?: string | null
+          plan_type?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          confirmation_code: string | null
+          created_at: string | null
+          currency: string | null
+          id: string
+          merchant_reference: string
+          order_tracking_id: string
+          payment_method: string | null
+          status: string | null
+          updated_at: string | null
+          user_email: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          confirmation_code?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          merchant_reference: string
+          order_tracking_id: string
+          payment_method?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_email: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          confirmation_code?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          merchant_reference?: string
+          order_tracking_id?: string
+          payment_method?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_email?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       performance_baseline: {
         Row: {
           id: string
@@ -2498,6 +2947,33 @@ export type Database = {
           is_system?: boolean | null
           name?: string
           permission?: string
+        }
+        Relationships: []
+      }
+      pesapal_ipn_urls: {
+        Row: {
+          created_at: string | null
+          environment: string
+          id: string
+          ipn_url: string
+          notification_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          environment: string
+          id?: string
+          ipn_url: string
+          notification_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          environment?: string
+          id?: string
+          ipn_url?: string
+          notification_id?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -2565,6 +3041,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      push_subscriptions: {
+        Row: {
+          active: boolean | null
+          auth_key: string
+          browser_name: string | null
+          browser_version: string | null
+          created_at: string | null
+          device_type: string | null
+          endpoint: string
+          id: string
+          last_notification_sent: string | null
+          last_used: string | null
+          os_name: string | null
+          os_version: string | null
+          p256dh_key: string
+          total_notifications_sent: number | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          active?: boolean | null
+          auth_key: string
+          browser_name?: string | null
+          browser_version?: string | null
+          created_at?: string | null
+          device_type?: string | null
+          endpoint: string
+          id?: string
+          last_notification_sent?: string | null
+          last_used?: string | null
+          os_name?: string | null
+          os_version?: string | null
+          p256dh_key: string
+          total_notifications_sent?: number | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          active?: boolean | null
+          auth_key?: string
+          browser_name?: string | null
+          browser_version?: string | null
+          created_at?: string | null
+          device_type?: string | null
+          endpoint?: string
+          id?: string
+          last_notification_sent?: string | null
+          last_used?: string | null
+          os_name?: string | null
+          os_version?: string | null
+          p256dh_key?: string
+          total_notifications_sent?: number | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       recipe_user_feedback: {
         Row: {
@@ -2694,6 +3227,69 @@ export type Database = {
           removal_reason?: string | null
           removed_at?: string | null
           table_name?: string
+        }
+        Relationships: []
+      }
+      resources: {
+        Row: {
+          author: string | null
+          bucket: string
+          category: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_featured: boolean | null
+          is_public: boolean | null
+          level: string | null
+          path: string
+          published_at: string | null
+          slug: string
+          tags: Json | null
+          title: string
+          type: string
+          updated_at: string | null
+          version: string | null
+        }
+        Insert: {
+          author?: string | null
+          bucket?: string
+          category: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          is_public?: boolean | null
+          level?: string | null
+          path: string
+          published_at?: string | null
+          slug: string
+          tags?: Json | null
+          title: string
+          type: string
+          updated_at?: string | null
+          version?: string | null
+        }
+        Update: {
+          author?: string | null
+          bucket?: string
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          is_public?: boolean | null
+          level?: string | null
+          path?: string
+          published_at?: string | null
+          slug?: string
+          tags?: Json | null
+          title?: string
+          type?: string
+          updated_at?: string | null
+          version?: string | null
         }
         Relationships: []
       }
@@ -3406,6 +4002,8 @@ export type Database = {
           current_period_end: string | null
           current_period_start: string | null
           id: string
+          pesapal_customer_id: string | null
+          pesapal_order_tracking_id: string | null
           plan_type: string
           status: string
           stripe_customer_id: string | null
@@ -3419,6 +4017,8 @@ export type Database = {
           current_period_end?: string | null
           current_period_start?: string | null
           id?: string
+          pesapal_customer_id?: string | null
+          pesapal_order_tracking_id?: string | null
           plan_type?: string
           status?: string
           stripe_customer_id?: string | null
@@ -3432,6 +4032,8 @@ export type Database = {
           current_period_end?: string | null
           current_period_start?: string | null
           id?: string
+          pesapal_customer_id?: string | null
+          pesapal_order_tracking_id?: string | null
           plan_type?: string
           status?: string
           stripe_customer_id?: string | null
@@ -3573,6 +4175,42 @@ export type Database = {
           questions_asked?: number | null
           total_points?: number | null
           updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          activated_at: string | null
+          created_at: string | null
+          expires_at: string
+          id: string
+          plan_type: string
+          status: string | null
+          updated_at: string | null
+          user_email: string
+          user_id: string | null
+        }
+        Insert: {
+          activated_at?: string | null
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          plan_type: string
+          status?: string | null
+          updated_at?: string | null
+          user_email: string
+          user_id?: string | null
+        }
+        Update: {
+          activated_at?: string | null
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          plan_type?: string
+          status?: string | null
+          updated_at?: string | null
+          user_email?: string
           user_id?: string | null
         }
         Relationships: []
@@ -3831,6 +4469,51 @@ export type Database = {
           message_type?: string
           phone_number?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      whatsapp_verification: {
+        Row: {
+          attempts: number | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          ip_address: unknown | null
+          max_attempts: number | null
+          phone_number: string
+          user_agent: string | null
+          user_id: string
+          verification_code: string
+          verified: boolean | null
+          verified_at: string | null
+        }
+        Insert: {
+          attempts?: number | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          max_attempts?: number | null
+          phone_number: string
+          user_agent?: string | null
+          user_id: string
+          verification_code: string
+          verified?: boolean | null
+          verified_at?: string | null
+        }
+        Update: {
+          attempts?: number | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          max_attempts?: number | null
+          phone_number?: string
+          user_agent?: string | null
+          user_id?: string
+          verification_code?: string
+          verified?: boolean | null
+          verified_at?: string | null
         }
         Relationships: []
       }
@@ -4268,9 +4951,30 @@ export type Database = {
             }
         Returns: Json
       }
+      create_notification: {
+        Args: {
+          p_action_text?: string
+          p_action_url?: string
+          p_channel: string
+          p_data?: Json
+          p_message: string
+          p_priority?: number
+          p_scheduled_for?: string
+          p_title: string
+          p_type: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       deduct_user_credits: {
         Args: { p_amount: number; p_description: string; p_user_id: string }
         Returns: undefined
+      }
+      demonstrate_100_million_farmer_capacity: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          scale_analysis: Json
+        }[]
       }
       disablelongtransactions: {
         Args: Record<PropertyKey, never>
@@ -4652,6 +5356,34 @@ export type Database = {
         Args: { period_param?: string }
         Returns: Json
       }
+      get_user_notification_preferences: {
+        Args: { p_user_id: string }
+        Returns: {
+          created_at: string | null
+          email_enabled: boolean | null
+          emergency_alerts: boolean | null
+          id: string
+          market_alerts: boolean | null
+          max_daily_notifications: number | null
+          max_hourly_notifications: number | null
+          push_enabled: boolean | null
+          quiet_hours_end: string | null
+          quiet_hours_start: string | null
+          sms_enabled: boolean | null
+          sms_number: string | null
+          sms_verified: boolean | null
+          system_notifications: boolean | null
+          task_reminders: boolean | null
+          timezone: string | null
+          updated_at: string | null
+          user_id: string
+          weather_alerts: boolean | null
+          weekly_reports: boolean | null
+          whatsapp_enabled: boolean | null
+          whatsapp_number: string | null
+          whatsapp_verified: boolean | null
+        }
+      }
       get_user_permissions: {
         Args: { user_uuid: string }
         Returns: {
@@ -4659,6 +5391,16 @@ export type Database = {
           permission: string
           resource_id: string
           resource_type: string
+        }[]
+      }
+      get_user_plan: {
+        Args: { user_uuid: string }
+        Returns: {
+          billing_cycle: string
+          current_period_end: string
+          is_active: boolean
+          plan_type: string
+          status: string
         }[]
       }
       gettransactionid: {
@@ -4694,6 +5436,10 @@ export type Database = {
           resource_uuid?: string
           user_uuid: string
         }
+        Returns: boolean
+      }
+      has_pro_plan: {
+        Args: { user_uuid: string }
         Returns: boolean
       }
       is_index_unused: {
@@ -4902,6 +5648,15 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      process_pending_notifications: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          details: Json
+          failed_count: number
+          processed_count: number
+          success_count: number
+        }[]
+      }
       process_referral: {
         Args: { p_referred: string; p_referrer: string }
         Returns: undefined
@@ -4941,6 +5696,12 @@ export type Database = {
             }
           | { p_farm_name: string; p_primary_crops: string[] }
         Returns: undefined
+      }
+      simulate_massive_scale_notification_system: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          simulation_results: Json
+        }[]
       }
       spheroid_in: {
         Args: { "": unknown }
