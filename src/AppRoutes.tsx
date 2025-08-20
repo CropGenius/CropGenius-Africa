@@ -83,7 +83,7 @@ export default function AppRoutes() {
       <Route path="/market-insights" element={<Protected><MarketInsightsPage /></Protected>} />
       <Route path="/mission-control" element={<Protected><MissionControlPage /></Protected>} />
       <Route path="/upgrade" element={<Protected><UpgradePage /></Protected>} />
-      <Route path="/payment/callback" element={<PaymentCallback />} />
+      <Route path="/payment-callback" element={<PaymentCallback />} />
       <Route path="/referrals" element={<Protected><ReferralsPage /></Protected>} />
       
       <Route path="*" element={<NotFound />} />

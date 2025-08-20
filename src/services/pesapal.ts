@@ -28,7 +28,8 @@ class OfficialPesapalService {
     if (this.ipnId) return this.ipnId;
 
     const token = await this.getToken();
-    const ipnUrl = `${window.location.origin.replace('www.cropgenius.africa', 'bapqlyvfwxsichlyjxpd.supabase.co')}/functions/v1/pesapal-ipn`;
+    // Use the correct Supabase function URL for IPN
+    const ipnUrl = `https://bapqlyvfwxsichlyjxpd.supabase.co/functions/v1/pesapal-ipn`;
 
     const { data, error } = await supabase.functions.invoke('pesapal-payment', {
       body: { 
@@ -60,7 +61,7 @@ class OfficialPesapalService {
       currency: 'KES',
       amount,
       description: amount >= 5000 ? 'CropGenius Annual Plan' : 'CropGenius Monthly Plan',
-      callback_url: `${window.location.origin}/payment/callback`,
+      callback_url: `${window.location.origin}/payment-callback`,
       notification_id: notificationId,
       billing_address: {
         email_address: userEmail,
