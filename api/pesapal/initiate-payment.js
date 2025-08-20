@@ -38,7 +38,7 @@ export default async function handler(req, res) {
             'Accept': 'application/json'
         },
         body: JSON.stringify({
-            url: `${process.env.NEXT_PUBLIC_APP_URL}/api/pesapal/ipn`,
+            url: `https://bapqlyvfwxsichlyjxpd.supabase.co/functions/v1/pesapal-ipn`,
             ipn_notification_type: 'GET'
         })
     });
@@ -59,11 +59,11 @@ export default async function handler(req, res) {
         email_address: user_details.email,
         phone_number: user_details.phone,
         first_name: user_details.first_name,
-        last_name: user_destails.last_name
+        last_name: user_details.last_name
       }
     };
 
-    const orderResponse = await fetch(`${process.env.PESAPAL_API_URL}/api/Transactions/SubmitOrderRequest`, {
+    const orderResponse = await fetch(`${process.env.PESAPAL_API_URL}/api/SubmitOrderRequest`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
