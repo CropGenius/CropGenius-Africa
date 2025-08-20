@@ -28,8 +28,8 @@ class OfficialPesapalService {
     if (this.ipnId) return this.ipnId;
 
     const token = await this.getToken();
-    // Use the correct Supabase function URL for IPN
-    const ipnUrl = `https://bapqlyvfwxsichlyjxpd.supabase.co/functions/v1/pesapal-ipn`;
+    // Use public Vercel API for IPN (no auth required)
+    const ipnUrl = `https://cropgenius.africa/api/pesapal/ipn-public`;
 
     const { data, error } = await supabase.functions.invoke('pesapal-payment', {
       body: { 

@@ -4,7 +4,7 @@
 
 [[redirects]]
   from = "/api/pesapal/ipn"
-  to = "/.netlify/functions/pesapal-ipn"
+  to = "/.netlify/functions/pesapal-ipn-public"
   status = 200
 
 [[redirects]]

@@ -11,14 +11,18 @@ const pesapalBaseUrl = "https://pay.pesapal.com/v3";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 serve(async (req) => {
+  // Allow CORS for Pesapal IPN calls
+  if (req.method === "OPTIONS") {
+    return new Response("ok", {
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "*"
+      }
+    });
+  }
+
   console.log(`IPN Request: ${req.method} ${req.url}`);
-  
-  // Log IPN request
-  await logPaymentEvent("ipn_received", {
-    method: req.method,
-    url: req.url,
-    headers: Object.fromEntries(req.headers.entries())
-  });
   
   try {
     // Handle both GET and POST requests from Pesapal
@@ -222,6 +226,6 @@ async function logPaymentEvent(eventType: string, data: any) {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.error("Failed to log payment event:", error);
+    // Silent fail for logging
   }
 }
