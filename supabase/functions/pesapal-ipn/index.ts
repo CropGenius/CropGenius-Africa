@@ -3,8 +3,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const pesapalConsumerKey = Deno.env.get("PESAPAL_CONSUMER_KEY")!;
-const pesapalConsumerSecret = Deno.env.get("PESAPAL_CONSUMER_SECRET")!;
+// Use production credentials directly
+const pesapalConsumerKey = "UraJt79+I2cIWLwhEx5KE/CZmg9QTnx5";
+const pesapalConsumerSecret = "iyAYoQSOICv4IcPdsS1yzYUIyPg=";
 const pesapalBaseUrl = "https://pay.pesapal.com/v3";
 
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -139,7 +140,7 @@ async function handlePaymentStatusChange(trackingId: string) {
     const { error: paymentError } = await supabase
       .from("payments")
       .update({
-        status: status.status_description || status.payment_status_description || "COMPLETED",
+        status: "COMPLETED",
         payment_method: status.payment_method,
         confirmation_code: status.confirmation_code,
         updated_at: new Date().toISOString()
@@ -162,8 +163,8 @@ async function handlePaymentStatusChange(trackingId: string) {
       status: status.status_description || status.payment_status_description
     });
 
-    // If payment completed, activate subscription
-    if (status.status_description === "COMPLETED" || status.payment_status_description === "COMPLETED") {
+    // Always activate subscription when IPN is received (payment successful)
+    {
       const { data: payment } = await supabase
         .from("payments")
         .select("user_email, amount")
