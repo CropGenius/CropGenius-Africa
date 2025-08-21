@@ -7,7 +7,26 @@
   <title>CropGenius - Agricultural Intelligence Platform</title>
 
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <!-- Cache-killer script removed - was causing service worker conflicts -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#1a8917" />
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/service-worker.js");
+    }
+
+    let deferredPrompt;
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+
+      if (window.location.pathname === "/dashboard") {
+        setTimeout(() => {
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then(() => (deferredPrompt = null));
+        }, 1200);
+      }
+    });
+  </script>
 </head>
 
 <body>
