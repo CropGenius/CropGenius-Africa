@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import GlobalMenu from "@/components/GlobalMenu";
 import { Layers } from "lucide-react";
 import { CreditBadge } from "./badges/CreditBadge";
-import LogoSVG from '@/assets/logo/cropgenius-logo.svg';
+// Logo now uses PNG from public directory
 
 export default function LayoutMenu() {
   return (
@@ -11,7 +11,7 @@ export default function LayoutMenu() {
       <div className="flex items-center gap-2">
         <GlobalMenu />
         <Link to="/" className="flex items-center gap-2">
-          <img src={LogoSVG} alt="CropGenius logo" className="h-8 w-auto" />
+          <img src="/cropgeniuslogo.png" alt="CropGenius logo" className="h-8 w-auto" />
         </Link>
       </div>
       
