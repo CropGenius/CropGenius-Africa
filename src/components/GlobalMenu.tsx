@@ -29,7 +29,7 @@ import {
   BarChart3,
   Sparkles
 } from "lucide-react";
-import LogoSVG from '@/assets/logo/cropgenius-logo.svg';
+// Logo now uses PNG from public directory
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { toast } from "sonner";
@@ -141,7 +141,7 @@ export default function GlobalMenu() {
         <SheetHeader className="p-4 border-b bg-gradient-to-r from-green-50 to-blue-50">
           <SheetTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <img src={LogoSVG} alt="CropGenius logo" className="h-8 w-auto" />
+              <img src="/cropgeniuslogo.png" alt="CropGenius logo" className="h-8 w-auto" />
               <div className="text-sm text-gray-600">
                 <div className="font-medium">{user?.user_metadata?.full_name || 'Farmer'}</div>
                 <div className="text-xs">{userStats.credits} credits</div>

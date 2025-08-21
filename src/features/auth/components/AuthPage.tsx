@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { LoginPage } from './LoginPage';
 import { SignupPage } from './SignupPage';
-import Logo from '@/assets/logo/cropgenius-logo.svg';
+// Logo now uses PNG from public directory
 
 export const AuthPage = () => {
   const [showLogin, setShowLogin] = useState(true);
@@ -11,7 +11,7 @@ export const AuthPage = () => {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <img
           className="mx-auto h-12 w-auto"
-          src={Logo}
+          src="/cropgeniuslogo.png"
           alt="CropGenius logo"
         />
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
