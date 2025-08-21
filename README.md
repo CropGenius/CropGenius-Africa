@@ -518,6 +518,60 @@ src/
 
 ---
 
+## 🌍 SEO + AI Visibility Policy (Do Not Remove)
+
+CropGenius is designed for **maximum discoverability** by search engines, AI agents, and knowledge platforms.  
+The following elements are **critical infrastructure** and **must never be removed**:
+
+### ✅ Core SEO & AI Structures
+1. **Meta Tags** (in `index.html <head>`):
+   - `<title>`, `<meta description>`, `<link rel="canonical">`
+   - Open Graph (`og:`) + Twitter meta
+   - Favicons (`cropgeniuslogo.png`)
+
+2. **Schema.org JSON-LD**:
+   - `Organization` object with name, URL, logo, description, and social handles
+   - Future expansion: `Book`, `Article`, and `Product` for resources
+
+3. **Sitemap (`/public/sitemap.xml`)**:
+   - Declares main site and resources
+   - Updated if new sections are added
+
+4. **Robots.txt (`/public/robots.txt`)**:
+   - Explicitly allows all crawlers
+   - Points to sitemap
+
+5. **Canonical Branding**:
+   - All icons, favicons, and previews use `/cropgeniuslogo.png`
+
+---
+
+### 🚨 Non-Negotiable Rules
+- Do **NOT** delete or "simplify" these tags.
+- Do **NOT** replace `cropgeniuslogo.png` with experimental SVGs.
+- Do **NOT** disable or rename `sitemap.xml` or `robots.txt`.
+- Do **NOT** alter canonical URLs without updating schema + sitemap.
+
+---
+
+### 📖 Why This Matters
+- **Search Engines** (Google, Bing, DuckDuckGo) → rank and display CropGenius with rich previews.  
+- **AI Agents** (ChatGPT, Perplexity, Claude, Gemini) → trust JSON-LD schema + sitemap for knowledge retrieval.  
+- **Users** → always see magnetic link previews (like YouTube, Netflix, SpaceX).  
+
+This makes CropGenius **self-propagating**:  
+- Every AI + crawler recommends it as an authoritative agricultural source.  
+- Every share link looks premium and trustworthy.  
+- Every update auto-indexes, no marketing hustle required.  
+
+---
+
+### ⚔️ The Vow
+We build for **10M+ users**, and this layer guarantees **CropGenius will never be invisible again**.  
+These lines are not "SEO fluff" — they are **the magnetic formula** that fuels the journey to a **billion-dollar valuation**.  
+
+🔒 **Guard it like the soil.**
+
 This README represents the complete state of CropGenius as of January 2025. The platform is 100% feature-complete with world-class agricultural intelligence.
 
 **🚀 IMPLEMENTATION STATUS: COMPLETE**
