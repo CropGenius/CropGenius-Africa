@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { AIInputField } from '@/components/ui/ai-input';
 import { WhatsAppIcon } from '@/components/ui/whatsapp-icon';
 import { ChatContainer, ChatHeader, ChatContent } from '@/components/chat/ChatContainer';
-import { Loader2 } from 'lucide-react';
+import { LoaderFive } from '@/components/ui/loader';
 import { toast } from 'sonner';
 
 
@@ -127,9 +127,8 @@ User: ${message}`
                   </div>
                 ))}
                 {isLoading && (
-                  <div className="ai-thinking-indicator flex items-center">
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    CropGenius is thinking...
+                  <div className="ai-thinking-indicator">
+                    <LoaderFive text="Kilimo Genius..." />
                   </div>
                 )}
               </div>
