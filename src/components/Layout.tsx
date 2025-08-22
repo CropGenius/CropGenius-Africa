@@ -1,6 +1,7 @@
 
 import React from "react";
 import UnifiedNavigation from "@/components/navigation/UnifiedNavigation";
+import InstallPrompt from "@/components/pwa/InstallPrompt";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -16,6 +17,7 @@ const Layout = ({ children, showTopNav = true, showBottomNav = true }: LayoutPro
       </main>
       
       <UnifiedNavigation />
+      <InstallPrompt />
     </div>
   );
 };

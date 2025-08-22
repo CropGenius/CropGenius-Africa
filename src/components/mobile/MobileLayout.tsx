@@ -1,6 +1,8 @@
+
 import React from 'react';
 import TopNav from '@/components/navigation/TopNav';
 import UnifiedNavigation from '@/components/navigation/UnifiedNavigation';
+import InstallPrompt from '@/components/pwa/InstallPrompt';
 
 interface MobileLayoutProps {
   children?: React.ReactNode;
@@ -15,6 +17,7 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
       
       <TopNav />
       <UnifiedNavigation />
+      <InstallPrompt />
     </div>
   );
 };
