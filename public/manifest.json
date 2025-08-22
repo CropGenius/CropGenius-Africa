@@ -7,7 +7,53 @@
   "theme_color": "#1a8917",
   "orientation": "portrait",
   "icons": [
-    { "src": "/cropgeniuslogo.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/cropgeniuslogo.png", "sizes": "512x512", "type": "image/png" }
+    { 
+      "src": "/cropgeniuslogo.png", 
+      "sizes": "72x72", 
+      "type": "image/png",
+      "purpose": "any"
+    },
+    { 
+      "src": "/cropgeniuslogo.png", 
+      "sizes": "96x96", 
+      "type": "image/png",
+      "purpose": "any"
+    },
+    { 
+      "src": "/cropgeniuslogo.png", 
+      "sizes": "128x128", 
+      "type": "image/png",
+      "purpose": "any"
+    },
+    { 
+      "src": "/cropgeniuslogo.png", 
+      "sizes": "144x144", 
+      "type": "image/png",
+      "purpose": "any"
+    },
+    { 
+      "src": "/cropgeniuslogo.png", 
+      "sizes": "152x152", 
+      "type": "image/png",
+      "purpose": "any"
+    },
+    { 
+      "src": "/cropgeniuslogo.png", 
+      "sizes": "192x192", 
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    { 
+      "src": "/cropgeniuslogo.png", 
+      "sizes": "384x384", 
+      "type": "image/png",
+      "purpose": "any"
+    },
+    { 
+      "src": "/cropgeniuslogo.png", 
+      "sizes": "512x512", 
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }
