@@ -1,7 +1,8 @@
 
 import { useEffect, useState } from "react";
+import { LiquidButton } from "@/components/ui/liquid-glass-button";
+import { Smartphone, Download, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Download, X } from "lucide-react";
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
