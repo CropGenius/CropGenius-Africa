@@ -61,7 +61,7 @@ export default function CropScannerPreview() {
           hour: '2-digit',
           minute: '2-digit'
         }),
-        imageUrl: scan.image_url || '/cropgeniuslogo.png',
+        imageUrl: scan.image_url || '/placeholder.svg',
         confidence: Math.round((scan.confidence_score || 0.85) * 100),
         recommendations: scan.ai_recommendations || ['No specific recommendations available']
       }));
@@ -86,7 +86,7 @@ export default function CropScannerPreview() {
                 hour: '2-digit',
                 minute: '2-digit'
               }),
-              imageUrl: payload.new.image_url || '/cropgeniuslogo.png',
+              imageUrl: payload.new.image_url || '/placeholder.svg',
               confidence: Math.round((payload.new.confidence_score || 0.85) * 100),
               recommendations: payload.new.ai_recommendations || ['No specific recommendations available']
             };
