@@ -1,7 +1,7 @@
+
 import { useState } from 'react';
 import { LoginPage } from './LoginPage';
 import { SignupPage } from './SignupPage';
-// Logo now uses PNG from public directory
 
 export const AuthPage = () => {
   const [showLogin, setShowLogin] = useState(true);
@@ -11,8 +11,8 @@ export const AuthPage = () => {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <img
           className="mx-auto h-12 w-auto"
-          src="/cropgeniuslogo.png"
-          alt="CropGenius logo"
+          src="/lovable-uploads/4a5d3791-0b0d-4617-8f1d-55991d16baf2.png"
+          alt="CropGenius"
         />
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
           {showLogin ? 'Sign in to your account' : 'Create a new account'}
