@@ -127,8 +127,10 @@ User: ${message}`
                   </div>
                 ))}
                 {isLoading && (
-                  <div className="ai-thinking-indicator">
-                    <LoaderFive text="Kilimo Genius..." />
+                  <div className="ai-thinking-indicator flex justify-start">
+                    <div className="bg-white border rounded-lg p-3 max-w-xs">
+                      <LoaderFive text="Kilimo Genius..." />
+                    </div>
                   </div>
                 )}
               </div>
