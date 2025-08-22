@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { AIInputField } from '@/components/ui/ai-input';
 import { WhatsAppIcon } from '@/components/ui/whatsapp-icon';
 import { ChatContainer, ChatHeader, ChatContent } from '@/components/chat/ChatContainer';
-import { LoaderFive } from '@/components/ui/loader';
+import LoaderFiveDemo from '@/components/ui/loader-five-demo';
 import { toast } from 'sonner';
 
 
@@ -129,7 +129,7 @@ User: ${message}`
                 {isLoading && (
                   <div className="ai-thinking-indicator flex justify-start">
                     <div className="bg-white border rounded-lg p-3 max-w-xs">
-                      <LoaderFive text="Kilimo Genius..." />
+                      <LoaderFiveDemo />
                     </div>
                   </div>
                 )}
