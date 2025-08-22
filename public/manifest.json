@@ -7,15 +7,7 @@
   "theme_color": "#1a8917",
   "orientation": "portrait",
   "icons": [
-    {
-      "src": "/cropgeniuslogo.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/cropgeniuslogo.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
+    { "src": "/cropgeniuslogo.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/cropgeniuslogo.png", "sizes": "512x512", "type": "image/png" }
   ]
 }
