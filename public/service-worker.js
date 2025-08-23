@@ -1,5 +1,5 @@
 
-const CACHE_NAME = "cg-v5";
+const CACHE_NAME = "cg-v6";
 const urlsToCache = [
   "/",
   "/dashboard",
