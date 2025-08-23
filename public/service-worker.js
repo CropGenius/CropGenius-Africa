@@ -1,7 +1,7 @@
 
 self.addEventListener("install", (e) => {
   e.waitUntil(
-    caches.open("cg-v2").then(cache =>
+    caches.open("cg-v3").then(cache =>
       cache.addAll([
         "/",
         "/dashboard",
