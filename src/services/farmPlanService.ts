@@ -21,7 +21,7 @@ export const farmPlanService = {
       status: plan.status || 'draft',
       created_at: plan.created_at,
       updated_at: plan.updated_at || plan.created_at,
-      tasks: plan.farm_tasks?.map(farmPlanService.transformTask) || []
+      tasks: plan.farm_plan_tasks?.map(farmPlanService.transformTask) || []
     };
   },
 
@@ -68,7 +68,7 @@ export const farmPlanService = {
       // Fetch tasks for all plans
       const planIds = plans.map(plan => plan.id);
       const { data: tasks, error: tasksError } = await supabase
-        .from('farm_tasks')
+        .from('farm_plan_tasks')
         .select('*')
         .in('plan_id', planIds);
 
@@ -88,7 +88,7 @@ export const farmPlanService = {
       // Combine plans with their tasks
       return plans.map(plan => farmPlanService.transformPlan({
         ...plan,
-        farm_tasks: tasksByPlanId[plan.id] || []
+        farm_plan_tasks: tasksByPlanId[plan.id] || []
       }));
     } catch (error) {
       if (error instanceof FarmPlanServiceError) throw error;
@@ -218,7 +218,7 @@ export const farmPlanService = {
       };
 
       const { data, error } = await supabase
-        .from('farm_tasks')
+        .from('farm_plan_tasks')
         .insert([payload])
         .select()
         .single();
@@ -252,7 +252,7 @@ export const farmPlanService = {
       payload.updated_at = new Date().toISOString();
 
       const { data, error } = await supabase
-        .from('farm_tasks')
+        .from('farm_plan_tasks')
         .update(payload)
         .eq('id', id)
         .select(`
@@ -286,7 +286,7 @@ export const farmPlanService = {
       if (!user.user) throw new FarmPlanServiceError('Not authenticated', 'AUTH_ERROR', 401);
 
       const { error } = await supabase
-        .from('farm_tasks')
+        .from('farm_plan_tasks')
         .delete()
         .eq('id', id);
 
