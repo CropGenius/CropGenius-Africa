@@ -11,7 +11,7 @@ export const AuthPage = () => {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <img
           className="mx-auto h-12 w-auto"
-          src="/lovable-uploads/4a5d3791-0b0d-4617-8f1d-55991d16baf2.png"
+          src="/cropgeniuslogo.png"
           alt="CropGenius"
         />
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">

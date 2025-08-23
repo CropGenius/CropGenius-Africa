@@ -6,7 +6,7 @@ self.addEventListener("install", (e) => {
         "/",
         "/dashboard",
         "/manifest.json",
-        "/lovable-uploads/4a5d3791-0b0d-4617-8f1d-55991d16baf2.png"
+        "/cropgeniuslogo.png"
       ])
     )
   );

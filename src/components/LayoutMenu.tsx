@@ -11,7 +11,7 @@ export default function LayoutMenu() {
       <div className="flex items-center gap-2">
         <GlobalMenu />
         <Link to="/" className="flex items-center gap-2">
-          <img src="/lovable-uploads/4a5d3791-0b0d-4617-8f1d-55991d16baf2.png" alt="CropGenius" className="h-8 w-auto" />
+          <img src="/cropgeniuslogo.png" alt="CropGenius" className="h-8 w-auto" />
         </Link>
       </div>
       

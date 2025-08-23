@@ -1,37 +1,39 @@
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from '@/components/ui/toaster';
-import { Toaster as SonnerToaster } from '@/components/ui/sonner';
-// import { registerServiceWorker } from './utils/serviceWorker';
-
-
+import { StrictMode } from 'react';
 import './index.css';
 import App from './App';
 
-const queryClient = new QueryClient();
+// Optimized QueryClient for better performance
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 1,
+    },
+  },
+});
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
   throw new Error('Root element not found');
 }
 
-console.log('🚀 [MAIN] Starting React app...');
-console.log('🚀 [MAIN] Root element:', rootElement);
-
 const root = createRoot(rootElement);
-console.log('🚀 [MAIN] Root created, rendering app...');
 
-
-
+// Wrap in StrictMode for development, remove for production
 root.render(
-  <QueryClientProvider client={queryClient}>
-    <App />
-    <Toaster />
-    <SonnerToaster />
-  </QueryClientProvider>
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <App />
+    </QueryClientProvider>
+  </StrictMode>
 );
 
-console.log('🚀 [MAIN] App rendered!');
-
-// Service worker registration temporarily disabled for debugging
-// registerServiceWorker();
+// Register service worker after app loads
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js')
+      .catch(() => console.log('SW registration failed'));
+  });
+}
