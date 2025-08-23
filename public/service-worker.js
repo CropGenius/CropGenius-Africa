@@ -25,6 +25,10 @@ self.addEventListener("activate", (e) => {
 });
 
 self.addEventListener("fetch", (e) => {
+  // Skip caching for API requests
+  if (e.request.url.includes('supabase.co') || e.request.url.includes('/api/')) {
+    return;
+  }
   e.respondWith(
     caches.match(e.request).then(response => response || fetch(e.request))
   );
