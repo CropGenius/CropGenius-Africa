@@ -1,7 +1,7 @@
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StrictMode } from 'react';
-import './index.css';
+import './index.css?v=whatsapp-fix-20250128';
 import App from './App';
 
 // Optimized QueryClient for better performance
