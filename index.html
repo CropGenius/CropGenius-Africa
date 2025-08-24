@@ -13,32 +13,49 @@
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#1a8917" />
   <script>
-    // CropGenius PWA Control - Capture install prompt
+    // Service Worker
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/service-worker.js");
     }
 
-    // Capture and store the beforeinstallprompt event
-    let deferredPrompt;
-    window.addEventListener("beforeinstallprompt", (e) => {
-      console.log('🔥 [PWA] BeforeInstallPrompt event captured');
+    // PWA Installation Logic
+    let installPrompt = null;
+    
+    function isAppInstalled() {
+      return window.navigator.standalone || 
+             window.matchMedia('(display-mode: standalone)').matches ||
+             localStorage.getItem('cg_installed') === 'true';
+    }
+    
+    function showInstallButton() {
+      if (!isAppInstalled() && installPrompt) {
+        const btn = document.createElement('button');
+        btn.textContent = '📱 Install CropGenius';
+        btn.style.cssText = 'position:fixed;top:10px;right:10px;z-index:9999;padding:10px;background:#1a8917;color:white;border:none;border-radius:5px;cursor:pointer';
+        btn.onclick = () => {
+          installPrompt.prompt();
+          installPrompt.userChoice.then(() => {
+            btn.remove();
+            installPrompt = null;
+          });
+        };
+        document.body.appendChild(btn);
+      }
+    }
+    
+    window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
-      deferredPrompt = e;
-      
-      // Store for React component to access
-      window.deferredPrompt = e;
-      
-      // Dispatch custom event for React to listen to
-      window.dispatchEvent(new CustomEvent('pwapromptavailable', { detail: e }));
+      installPrompt = e;
+      showInstallButton();
     });
-
-    // Track successful installation
-    window.addEventListener("appinstalled", () => {
-      console.log('🚀 [PWA] CropGenius installed successfully');
-      localStorage.setItem("cg_installed", "true");
-      deferredPrompt = null;
-      window.deferredPrompt = null;
+    
+    window.addEventListener('appinstalled', () => {
+      localStorage.setItem('cg_installed', 'true');
+      document.querySelector('button')?.remove();
     });
+    
+    // Show button on load if prompt available
+    window.addEventListener('load', showInstallButton);
   </script>
 </head>
 

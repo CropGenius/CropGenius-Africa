@@ -1,39 +1,36 @@
-
-const CACHE_NAME = "cg-v7";
-const urlsToCache = [
-  "/",
-  "/dashboard",
-  "/manifest.json",
-  "/cropgeniuslogo.png"
+const CACHE_NAME = 'cropgenius-v1';
+const STATIC_CACHE = [
+  '/',
+  '/manifest.json',
+  '/cropgeniuslogo.png'
 ];
 
-self.addEventListener("install", (e) => {
+self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(STATIC_CACHE))
+      .catch(() => {}) // Ignore cache failures
   );
   self.skipWaiting();
 });
 
-self.addEventListener("activate", (e) => {
+self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then(names => 
       Promise.all(
-        names.map(name => name !== CACHE_NAME ? caches.delete(name) : null)
+        names.map(name => 
+          name !== CACHE_NAME ? caches.delete(name) : null
+        )
       )
-    ).then(() => self.clients.claim())
+    )
   );
+  self.clients.claim();
 });
 
-self.addEventListener("fetch", (e) => {
-  // Only cache HTML pages, not assets or API calls
-  if (e.request.url.includes('supabase.co') || 
-      e.request.url.includes('/api/') || 
-      e.request.url.includes('/assets/') ||
-      e.request.url.includes('.js') ||
-      e.request.url.includes('.css')) {
-    return;
-  }
+self.addEventListener('fetch', (e) => {
+  // Network first for all requests
   e.respondWith(
-    caches.match(e.request).then(response => response || fetch(e.request))
+    fetch(e.request)
+      .catch(() => caches.match(e.request))
   );
 });
