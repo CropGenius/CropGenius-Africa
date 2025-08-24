@@ -35,6 +35,7 @@ import AddCrop from './pages/AddCrop';
 import ReferralsPage from './pages/ReferralsPage';
 import JoinPage from './pages/JoinPage';
 import PaymentCallback from './pages/PaymentCallback';
+import SubscriptionSettings from './components/pro/SubscriptionSettings';
 
 function Protected({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuthContext();
@@ -85,6 +86,7 @@ export default function AppRoutes() {
       <Route path="/upgrade" element={<Protected><UpgradePage /></Protected>} />
       <Route path="/payment-callback" element={<PaymentCallback />} />
       <Route path="/referrals" element={<Protected><ReferralsPage /></Protected>} />
+      <Route path="/subscription-settings" element={<Protected><SubscriptionSettings /></Protected>} />
       
       <Route path="*" element={<NotFound />} />
     </Routes>

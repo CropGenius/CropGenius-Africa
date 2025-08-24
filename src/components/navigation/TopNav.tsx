@@ -1,9 +1,11 @@
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, Users, Zap, ZapOff } from 'lucide-react';
+import { useSubscriptionContext } from '@/providers/SubscriptionProvider';
 
 const TopNav = () => {
   const navigate = useNavigate();
+  const { isPro: subscriptionIsPro } = useSubscriptionContext();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-40 premium-navbar">
@@ -23,7 +25,14 @@ const TopNav = () => {
               CropGenius
             </h1>
             {useMemo(() => {
-              const isPro = localStorage.getItem('plan_is_pro') === 'true';
+              // First check provider state, fall back to localStorage if needed
+              const isPro = subscriptionIsPro || localStorage.getItem('plan_is_pro') === 'true';
+              
+              // For debugging
+              console.log('TopNav rendering with isPro:', isPro, 
+                'subscriptionIsPro:', subscriptionIsPro, 
+                'localStorage:', localStorage.getItem('plan_is_pro'));
+                
               return isPro ? (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gradient-to-r from-yellow-400 to-amber-500 text-amber-900 border border-amber-300">
                   <Zap className="h-3 w-3 mr-1" />

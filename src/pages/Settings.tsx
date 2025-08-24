@@ -23,10 +23,13 @@ import {
   AlertTriangle,
   CheckCircle2,
   Loader2,
-  Bug
+  Bug,
+  CreditCard,
+  Zap
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 // AuthDebugDashboard removed - simplified auth system doesn't need debug UI
 
@@ -225,10 +228,14 @@ const Settings: React.FC = () => {
       </div>
 
       <Tabs defaultValue="notifications" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="notifications" className="flex items-center gap-2">
             <Bell className="h-4 w-4" />
             Notifications
+          </TabsTrigger>
+          <TabsTrigger value="subscription" className="flex items-center gap-2">
+            <Zap className="h-4 w-4" />
+            Subscription
           </TabsTrigger>
           <TabsTrigger value="privacy" className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
@@ -359,6 +366,37 @@ const Settings: React.FC = () => {
                   Save Preferences
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        {/* Subscription Tab */}
+        <TabsContent value="subscription" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>CropGenius Pro Subscription</CardTitle>
+              <CardDescription>
+                Manage your subscription and premium features
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Button 
+                onClick={() => navigate('/subscription-settings')} 
+                variant="default" 
+                className="w-full"
+              >
+                <CreditCard className="h-4 w-4 mr-2" />
+                Manage Subscription Status
+              </Button>
+              
+              <Button 
+                onClick={() => navigate('/upgrade')} 
+                variant="outline" 
+                className="w-full"
+              >
+                <Zap className="h-4 w-4 mr-2" />
+                Upgrade to Pro
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>

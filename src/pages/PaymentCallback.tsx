@@ -4,12 +4,49 @@ import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import confetti from 'canvas-confetti';
+import { useSubscription } from '@/hooks/useSubscription';
+import { useAuthContext } from '@/providers/AuthProvider';
 
 const PaymentCallback = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState<'loading' | 'success' | 'failed'>('loading');
   const [payment, setPayment] = useState<any>(null);
+  const { refreshSession } = useAuthContext();
+  
+  // Force subscription refresh
+  useSubscription();
+
+  // Additional function to ensure subscription is properly created
+  const verifySubscription = async (paymentData: any) => {
+    try {
+      // Check if subscription exists in user_subscriptions
+      const { data: subData } = await supabase
+        .from('user_subscriptions')
+        .select('*')
+        .eq('user_email', paymentData.user_email)
+        .single();
+      
+      // If not, create it manually as a fallback
+      if (!subData) {
+        console.log('No subscription found, creating one manually');
+        const planType = paymentData.amount >= 5000 ? 'annual' : 'monthly';
+        const expiryDays = planType === 'annual' ? 365 : 30;
+        
+        await supabase
+          .from('user_subscriptions')
+          .upsert({
+            user_email: paymentData.user_email,
+            plan_type: planType,
+            status: 'active',
+            activated_at: new Date().toISOString(),
+            expires_at: new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000).toISOString()
+          });
+      }
+    } catch (error) {
+      console.error('Error verifying subscription:', error);
+    }
+  };
 
   useEffect(() => {
     const orderTrackingId = searchParams.get('OrderTrackingId');
@@ -33,12 +70,24 @@ const PaymentCallback = () => {
         if (data && data.status === 'COMPLETED') {
           setPayment(data);
           setStatus('success');
+          
+          // Immediately update localStorage
+          localStorage.setItem('plan_is_pro', 'true');
+          
+          // Force refresh user session to make sure all context is updated
+          await refreshSession();
+          
+          // Trigger success celebration
           confetti({
             particleCount: 200,
             spread: 70,
             origin: { y: 0.6 },
             colors: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b'],
           });
+          
+          // Update subscription data
+          await verifySubscription(data);
+          
           return;
         }
         
@@ -59,7 +108,7 @@ const PaymentCallback = () => {
     };
 
     checkPayment();
-  }, [searchParams]);
+  }, [searchParams, refreshSession]);
 
   if (status === 'loading') {
     return (
@@ -97,7 +146,11 @@ const PaymentCallback = () => {
           
           <div className="space-y-3">
             <Button 
-              onClick={() => navigate('/dashboard')} 
+              onClick={() => {
+                // Double-check localStorage is set before proceeding
+                localStorage.setItem('plan_is_pro', 'true');
+                navigate('/dashboard');
+              }} 
               className="w-full bg-green-600 hover:bg-green-700"
             >
               Go to Dashboard
@@ -145,5 +198,3 @@ const PaymentCallback = () => {
     </div>
   );
 };
-
-export default PaymentCallback;
