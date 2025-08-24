@@ -1,5 +1,5 @@
 
-const CACHE_NAME = "cg-v6";
+const CACHE_NAME = "cg-v7";
 const urlsToCache = [
   "/",
   "/dashboard",
@@ -25,8 +25,8 @@ self.addEventListener("activate", (e) => {
 });
 
 self.addEventListener("fetch", (e) => {
-  // Skip caching for API requests
-  if (e.request.url.includes('supabase.co') || e.request.url.includes('/api/')) {
+  // Skip caching for API requests and assets
+  if (e.request.url.includes('supabase.co') || e.request.url.includes('/api/') || e.request.url.includes('/assets/')) {
     return;
   }
   e.respondWith(
