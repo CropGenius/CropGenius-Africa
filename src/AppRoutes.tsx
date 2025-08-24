@@ -55,7 +55,6 @@ export default function AppRoutes() {
     <Routes>
       <Route path="/auth" element={<Auth />} />
       <Route path="/auth/callback" element={<OAuthCallback />} />
-      <Route path="/oauth/callback" element={<OAuthCallback />} />
       <Route path="/join" element={<JoinPage />} />
 
       <Route path="/onboarding" element={<OnboardingPage />} />

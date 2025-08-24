@@ -17,7 +17,7 @@ export const simpleAuth = {
     return await supabase.auth.signInWithOAuth({
       provider: params.provider,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`
+        redirectTo: `${window.location.origin}/oauth/callback`
       }
     });
   }
