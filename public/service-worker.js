@@ -25,8 +25,12 @@ self.addEventListener("activate", (e) => {
 });
 
 self.addEventListener("fetch", (e) => {
-  // Skip caching for API requests and assets
-  if (e.request.url.includes('supabase.co') || e.request.url.includes('/api/') || e.request.url.includes('/assets/')) {
+  // Only cache HTML pages, not assets or API calls
+  if (e.request.url.includes('supabase.co') || 
+      e.request.url.includes('/api/') || 
+      e.request.url.includes('/assets/') ||
+      e.request.url.includes('.js') ||
+      e.request.url.includes('.css')) {
     return;
   }
   e.respondWith(
