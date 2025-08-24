@@ -1,11 +1,14 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useMemoryStore } from '@/hooks/useMemoryStore';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { MessageCircle, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface WhatsAppOptInProps {
   onClose?: () => void;
@@ -14,13 +17,51 @@ interface WhatsAppOptInProps {
 const WhatsAppOptIn = ({ onClose }: WhatsAppOptInProps) => {
   const { memory, setWhatsAppPreference } = useMemoryStore();
   const [optIn, setOptIn] = useState(memory.whatsappOptIn || false);
+  const [countryCode, setCountryCode] = useState('+254');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load existing phone number from Supabase
+  useEffect(() => {
+    loadExistingPhone();
+  }, []);
+
+  const loadExistingPhone = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('phone_number')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile?.phone_number) {
+          // Parse existing phone number
+          const phone = profile.phone_number;
+          if (phone.startsWith('+')) {
+            const match = phone.match(/^(\+\d{1,4})(\d+)$/);
+            if (match) {
+              setCountryCode(match[1]);
+              setPhoneNumber(match[2]);
+            }
+          } else {
+            setPhoneNumber(phone);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error loading phone number:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (optIn && !phoneNumber) {
+    if (optIn && !phoneNumber.trim()) {
       toast.error("Please enter your WhatsApp number");
       return;
     }
@@ -28,13 +69,30 @@ const WhatsAppOptIn = ({ onClose }: WhatsAppOptInProps) => {
     setIsSubmitting(true);
     
     try {
-      // In a real implementation, this would store the phone number in a secure location
-      // and register it with WhatsApp Business API or Twilio
-      await setWhatsAppPreference(optIn);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Please log in to save WhatsApp preferences');
+        return;
+      }
+
+      const fullPhoneNumber = optIn ? `${countryCode}${phoneNumber.trim()}` : null;
+      
+      // Save to Supabase profiles table
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ phone_number: fullPhoneNumber })
+        .eq('id', user.id);
+      
+      if (profileError) {
+        throw profileError;
+      }
+      
+      // Save WhatsApp preference to memory store
+      await setWhatsAppPreference(optIn, fullPhoneNumber);
       
       if (optIn) {
-        toast.success("AI WhatsApp alerts activated!", {
-          description: "You'll receive personalized farm insights via WhatsApp"
+        toast.success("WhatsApp farming assistant activated!", {
+          description: `Alerts will be sent to ${fullPhoneNumber}`
         });
       } else {
         toast.info("WhatsApp alerts disabled", {
@@ -44,6 +102,7 @@ const WhatsAppOptIn = ({ onClose }: WhatsAppOptInProps) => {
       
       if (onClose) onClose();
     } catch (error) {
+      console.error('Error saving WhatsApp preferences:', error);
       toast.error("Failed to update WhatsApp preferences", {
         description: "Please try again later"
       });
@@ -51,6 +110,31 @@ const WhatsAppOptIn = ({ onClose }: WhatsAppOptInProps) => {
       setIsSubmitting(false);
     }
   };
+
+  // Common African country codes
+  const countryCodes = [
+    { code: '+254', country: 'Kenya' },
+    { code: '+234', country: 'Nigeria' },
+    { code: '+233', country: 'Ghana' },
+    { code: '+256', country: 'Uganda' },
+    { code: '+255', country: 'Tanzania' },
+    { code: '+251', country: 'Ethiopia' },
+    { code: '+27', country: 'South Africa' },
+    { code: '+225', country: 'Ivory Coast' },
+    { code: '+226', country: 'Burkina Faso' },
+    { code: '+223', country: 'Mali' }
+  ];
+
+  if (isLoading) {
+    return (
+      <Card className="w-full">
+        <CardContent className="flex items-center justify-center p-6">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span className="ml-2">Loading WhatsApp settings...</span>
+        </CardContent>
+      </Card>
+    );
+  }
   
   return (
     <Card className="w-full">
@@ -82,15 +166,29 @@ const WhatsAppOptIn = ({ onClose }: WhatsAppOptInProps) => {
           {optIn && (
             <div className="space-y-2">
               <label className="text-sm font-medium">Your WhatsApp Number</label>
-              <input 
-                type="tel" 
-                placeholder="+254 700 000000"
-                className="w-full p-2 border rounded-md"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-              />
+              <div className="flex gap-2">
+                <Select value={countryCode} onValueChange={setCountryCode}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {countryCodes.map(({ code, country }) => (
+                      <SelectItem key={code} value={code}>
+                        {code} {country}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  type="tel"
+                  placeholder="700000000"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
+                  className="flex-1"
+                />
+              </div>
               <p className="text-xs text-muted-foreground">
-                Include country code, e.g. +254 for Kenya
+                Enter your phone number without the country code
               </p>
             </div>
           )}

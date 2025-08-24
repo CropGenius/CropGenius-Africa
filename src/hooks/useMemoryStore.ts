@@ -22,6 +22,7 @@ export interface UserMemory {
   lastInsightShown: string | null;
   lastProSuggestion: string | null;
   whatsappOptIn: boolean;
+  whatsappPhoneNumber: string | null;
   featureUsageCount: number;
   proTrialDaysRemaining: number;
   proExpirationDate: string | null;
@@ -46,6 +47,7 @@ const DEFAULT_MEMORY: UserMemory = {
   lastInsightShown: null,
   lastProSuggestion: null,
   whatsappOptIn: false,
+  whatsappPhoneNumber: null,
   featureUsageCount: 0,
   proTrialDaysRemaining: 0,
   proExpirationDate: null
@@ -312,8 +314,11 @@ export const useMemoryStore = () => {
   };
   
   // New function: Set WhatsApp preferences
-  const setWhatsAppPreference = async (optIn: boolean): Promise<boolean> => {
-    return await updateMemory({ whatsappOptIn: optIn });
+  const setWhatsAppPreference = async (optIn: boolean, phoneNumber?: string): Promise<boolean> => {
+    return await updateMemory({ 
+      whatsappOptIn: optIn,
+      whatsappPhoneNumber: phoneNumber || null
+    });
   };
   
   // Initial setup - load memory when user is available
