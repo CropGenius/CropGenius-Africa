@@ -138,4 +138,5 @@ const WhatsAppOptIn = ({ onClose }: WhatsAppOptInProps) => {
   );
 };
 
+export { WhatsAppOptIn };
 export default WhatsAppOptIn;

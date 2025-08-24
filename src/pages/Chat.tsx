@@ -4,11 +4,12 @@ import { WhatsAppIcon } from '@/components/ui/whatsapp-icon';
 import { ChatContainer, ChatHeader, ChatContent } from '@/components/chat/ChatContainer';
 import { LoaderFive } from '@/components/ui/loader';
 import { toast } from 'sonner';
-
+import { WhatsAppModal } from '@/components/WhatsAppModal';
 
 const Chat = () => {
   const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant', content: string, id?: string }>>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
 
   const handleSendMessage = async (message: string, files?: any[]) => {
     if (!message.trim()) return;
@@ -66,12 +67,8 @@ User: ${message}`
     }
   };
 
-
-
-
-
   const handleWhatsAppClick = () => {
-    window.open('https://wa.me/254712345678?text=Hello%20CropGenius!%20I%20need%20farming%20assistance.', '_blank');
+    setIsWhatsAppModalOpen(true);
   };
 
   return (
@@ -93,6 +90,8 @@ User: ${message}`
           <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-bounce"></div>
         </button>
       </div>
+
+      <WhatsAppModal isOpen={isWhatsAppModalOpen} onClose={() => setIsWhatsAppModalOpen(false)} />
 
       {/* Main Content - Fixed Height Layout */}
       <div className="flex flex-col h-full">
