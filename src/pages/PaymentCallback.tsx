@@ -52,53 +52,74 @@ const PaymentCallback = () => {
     const orderTrackingId = searchParams.get('OrderTrackingId');
     
     if (!orderTrackingId) {
+      console.error('No OrderTrackingId found in URL parameters');
       setStatus('failed');
       return;
     }
 
+    console.log('Starting payment verification for:', orderTrackingId);
     let attempts = 0;
     const maxAttempts = 20; // 60 seconds total
     
     const checkPayment = async () => {
       try {
+        console.log(`Payment check attempt ${attempts + 1} for order: ${orderTrackingId}`);
+        
         const { data, error } = await supabase
           .from('payments')
           .select('*')
           .eq('order_tracking_id', orderTrackingId)
           .single();
 
-        if (data && data.status === 'COMPLETED') {
-          setPayment(data);
-          setStatus('success');
+        if (error) {
+          console.error('Database query error:', error);
+          // Don't fail immediately on database errors, keep retrying
+        } else if (data) {
+          console.log('Payment record found:', data);
           
-          // Immediately update localStorage
-          localStorage.setItem('plan_is_pro', 'true');
-          
-          // Force refresh user session to make sure all context is updated
-          await refreshSession();
-          
-          // Trigger success celebration
-          confetti({
-            particleCount: 200,
-            spread: 70,
-            origin: { y: 0.6 },
-            colors: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b'],
-          });
-          
-          // Update subscription data
-          await verifySubscription(data);
-          
-          return;
+          // Check for any successful status variations
+          if (data.status === 'COMPLETED' || data.status === 'SUCCESS' || data.status === 'SUCCESSFUL') {
+            setPayment(data);
+            setStatus('success');
+            
+            // Immediately update localStorage
+            localStorage.setItem('plan_is_pro', 'true');
+            
+            // Force refresh user session to make sure all context is updated
+            await refreshSession();
+            
+            // Trigger success celebration
+            confetti({
+              particleCount: 200,
+              spread: 70,
+              origin: { y: 0.6 },
+              colors: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b'],
+            });
+            
+            // Update subscription data
+            await verifySubscription(data);
+            
+            return;
+          } else if (data.status === 'FAILED' || data.status === 'CANCELLED' || data.status === 'INVALID') {
+            console.log('Payment failed with status:', data.status);
+            setStatus('failed');
+            return;
+          } else {
+            console.log('Payment still pending with status:', data.status);
+          }
         }
         
         attempts++;
         if (attempts < maxAttempts) {
           setTimeout(checkPayment, 3000); // Check every 3 seconds
         } else {
+          console.log('Maximum attempts reached, payment verification timeout');
           setStatus('failed');
         }
       } catch (error) {
+        console.error('Payment check error:', error);
         attempts++;
+        
         if (attempts < maxAttempts) {
           setTimeout(checkPayment, 3000);
         } else {

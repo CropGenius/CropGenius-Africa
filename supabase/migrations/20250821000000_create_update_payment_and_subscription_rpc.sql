@@ -11,9 +11,9 @@ DECLARE
     v_plan_type TEXT;
     v_expiry_days INT;
 BEGIN
-    -- Upsert payment record
-    INSERT INTO payments (order_tracking_id, merchant_reference, status, payment_method, confirmation_code, user_email, amount, created_at, updated_at)
-    VALUES (p_order_tracking_id, p_merchant_reference, p_status, p_payment_method, p_confirmation_code, p_user_email, p_amount, NOW(), NOW())
+    -- Upsert payment record with currency field
+    INSERT INTO payments (order_tracking_id, merchant_reference, status, payment_method, confirmation_code, user_email, amount, currency, created_at, updated_at)
+    VALUES (p_order_tracking_id, p_merchant_reference, p_status, p_payment_method, p_confirmation_code, p_user_email, p_amount, 'KES', NOW(), NOW())
     ON CONFLICT (order_tracking_id)
     DO UPDATE SET
         status = p_status,
@@ -22,7 +22,7 @@ BEGIN
         updated_at = NOW();
 
     -- If payment is completed, update subscription
-    IF p_status = 'COMPLETED' THEN
+    IF p_status = 'COMPLETED' OR p_status = 'SUCCESS' OR p_status = 'SUCCESSFUL' THEN
         -- Determine plan type and expiry days
         v_plan_type := CASE WHEN p_amount >= 5000 THEN 'annual' ELSE 'monthly' END;
         v_expiry_days := CASE WHEN p_amount >= 5000 THEN 365 ELSE 30 END;
