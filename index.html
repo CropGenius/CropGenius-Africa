@@ -18,44 +18,7 @@
       navigator.serviceWorker.register("/service-worker.js");
     }
 
-    // PWA Installation Logic
-    let installPrompt = null;
     
-    function isAppInstalled() {
-      return window.navigator.standalone || 
-             window.matchMedia('(display-mode: standalone)').matches ||
-             localStorage.getItem('cg_installed') === 'true';
-    }
-    
-    function showInstallButton() {
-      if (!isAppInstalled() && installPrompt) {
-        const btn = document.createElement('button');
-        btn.textContent = '📱 Install CropGenius';
-        btn.style.cssText = 'position:fixed;top:10px;right:10px;z-index:9999;padding:10px;background:#1a8917;color:white;border:none;border-radius:5px;cursor:pointer';
-        btn.onclick = () => {
-          installPrompt.prompt();
-          installPrompt.userChoice.then(() => {
-            btn.remove();
-            installPrompt = null;
-          });
-        };
-        document.body.appendChild(btn);
-      }
-    }
-    
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      installPrompt = e;
-      showInstallButton();
-    });
-    
-    window.addEventListener('appinstalled', () => {
-      localStorage.setItem('cg_installed', 'true');
-      document.querySelector('button')?.remove();
-    });
-    
-    // Show button on load if prompt available
-    window.addEventListener('load', showInstallButton);
   </script>
 </head>
 

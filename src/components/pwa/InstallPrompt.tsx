@@ -1,90 +1,70 @@
-
 import { useEffect, useState } from "react";
-import { LiquidButton } from "@/components/ui/liquid-glass-button";
+import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 
 interface BeforeInstallPromptEvent extends Event {
-  readonly platforms: string[];
-  readonly userChoice: Promise<{
-    outcome: 'accepted' | 'dismissed';
-    platform: string;
-  }>;
   prompt(): Promise<void>;
 }
 
-function isStandalone() {
-  // PWA display-mode detection
-  // @ts-ignore
-  if (window.navigator.standalone) return true // iOS
-  return window.matchMedia?.("(display-mode: standalone)")?.matches ?? false
-}
+const isAppInstalled = () => {
+  // @ts-ignore: `standalone` is a non-standard property for iOS Safari.
+  const isStandaloneIOS = !!window.navigator.standalone;
+  const isStandalonePWA = window.matchMedia("(display-mode: standalone)").matches;
+  return isStandaloneIOS || isStandalonePWA;
+};
 
 export default function InstallPrompt() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [installed, setInstalled] = useState<boolean>(() => {
-    return isStandalone() || localStorage.getItem("cg_installed") === "true"
-  });
+  const [installPromptEvent, setInstallPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
+  const [isInstalled, setIsInstalled] = useState(isAppInstalled());
 
   useEffect(() => {
-    // Listen for the beforeinstallprompt event (when available)
-    const handler = (e: any) => {
-      console.log('🔥 [PWA] beforeinstallprompt event received');
-      e.preventDefault();
-      setDeferredPrompt(e);
+    const handleBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      if (!isAppInstalled()) {
+        setInstallPromptEvent(event as BeforeInstallPromptEvent);
+      }
     };
 
-    window.addEventListener("beforeinstallprompt", handler);
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
-    // Track successful install
-    const installHandler = () => {
-      console.log('🚀 [PWA] App installed successfully');
-      localStorage.setItem("cg_installed", "true");
-      setInstalled(true);
-      setDeferredPrompt(null);
+    const handleAppInstalled = () => {
+      setIsInstalled(true);
+      setInstallPromptEvent(null);
     };
 
-    window.addEventListener("appinstalled", installHandler);
+    window.addEventListener("appinstalled", handleAppInstalled);
+
+    // Listen for changes in display mode
+    const mediaQuery = window.matchMedia("(display-mode: standalone)");
+    const handleDisplayModeChange = (e: MediaQueryListEvent) => {
+        setIsInstalled(e.matches);
+    };
+    mediaQuery.addEventListener("change", handleDisplayModeChange);
+
 
     return () => {
-      window.removeEventListener("beforeinstallprompt", handler);
-      window.removeEventListener("appinstalled", installHandler);
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("appinstalled", handleAppInstalled);
+      mediaQuery.removeEventListener("change", handleDisplayModeChange);
     };
   }, []);
 
-  // Don't show if already installed
-  if (installed) return null;
-
-  const handleInstall = async () => {
-    if (deferredPrompt) {
-      try {
-        console.log('🔥 [PWA] Triggering install prompt');
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        
-        console.log('🔥 [PWA] User choice:', outcome);
-        
-        if (outcome === "accepted") {
-          localStorage.setItem("cg_installed", "true");
-          setInstalled(true);
-        }
-        
-        setDeferredPrompt(null);
-      } catch (error) {
-        console.error('🚨 [PWA] Install prompt failed:', error);
-      }
-      return;
+  const handleInstallClick = () => {
+    if (installPromptEvent) {
+      installPromptEvent.prompt();
     }
-    
-    // For mobile browsers that don't support beforeinstallprompt
-    alert("Install CropGenius:\n• iPhone: Share → Add to Home Screen\n• Android: Menu → Install app");
   };
+
+  if (isInstalled || !installPromptEvent) {
+    return null;
+  }
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
-      <LiquidButton onClick={handleInstall} variant="default" size="xxl">
-        <Download className="mr-2" />
+      <Button onClick={handleInstallClick} variant="default" size="lg">
+        <Download className="mr-2 h-5 w-5" />
         Install CropGenius
-      </LiquidButton>
+      </Button>
     </div>
   );
 }
