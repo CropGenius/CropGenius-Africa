@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 // useErrorLogging eliminated - using console.error instead
-import ErrorBoundary from '@/components/error/ErrorBoundary';
 import { Field, Boundary, Coordinates } from '@/types/field';
 import StepOne from './steps/StepOne';
 import StepTwo from './steps/StepTwo';
@@ -389,7 +388,6 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
   }
   
   return (
-    <ErrorBoundary>
       <div className="space-y-6">
         {/* Progress indicator */}
         <div className="flex justify-center items-center space-x-2 mb-6">
@@ -557,6 +555,5 @@ export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }:
           Progress saved automatically
         </div>
       </div>
-    </ErrorBoundary>
   );
 }
