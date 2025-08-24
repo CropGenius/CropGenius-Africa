@@ -198,3 +198,5 @@ const PaymentCallback = () => {
     </div>
   );
 };
+
+export default PaymentCallback;
