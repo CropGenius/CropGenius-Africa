@@ -28,9 +28,10 @@ serve(async (req) => {
     
     if (contentType.includes('application/json')) {
       const jsonData = await req.json();
-      OrderNotificationType = jsonData.OrderNotificationType;
-      OrderMerchantReference = jsonData.OrderMerchantReference;
-      OrderTrackingId = jsonData.OrderTrackingId;
+      // Handle both new API format and legacy format
+      OrderNotificationType = jsonData.pesapal_notification_type || jsonData.OrderNotificationType;
+      OrderMerchantReference = jsonData.pesapal_merchant_reference || jsonData.OrderMerchantReference;
+      OrderTrackingId = jsonData.pesapal_transaction_tracking_id || jsonData.OrderTrackingId;
     } else if (contentType.includes('application/x-www-form-urlencoded')) {
       const formData = await req.text();
       const params = new URLSearchParams(formData);
@@ -38,14 +39,23 @@ serve(async (req) => {
       OrderMerchantReference = params.get('pesapal_merchant_reference');
       OrderTrackingId = params.get('pesapal_transaction_tracking_id');
     } else {
-      // Try URL params as fallback
+      // Try URL params as fallback - CORRECT PESAPAL PARAMETER NAMES
       const url = new URL(req.url);
-      OrderNotificationType = url.searchParams.get('OrderNotificationType') || 'IPNCHANGE';
-      OrderMerchantReference = url.searchParams.get('OrderMerchantReference');
-      OrderTrackingId = url.searchParams.get('OrderTrackingId');
+      OrderNotificationType = url.searchParams.get('pesapal_notification_type') || 'CHANGE';
+      OrderMerchantReference = url.searchParams.get('pesapal_merchant_reference');
+      OrderTrackingId = url.searchParams.get('pesapal_transaction_tracking_id');
     }
 
     console.log('IPN received:', { OrderNotificationType, OrderMerchantReference, OrderTrackingId });
+    
+    // Log to payment_logs for debugging
+    await logPaymentEvent("ipn_parsed", {
+      orderTrackingId: OrderTrackingId,
+      notificationType: OrderNotificationType,
+      merchantReference: OrderMerchantReference,
+      contentType: contentType,
+      url: req.url
+    });
 
     if (OrderNotificationType === "IPNCHANGE" || OrderNotificationType === "CHANGE") {
       // Asynchronously handle the payment status change
@@ -59,9 +69,11 @@ serve(async (req) => {
       });
     }
 
-    // Immediately acknowledge receipt of the IPN
-    return new Response(JSON.stringify({ status: "200" }), {
-      headers: { "Content-Type": "application/json" },
+    // Immediately acknowledge receipt of the IPN in the EXACT format Pesapal expects
+    const acknowledgment = `pesapal_notification_type=${OrderNotificationType}&pesapal_transaction_tracking_id=${OrderTrackingId}&pesapal_merchant_reference=${OrderMerchantReference}`;
+    
+    return new Response(acknowledgment, {
+      headers: { "Content-Type": "text/plain" },
       status: 200,
     });
 

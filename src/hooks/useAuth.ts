@@ -12,7 +12,7 @@ interface AuthState {
 }
 
 interface AuthActions {
-  signInWithGoogle: () => Promise<void>;
+  signInWithGoogle: () => Promise<any>;
   signOut: () => Promise<void>;
   refreshSession: () => Promise<void>;
   processReferralAttribution: (user: User) => Promise<void>;
@@ -122,7 +122,14 @@ export const useAuth = (): AuthState & AuthActions => {
     };
   }, []);
 
-  const signInWithGoogle = () => supabase.auth.signInWithOAuth({ provider: 'google' });
+  const signInWithGoogle = async () => {
+    return await supabase.auth.signInWithOAuth({ 
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`
+      }
+    });
+  };
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
