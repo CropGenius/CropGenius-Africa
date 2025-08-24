@@ -119,6 +119,18 @@ const getWindDirection = (degrees: number): string => {
   return directions[index];
 };
 
+// Function to get current weather (required by ProductionWhatsAppBot)
+export const getCurrentWeather = async (lat: number, lng: number): Promise<WeatherData> => {
+  return await fetchWeatherData({ lat, lng, name: 'Current Location' });
+};
+
+// Function to get weather forecast (required by ProductionWhatsAppBot)
+export const getWeatherForecast = async (lat: number, lng: number): Promise<WeatherData[]> => {
+  const currentWeather = await fetchWeatherData({ lat, lng, name: 'Current Location' });
+  // Return array with current weather for now - can be expanded for multi-day forecast
+  return [currentWeather];
+};
+
 // Function to get AI-powered farming recommendations based on weather
 export const getFarmingRecommendations = async (weather: WeatherData, crops: string[]): Promise<string[]> => {
   try {

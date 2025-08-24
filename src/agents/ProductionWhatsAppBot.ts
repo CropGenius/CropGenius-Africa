@@ -11,7 +11,7 @@ import { fetchRealMarketData } from '../intelligence/realMarketIntelligence';
 import { analyzeFieldEnhanced } from '../intelligence/enhancedFieldIntelligence';
 
 // Configuration
-const WHATSAPP_ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN || '';
+const WHATSAPP_ACCESS_TOKEN = import.meta.env.VITE_WHATSAPP_ACCESS_TOKEN || '';
 const WHATSAPP_API_VERSION = 'v18.0';
 const WHATSAPP_API_BASE = `https://graph.facebook.com/${WHATSAPP_API_VERSION}`;
 
@@ -56,7 +56,9 @@ export class ProductionWhatsAppBot {
   private isConfigured: boolean;
   
   constructor() {
-    this.isConfigured = Boolean(WHATSAPP_ACCESS_TOKEN && SUPABASE_URL && SUPABASE_ANON_KEY);
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    this.isConfigured = Boolean(WHATSAPP_ACCESS_TOKEN && supabaseUrl && supabaseKey);
     
     if (!this.isConfigured) {
       console.warn('⚠️ WhatsApp Bot not fully configured. Check environment variables.');
