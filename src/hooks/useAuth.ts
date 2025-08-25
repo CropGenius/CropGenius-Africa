@@ -22,9 +22,18 @@ export const useAuth = (): AuthState & AuthActions => {
   const [isLoading, setIsLoading] = useState(true);
 
   const refreshSession = useCallback(async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    setSession(session);
-    setUser(session?.user ?? null);
+    console.log('🔄 Refreshing session...');
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error('❌ Error refreshing session:', error);
+      }
+      setSession(session);
+      setUser(session?.user ?? null);
+      console.log('✅ Session refreshed:', { hasSession: !!session, userId: session?.user?.id });
+    } catch (error) {
+      console.error('💥 Failed to refresh session:', error);
+    }
   }, []);
 
   useEffect(() => {

@@ -2,10 +2,10 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '@/providers/AuthProvider';
 
-// 🎯 PRODUCTION OAUTH CALLBACK - FIXED FOR CROPGENIUS.AFRICA
+// 🎯 PRODUCTION OAUTH CALLBACK - INFINITE LOOP FIXED
 export default function OAuthCallback() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuthContext();
+  const { isAuthenticated, refreshSession } = useAuthContext();
 
   useEffect(() => {
     console.log('🔄 OAuth Callback - Production Fixed for cropgenius.africa');
@@ -13,8 +13,11 @@ export default function OAuthCallback() {
     // 🔧 PRODUCTION FIX: Handle OAuth callback properly for custom domain
     const handleOAuthCallback = async () => {
       try {
-        // Give a moment for Supabase to process the OAuth callback
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // 🔥 CRITICAL FIX: Refresh session FIRST to get the latest auth state
+        await refreshSession();
+        
+        // Give more time for authentication state to update after refresh
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
         if (isAuthenticated) {
           console.log('✅ OAuth successful - User authenticated, redirecting to dashboard');
@@ -22,15 +25,17 @@ export default function OAuthCallback() {
           navigate('/dashboard', { replace: true });
         } else {
           console.log('⚠️ OAuth callback processed but no authentication detected');
-          // Wait a bit more for auth state to update
-          setTimeout(() => {
-            if (isAuthenticated) {
-              navigate('/dashboard', { replace: true });
-            } else {
-              console.log('❌ Authentication failed - redirecting to auth page');
-              navigate('/auth', { replace: true });
-            }
-          }, 1000);
+          // Try one more time with refresh
+          await refreshSession();
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          
+          if (isAuthenticated) {
+            console.log('✅ Second attempt successful - redirecting to dashboard');
+            navigate('/dashboard', { replace: true });
+          } else {
+            console.log('❌ Authentication failed after retry - redirecting to auth page');
+            navigate('/auth', { replace: true });
+          }
         }
       } catch (error) {
         console.error('💥 OAuth callback error:', error);
@@ -39,7 +44,7 @@ export default function OAuthCallback() {
     };
 
     handleOAuthCallback();
-  }, [navigate, isAuthenticated]);
+  }, [navigate, isAuthenticated, refreshSession]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
