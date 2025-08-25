@@ -10,41 +10,54 @@ export default function OAuthCallback() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        // Wait for Supabase to process the OAuth callback
+        console.log('OAuth callback started');
+        
+        // Wait a moment for Supabase to process the OAuth callback
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         const { data: { session }, error } = await supabase.auth.getSession();
+        console.log('Session check result:', { session: !!session, error });
         
         if (error) {
-          console.error('OAuth error:', error);
+          console.error('OAuth callback error:', error);
           toast.error('Authentication failed');
           navigate('/auth', { replace: true });
           return;
         }
         
         if (session?.user) {
+          console.log('User authenticated successfully:', session.user.id);
           toast.success('Welcome to CropGenius! 🌾');
-          // Always redirect to dashboard - simple and bulletproof
-          navigate('/dashboard', { replace: true });
-        } else {
-          // Listen for auth state change with timeout
-          const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            if (event === 'SIGNED_IN' && session?.user) {
-              subscription.unsubscribe();
-              toast.success('Welcome to CropGenius! 🌾');
-              navigate('/dashboard', { replace: true });
-            }
-          });
           
-          // Timeout after 10 seconds
-          setTimeout(() => {
-            subscription.unsubscribe();
-            toast.error('Authentication timeout');
-            navigate('/auth', { replace: true });
-          }, 10000);
+          // Force a complete page refresh to clear any auth state issues
+          window.location.href = '/dashboard';
+          return;
         }
+        
+        // If no session yet, wait for auth state change
+        console.log('No session found, waiting for auth state change...');
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+          console.log('Auth state change in callback:', event, !!session);
+          
+          if (event === 'SIGNED_IN' && session?.user) {
+            subscription.unsubscribe();
+            toast.success('Welcome to CropGenius! 🌾');
+            
+            // Force complete page refresh to dashboard
+            window.location.href = '/dashboard';
+          }
+        });
+        
+        // Timeout after 10 seconds
+        setTimeout(() => {
+          subscription.unsubscribe();
+          console.log('OAuth callback timeout');
+          toast.error('Authentication timeout');
+          navigate('/auth', { replace: true });
+        }, 10000);
+        
       } catch (error) {
-        console.error('Callback error:', error);
+        console.error('OAuth callback exception:', error);
         toast.error('Authentication failed');
         navigate('/auth', { replace: true });
       }

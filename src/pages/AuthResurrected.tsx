@@ -17,6 +17,8 @@ export default function AuthResurrected() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  console.log('AuthResurrected state:', { isLoading, isAuthenticated, userId: user?.id });
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-emerald-50 to-lime-50">
@@ -26,12 +28,15 @@ export default function AuthResurrected() {
   }
 
   if (isAuthenticated && user) {
+    console.log('AuthResurrected: redirecting authenticated user');
     return <Navigate to="/dashboard" replace />;
   }
 
   const handleGoogleAuth = async () => {
     try {
       setLoading(true);
+      console.log('Starting Google OAuth...');
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -40,12 +45,12 @@ export default function AuthResurrected() {
       });
       
       if (error) {
+        console.error('Google OAuth error:', error);
         toast.error('Google authentication failed');
-        console.error('Google auth error:', error);
       }
     } catch (error) {
+      console.error('Google OAuth exception:', error);
       toast.error('Authentication service unavailable');
-      console.error('Google auth exception:', error);
     } finally {
       setLoading(false);
     }
@@ -62,6 +67,7 @@ export default function AuthResurrected() {
       setLoading(true);
       
       if (isSignUp) {
+        console.log('Attempting email signup...');
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -71,23 +77,26 @@ export default function AuthResurrected() {
         });
         
         if (error) {
+          console.error('Signup error:', error);
           toast.error(error.message);
         } else {
           toast.success('Check your email to confirm your account');
         }
       } else {
+        console.log('Attempting email signin...');
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password
         });
         
         if (error) {
+          console.error('Signin error:', error);
           toast.error('Invalid email or password');
         }
       }
     } catch (error) {
-      toast.error('Authentication failed');
       console.error('Email auth error:', error);
+      toast.error('Authentication failed');
     } finally {
       setLoading(false);
     }
