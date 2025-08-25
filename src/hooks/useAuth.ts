@@ -33,6 +33,10 @@ export const useAuth = (): AuthState & AuthActions => {
     const initAuth = async () => {
       try {
         console.log('🔐 Initializing auth state...');
+        
+        // 🔄 Wait a moment for any URL processing (important for OAuth callbacks)
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -43,7 +47,11 @@ export const useAuth = (): AuthState & AuthActions => {
           setSession(session);
           setUser(session?.user ?? null);
           setIsLoading(false);
-          console.log('✅ Auth state initialized:', { hasSession: !!session, userId: session?.user?.id });
+          console.log('✅ Auth state initialized:', { 
+            hasSession: !!session, 
+            userId: session?.user?.id,
+            isOAuth: !!session?.user?.app_metadata?.provider 
+          });
         }
       } catch (error) {
         console.error('💥 Failed to initialize auth:', error);
@@ -55,11 +63,20 @@ export const useAuth = (): AuthState & AuthActions => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('🔄 Auth state change:', event, { hasSession: !!session, userId: session?.user?.id });
+        console.log('🔄 Auth state change:', event, { 
+          hasSession: !!session, 
+          userId: session?.user?.id,
+          provider: session?.user?.app_metadata?.provider
+        });
         
         if (mounted) {
           setSession(session);
           setUser(session?.user ?? null);
+          
+          // 🎯 Special handling for OAuth sign-in events
+          if (event === 'SIGNED_IN' && session?.user?.app_metadata?.provider) {
+            console.log('🎉 OAuth sign-in completed successfully!');
+          }
         }
       }
     );

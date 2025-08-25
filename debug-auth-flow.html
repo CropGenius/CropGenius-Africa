@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CropGenius Auth Flow Debugger</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .error { color: #d32f2f; background: #ffebee; padding: 10px; border-radius: 4px; }
+        .success { color: #388e3c; background: #e8f5e9; padding: 10px; border-radius: 4px; }
+        .warning { color: #f57c00; background: #fff3e0; padding: 10px; border-radius: 4px; }
+        button { background: #4caf50; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #45a049; }
+        #log { background: #f9f9f9; padding: 10px; border-radius: 4px; max-height: 300px; overflow-y: auto; font-family: monospace; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 CropGenius Authentication Flow Debugger</h1>
+        <p><strong>Mission:</strong> Identify the EXACT cause of the infinite OAuth loop</p>
+        
+        <div class="test-section">
+            <h3>🌐 Environment Check</h3>
+            <div id="environment-status">Testing...</div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🔑 Authentication State</h3>
+            <div id="auth-status">Checking...</div>
+            <button onclick="testAuthState()">Refresh Auth State</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>📍 URL & Session Analysis</h3>
+            <div id="url-analysis">Analyzing...</div>
+            <button onclick="analyzeURL()">Analyze Current URL</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>🔄 Navigation Test</h3>
+            <div id="navigation-test">Ready</div>
+            <button onclick="testAuthPage()">Test /auth Navigation</button>
+            <button onclick="testCallbackPage()">Test /auth/callback Navigation</button>
+            <button onclick="testDashboard()">Test /dashboard Navigation</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>📊 Local Storage Inspection</h3>
+            <div id="storage-analysis">Inspecting...</div>
+            <button onclick="inspectStorage()">Refresh Storage Analysis</button>
+            <button onclick="clearStorage()">Clear All Auth Storage</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>📝 Live Debug Log</h3>
+            <div id="log"></div>
+            <button onclick="clearLog()">Clear Log</button>
+        </div>
+    </div>
+
+    <script>
+        let logElement = document.getElementById('log');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const emoji = type === 'error' ? '❌' : type === 'success' ? '✅' : type === 'warning' ? '⚠️' : '📝';
+            logElement.textContent += `[${timestamp}] ${emoji} ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        function updateStatus(elementId, content, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = content;
+            element.className = type;
+        }
+        
+        // Environment Check
+        function checkEnvironment() {
+            log('Checking environment...');
+            const isLocalhost = window.location.hostname === 'localhost';
+            const port = window.location.port;
+            const protocol = window.location.protocol;
+            
+            let status = `
+                <div class="${isLocalhost ? 'success' : 'error'}">
+                    <strong>Hostname:</strong> ${window.location.hostname} ${isLocalhost ? '✅' : '❌'}
+                </div>
+                <div class="${port === '8080' ? 'success' : 'warning'}">
+                    <strong>Port:</strong> ${port || 'default'} ${port === '8080' ? '✅' : '⚠️'}
+                </div>
+                <div class="${protocol === 'http:' ? 'success' : 'warning'}">
+                    <strong>Protocol:</strong> ${protocol} ${protocol === 'http:' ? '✅' : '⚠️'}
+                </div>
+            `;
+            
+            updateStatus('environment-status', status);
+            log(`Environment: ${protocol}//${window.location.hostname}:${port}`);
+        }
+        
+        // Test Auth State
+        function testAuthState() {
+            log('Testing authentication state...');
+            try {
+                // Check if we're in the React app context
+                if (window.location.pathname.startsWith('/auth')) {
+                    updateStatus('auth-status', '<div class="warning">On auth page - expected for unauthenticated users</div>');
+                    log('Currently on authentication page');
+                } else if (window.location.pathname.startsWith('/dashboard')) {
+                    updateStatus('auth-status', '<div class="success">On dashboard - appears to be authenticated</div>');
+                    log('Currently on dashboard - user appears authenticated');
+                } else {
+                    updateStatus('auth-status', '<div class="warning">On: ' + window.location.pathname + '</div>');
+                    log('Current path: ' + window.location.pathname);
+                }
+            } catch (error) {
+                updateStatus('auth-status', '<div class="error">Error: ' + error.message + '</div>');
+                log('Auth state check failed: ' + error.message, 'error');
+            }
+        }
+        
+        // Analyze URL
+        function analyzeURL() {
+            log('Analyzing URL parameters...');
+            const url = new URL(window.location);
+            const hashParams = new URLSearchParams(url.hash.substring(1));
+            const searchParams = new URLSearchParams(url.search);
+            
+            let analysis = '<strong>Current URL:</strong> ' + window.location.href + '<br><br>';
+            
+            // Check for OAuth parameters
+            const oauthParams = ['access_token', 'refresh_token', 'token_type', 'expires_in', 'error', 'error_description'];
+            let foundOAuthParams = [];
+            
+            oauthParams.forEach(param => {
+                if (hashParams.has(param)) {
+                    foundOAuthParams.push(`${param}: ${hashParams.get(param)}`);
+                }
+                if (searchParams.has(param)) {
+                    foundOAuthParams.push(`${param}: ${searchParams.get(param)} (query)`);
+                }
+            });
+            
+            if (foundOAuthParams.length > 0) {
+                analysis += '<div class="warning"><strong>OAuth Parameters Found:</strong><br>' + foundOAuthParams.join('<br>') + '</div>';
+                log('OAuth parameters detected in URL', 'warning');
+            } else {
+                analysis += '<div class="success">No OAuth parameters in URL</div>';
+                log('No OAuth parameters found in URL');
+            }
+            
+            updateStatus('url-analysis', analysis);
+        }
+        
+        // Test Navigation
+        function testAuthPage() {
+            log('Testing navigation to /auth...');
+            window.location.href = '/auth';
+        }
+        
+        function testCallbackPage() {
+            log('Testing navigation to /auth/callback...');
+            window.location.href = '/auth/callback';
+        }
+        
+        function testDashboard() {
+            log('Testing navigation to /dashboard...');
+            window.location.href = '/dashboard';
+        }
+        
+        // Inspect Storage
+        function inspectStorage() {
+            log('Inspecting local storage and session storage...');
+            let analysis = '<strong>Local Storage:</strong><br>';
+            
+            // Check localStorage
+            const localStorageKeys = Object.keys(localStorage);
+            const supabaseKeys = localStorageKeys.filter(key => key.includes('supabase') || key.includes('sb-'));
+            
+            if (supabaseKeys.length > 0) {
+                analysis += '<div class="warning">Supabase keys found:<br>' + supabaseKeys.join('<br>') + '</div><br>';
+                log(`Found ${supabaseKeys.length} Supabase storage keys`, 'warning');
+            } else {
+                analysis += '<div class="success">No Supabase keys in localStorage</div><br>';
+                log('No Supabase keys found in localStorage');
+            }
+            
+            // Check sessionStorage
+            analysis += '<strong>Session Storage:</strong><br>';
+            const sessionStorageKeys = Object.keys(sessionStorage);
+            const supabaseSessionKeys = sessionStorageKeys.filter(key => key.includes('supabase') || key.includes('sb-'));
+            
+            if (supabaseSessionKeys.length > 0) {
+                analysis += '<div class="warning">Supabase session keys found:<br>' + supabaseSessionKeys.join('<br>') + '</div>';
+                log(`Found ${supabaseSessionKeys.length} Supabase session storage keys`, 'warning');
+            } else {
+                analysis += '<div class="success">No Supabase keys in sessionStorage</div>';
+                log('No Supabase keys found in sessionStorage');
+            }
+            
+            updateStatus('storage-analysis', analysis);
+        }
+        
+        // Clear Storage
+        function clearStorage() {
+            log('Clearing all authentication storage...');
+            
+            // Clear localStorage
+            Object.keys(localStorage).forEach(key => {
+                if (key.includes('supabase') || key.includes('sb-')) {
+                    localStorage.removeItem(key);
+                    log(`Removed localStorage key: ${key}`);
+                }
+            });
+            
+            // Clear sessionStorage
+            Object.keys(sessionStorage).forEach(key => {
+                if (key.includes('supabase') || key.includes('sb-')) {
+                    sessionStorage.removeItem(key);
+                    log(`Removed sessionStorage key: ${key}`);
+                }
+            });
+            
+            updateStatus('storage-analysis', '<div class="success">Storage cleared successfully</div>');
+            log('Authentication storage cleared', 'success');
+        }
+        
+        // Clear Log
+        function clearLog() {
+            logElement.textContent = '';
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            log('CropGenius Auth Flow Debugger initialized');
+            checkEnvironment();
+            testAuthState();
+            analyzeURL();
+            inspectStorage();
+        });
+        
+        // Listen for navigation events
+        window.addEventListener('popstate', function() {
+            log('Navigation detected via popstate');
+            testAuthState();
+            analyzeURL();
+        });
+        
+        // Auto-refresh every 5 seconds
+        setInterval(function() {
+            if (document.visibilityState === 'visible') {
+                testAuthState();
+                analyzeURL();
+            }
+        }, 5000);
+    </script>
+</body>
+</html>
