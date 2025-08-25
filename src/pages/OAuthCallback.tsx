@@ -14,37 +14,50 @@ export default function OAuthCallback() {
       try {
         // Log the current URL for debugging
         console.log('🔍 OAuthCallback processing URL:', window.location.href);
-        
-        // Check if there's a code in the URL query parameters
+
+        // Method 1: If code is in query params (most likely scenario based on logs)
         const params = new URLSearchParams(window.location.search);
-        const code = params.get('code');
-        
-        if (!code) {
+        const codeFromParams = params.get('code');
+
+        // Method 2: If using hash-based flow (original Supabase approach)
+        let authCode = codeFromParams;
+
+        if (!authCode && window.location.hash) {
+          try {
+            // Try to exchange using the full hash as Supabase might handle it
+            const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.hash);
+            if (!error && data) {
+              await refreshSession();
+              console.log('✅ Hash-based OAuth successful!');
+              navigate('/dashboard', { replace: true });
+              return;
+            }
+          } catch (hashError) {
+            console.warn('Hash-based exchange failed, trying code-only approach', hashError);
+          }
+        }
+
+        if (!authCode) {
           console.error('❌ No auth code found in URL');
           navigate('/auth', { replace: true });
           return;
         }
 
-        // Explicitly construct the full URL that Supabase needs for PKCE flow
-        // This ensures both code and code_verifier are properly provided
-        try {
-          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+        // Direct code exchange
+        console.log('🔑 Exchanging auth code for session:', authCode);
+        const { data, error } = await supabase.auth.exchangeCodeForSession(authCode);
           
-          if (error) {
-            console.error('❌ OAuth code exchange error:', error);
-            navigate('/auth', { replace: true });
-            return;
-          }
-          
-          // Ensure we have a session by refreshing it
-          await refreshSession();
-          
-          console.log('✅ OAuth authentication successful!');
-          navigate('/dashboard', { replace: true });
-        } catch (err) {
-          console.error('❌ OAuth token exchange failed:', err);
+        if (error) {
+          console.error('❌ OAuth code exchange error:', error);
           navigate('/auth', { replace: true });
+          return;
         }
+          
+        // Ensure we have a session
+        await refreshSession();
+          
+        console.log('✅ OAuth authentication successful!');
+        navigate('/dashboard', { replace: true });
       } catch (err) {
         console.error('💥 Failed to process OAuth callback:', err);
         navigate('/auth', { replace: true });
