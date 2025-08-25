@@ -98,12 +98,12 @@ export const useAuth = (): AuthState & AuthActions => {
     };
   }, []);
 
-  // 🚀 PRODUCTION FIXED - EXPLICIT REDIRECT URL FOR CROPGENIUS.AFRICA
+  // 🚀 PRODUCTION FIXED - PROPER REDIRECT URL FOR CROPGENIUS.AFRICA
   const signInWithGoogle = async () => {
     try {
-      console.log('🔑 Starting Google OAuth (Production Fix - Explicit Redirect)...');
+      console.log('🔑 Starting Google OAuth (Production Ready)...');
       
-      // 🎯 CRITICAL FIX: Use explicit redirect URL for production domain
+      // 🎯 CRITICAL FIX: Use production domain for redirect
       const redirectURL = window.location.hostname === 'localhost' 
         ? `${window.location.origin}/auth/callback`
         : 'https://cropgenius.africa/auth/callback';
@@ -126,7 +126,7 @@ export const useAuth = (): AuthState & AuthActions => {
         throw error;
       }
       
-      console.log('✅ OAuth initiated successfully with explicit redirect');
+      console.log('✅ OAuth initiated successfully with production redirect');
       return data;
     } catch (error) {
       console.error('💥 Google OAuth failed:', error);
