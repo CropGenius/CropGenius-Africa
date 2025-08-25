@@ -15,7 +15,6 @@ import Chat from './pages/Chat';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 import OnboardingPage from './pages/OnboardingPage';
-import OAuthCallback from './pages/OAuthCallback';
 import Tasks from './pages/Tasks';
 import More from './pages/More';
 import ManageFields from './pages/ManageFields';
@@ -54,7 +53,6 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/auth" element={<Auth />} />
-      <Route path="/auth/callback" element={<OAuthCallback />} />
       <Route path="/join" element={<JoinPage />} />
 
       <Route path="/onboarding" element={<OnboardingPage />} />
