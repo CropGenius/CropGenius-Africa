@@ -8,7 +8,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   isInitialized: boolean;
-  signInWithGoogle: () => Promise<void>;
+  signInWithGoogle: () => Promise<any>;
   signOut: () => Promise<void>;
   refreshSession: () => Promise<void>;
 }

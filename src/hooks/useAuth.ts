@@ -12,7 +12,7 @@ interface AuthState {
 }
 
 interface AuthActions {
-  signInWithGoogle: () => Promise<void>;
+  signInWithGoogle: () => Promise<any>;
   signOut: () => Promise<void>;
   refreshSession: () => Promise<void>;
   processReferralAttribution: (user: User) => Promise<void>;
@@ -88,28 +88,50 @@ export const useAuth = (): AuthState & AuthActions => {
   }, []);
 
   useEffect(() => {
+    let mounted = true;
+    
     const initAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
+      try {
+        console.log('Initializing auth state...');
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+        }
+        
+        if (mounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          setIsLoading(false);
+          console.log('Auth state initialized:', { hasSession: !!session, userId: session?.user?.id });
+        }
+      } catch (error) {
+        console.error('Failed to initialize auth:', error);
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+        console.log('Auth state change:', event, { hasSession: !!session, userId: session?.user?.id });
         
-        // Process referral attribution for new signups
-        if (event === 'SIGNED_IN' && session?.user) {
-          // Check if this is a new user (created recently)
-          const userCreatedAt = new Date(session.user.created_at);
-          const now = new Date();
-          const minutesDiff = (now.getTime() - userCreatedAt.getTime()) / (1000 * 60);
+        if (mounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
           
-          // If user was created within the last 5 minutes, consider it a new signup
-          if (minutesDiff <= 5) {
-            await processReferralAttribution(session.user);
+          // Process referral attribution for new signups
+          if (event === 'SIGNED_IN' && session?.user) {
+            // Check if this is a new user (created recently)
+            const userCreatedAt = new Date(session.user.created_at);
+            const now = new Date();
+            const minutesDiff = (now.getTime() - userCreatedAt.getTime()) / (1000 * 60);
+            
+            // If user was created within the last 5 minutes, consider it a new signup
+            if (minutesDiff <= 5) {
+              await processReferralAttribution(session.user);
+            }
           }
         }
       }
@@ -118,11 +140,37 @@ export const useAuth = (): AuthState & AuthActions => {
     initAuth();
     
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [processReferralAttribution]);
 
-  const signInWithGoogle = () => supabase.auth.signInWithOAuth({ provider: 'google' });
+  const signInWithGoogle = async () => {
+    try {
+      console.log('Starting Google OAuth with proper configuration...');
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent'
+          }
+        }
+      });
+      
+      if (error) {
+        console.error('Google OAuth error:', error);
+        throw error;
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('Google OAuth failed:', error);
+      throw error;
+    }
+  };
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();

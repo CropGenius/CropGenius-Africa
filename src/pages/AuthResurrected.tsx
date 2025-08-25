@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { Eye, EyeOff, Mail, Lock, CheckCircle, Users, TrendingUp } from 'lucide-react';
 
 export default function AuthResurrected() {
-  const { isAuthenticated, user, isLoading } = useAuthContext();
+  const { isAuthenticated, user, isLoading, signInWithGoogle } = useAuthContext();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
@@ -35,22 +35,14 @@ export default function AuthResurrected() {
   const handleGoogleAuth = async () => {
     try {
       setLoading(true);
-      console.log('Starting Google OAuth...');
+      console.log('Starting Google OAuth through AuthProvider...');
       
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`
-        }
-      });
+      // Use the signInWithGoogle from useAuth hook for consistency
+      await signInWithGoogle();
       
-      if (error) {
-        console.error('Google OAuth error:', error);
-        toast.error('Google authentication failed');
-      }
     } catch (error) {
       console.error('Google OAuth exception:', error);
-      toast.error('Authentication service unavailable');
+      toast.error('Google authentication failed');
     } finally {
       setLoading(false);
     }
