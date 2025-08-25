@@ -6,18 +6,17 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Navigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { signInWithGoogle } from '@/utils/authUtils';
 import { toast } from 'sonner';
 import { Eye, EyeOff, Mail, Lock, CheckCircle, Users, TrendingUp } from 'lucide-react';
 
 export default function AuthResurrected() {
-  const { isAuthenticated, user, isLoading, signInWithGoogle } = useAuthContext();
+  const { isAuthenticated, user, isLoading } = useAuthContext();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  console.log('AuthResurrected state:', { isLoading, isAuthenticated, userId: user?.id });
 
   if (isLoading) {
     return (
@@ -28,20 +27,20 @@ export default function AuthResurrected() {
   }
 
   if (isAuthenticated && user) {
-    console.log('AuthResurrected: redirecting authenticated user');
     return <Navigate to="/dashboard" replace />;
   }
 
+  // 🚀 OFFICIAL SUPABASE OAUTH - NO CUSTOM REDIRECTS
   const handleGoogleAuth = async () => {
     try {
       setLoading(true);
-      console.log('Starting Google OAuth through AuthProvider...');
+      console.log('🔑 Starting OFFICIAL Google OAuth...');
       
-      // Use the signInWithGoogle from useAuth hook for consistency
       await signInWithGoogle();
+      // Supabase will handle the redirect to SITE_URL automatically
       
     } catch (error) {
-      console.error('Google OAuth exception:', error);
+      console.error('❌ Google OAuth failed:', error);
       toast.error('Google authentication failed');
     } finally {
       setLoading(false);
@@ -59,30 +58,26 @@ export default function AuthResurrected() {
       setLoading(true);
       
       if (isSignUp) {
-        console.log('Attempting email signup...');
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`
+            emailRedirectTo: `${window.location.origin}/dashboard`
           }
         });
         
         if (error) {
-          console.error('Signup error:', error);
           toast.error(error.message);
         } else {
           toast.success('Check your email to confirm your account');
         }
       } else {
-        console.log('Attempting email signin...');
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password
         });
         
         if (error) {
-          console.error('Signin error:', error);
           toast.error('Invalid email or password');
         }
       }
@@ -108,7 +103,6 @@ export default function AuthResurrected() {
               />
             </div>
             
-            {/* App Title */}
             <h1 className="text-3xl font-bold text-gray-900 mb-2">CropGenius</h1>
             <p className="text-gray-600 font-medium text-lg">AI-Powered Agriculture for 100M+ Farmers</p>
           </CardHeader>
@@ -138,7 +132,7 @@ export default function AuthResurrected() {
               </div>
             </div>
 
-            {/* Google Sign In Button */}
+            {/* Google Sign In Button - OFFICIAL SUPABASE FLOW */}
             <Button
               onClick={handleGoogleAuth}
               disabled={loading}
@@ -205,7 +199,6 @@ export default function AuthResurrected() {
               </Button>
             </form>
 
-            {/* Toggle Sign Up/Sign In */}
             <div className="mt-6 text-center">
               <button
                 onClick={() => setIsSignUp(!isSignUp)}
@@ -234,7 +227,6 @@ export default function AuthResurrected() {
               </div>
             </div>
 
-            {/* Terms */}
             <p className="mt-6 text-xs text-gray-500 text-center">
               By continuing, you agree to our Terms of Service and Privacy Policy
             </p>

@@ -6,17 +6,21 @@ import AuthResurrected from './AuthResurrected';
 
 export default function Auth() {
   const { isAuthenticated, user, isLoading } = useAuthContext();
-  const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
+  const [hasChecked, setHasChecked] = useState(false);
 
   useEffect(() => {
-    if (!isLoading) {
-      setHasCheckedAuth(true);
-    }
-  }, [isLoading]);
+    // Give auth system time to initialize
+    const timer = setTimeout(() => {
+      setHasChecked(true);
+    }, 500);
 
-  console.log('Auth page state:', { isLoading, isAuthenticated, hasCheckedAuth, userId: user?.id });
+    return () => clearTimeout(timer);
+  }, []);
 
-  if (isLoading || !hasCheckedAuth) {
+  console.log('Auth page state:', { isLoading, isAuthenticated, hasChecked, userId: user?.id });
+
+  // Show loading until we've checked auth state
+  if (isLoading || !hasChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
         <div className="animate-spin rounded-full h-8 w-8 border-4 border-green-200 border-t-green-600"></div>
@@ -24,11 +28,12 @@ export default function Auth() {
     );
   }
 
-  // Only redirect if we are absolutely certain the user is authenticated
-  if (isAuthenticated && user && hasCheckedAuth) {
-    console.log('Auth page: redirecting authenticated user to dashboard');
+  // If user is authenticated, redirect to dashboard
+  if (isAuthenticated && user) {
+    console.log('✅ User authenticated - redirecting to dashboard');
     return <Navigate to="/dashboard" replace />;
   }
 
+  // Show auth form for non-authenticated users
   return <AuthResurrected />;
 }
