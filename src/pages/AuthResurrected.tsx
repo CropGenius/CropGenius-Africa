@@ -104,7 +104,7 @@ export default function AuthResurrected() {
             </div>
             
             <h1 className="text-3xl font-bold text-gray-900 mb-2">CropGenius</h1>
-            <p className="text-gray-600 font-medium text-lg">AI-Powered Agriculture for 100M+ Farmers</p>
+            <p className="text-gray-600 font-medium text-lg">Smartfarming Simplified</p>
           </CardHeader>
 
           <CardContent className="px-8 pb-8">
