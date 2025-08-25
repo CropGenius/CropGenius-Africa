@@ -89,14 +89,27 @@ export const useAuth = (): AuthState & AuthActions => {
     };
   }, []);
 
-  // 🚀 OFFICIAL SUPABASE OAUTH - SIMPLE AND PRODUCTION READY
+  // 🚀 PRODUCTION FIXED - EXPLICIT REDIRECT URL FOR CROPGENIUS.AFRICA
   const signInWithGoogle = async () => {
     try {
-      console.log('🔑 Starting Google OAuth (Official Supabase Method)...');
+      console.log('🔑 Starting Google OAuth (Production Fix - Explicit Redirect)...');
       
-      // OFFICIAL METHOD - Let Supabase handle everything!
+      // 🎯 CRITICAL FIX: Use explicit redirect URL for production domain
+      const redirectURL = window.location.hostname === 'localhost' 
+        ? `${window.location.origin}/auth/callback`
+        : 'https://cropgenius.africa/auth/callback';
+      
+      console.log('🔗 Using redirect URL:', redirectURL);
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google'
+        provider: 'google',
+        options: {
+          redirectTo: redirectURL,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
       });
       
       if (error) {
@@ -104,7 +117,7 @@ export const useAuth = (): AuthState & AuthActions => {
         throw error;
       }
       
-      console.log('✅ OAuth initiated successfully');
+      console.log('✅ OAuth initiated successfully with explicit redirect');
       return data;
     } catch (error) {
       console.error('💥 Google OAuth failed:', error);
