@@ -114,9 +114,10 @@ export const useAuth = (): AuthState & AuthActions => {
         provider: 'google',
         options: {
           redirectTo: redirectURL,
+          skipBrowserRedirect: false, // Force proper redirect handling
           queryParams: {
             access_type: 'offline',
-            prompt: 'consent',
+            prompt: 'select_account', // Force account selection to prevent auto-login loops
           },
         },
       });
