@@ -35,6 +35,7 @@ import ReferralsPage from './pages/ReferralsPage';
 import JoinPage from './pages/JoinPage';
 import PaymentCallback from './pages/PaymentCallback';
 import SubscriptionSettings from './components/pro/SubscriptionSettings';
+import OAuthCallback from './pages/OAuthCallback';
 
 function Protected({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuthContext();
@@ -53,6 +54,7 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/auth" element={<Auth />} />
+      <Route path="/auth/callback" element={<OAuthCallback />} />
       <Route path="/join" element={<JoinPage />} />
 
       <Route path="/onboarding" element={<OnboardingPage />} />
