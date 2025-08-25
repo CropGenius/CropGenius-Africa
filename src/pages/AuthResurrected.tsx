@@ -101,7 +101,7 @@ export default function AuthResurrected() {
             {/* CropGenius Logo */}
             <div className="mx-auto mb-4">
               <img 
-                src="/lovable-uploads/cb0009db-f4b5-4e1b-a511-bb3131d26fb7.png" 
+                src="/lovable-uploads/cropgeniuslogo.png" 
                 alt="CropGenius Logo" 
                 className="w-20 h-20 mx-auto rounded-2xl shadow-lg"
               />
