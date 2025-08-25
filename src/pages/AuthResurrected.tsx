@@ -29,14 +29,15 @@ export default function AuthResurrected() {
     return <Navigate to="/dashboard" replace />;
   }
 
-  // 🚀 OFFICIAL SUPABASE OAUTH - NO CUSTOM REDIRECTS
+  // 🚀 PRODUCTION FIXED - USE PROPER useAuth HOOK
   const handleGoogleAuth = async () => {
     try {
       setLoading(true);
-      console.log('🔑 Starting OFFICIAL Google OAuth...');
+      console.log('🔑 Starting Google OAuth with proper redirect handling...');
       
+      // Use the correct signInWithGoogle from useAuth hook which handles redirects properly
       await signInWithGoogle();
-      // Supabase will handle the redirect to SITE_URL automatically
+      // The useAuth hook handles the redirect automatically
       
     } catch (error) {
       console.error('❌ Google OAuth failed:', error);
