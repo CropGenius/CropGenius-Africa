@@ -6,6 +6,7 @@ import Protected from '@/components/Protected';
 import Auth from '@/pages/Auth';
 import OAuthCallback from '@/pages/OAuthCallback';
 import OnboardingPage from '@/pages/OnboardingPage';
+import Index from '@/pages/Index';
 
 const queryClient = new QueryClient();
 
@@ -22,11 +23,7 @@ export default function App() {
               path="/dashboard"
               element={
                 <Protected>
-                  {/* Your dashboard component here */}
-                  <div className="p-8">
-                    <h1 className="text-2xl font-bold">Dashboard</h1>
-                    <p>Welcome to CropGenius!</p>
-                  </div>
+                  <Index />
                 </Protected>
               }
             />
