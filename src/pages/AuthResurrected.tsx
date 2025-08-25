@@ -6,12 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Navigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { signInWithGoogle } from '@/utils/authUtils';
 import { toast } from 'sonner';
 import { Eye, EyeOff, Mail, Lock, CheckCircle, Users, TrendingUp } from 'lucide-react';
 
 export default function AuthResurrected() {
-  const { isAuthenticated, user, isLoading } = useAuthContext();
+  const { isAuthenticated, user, isLoading, signInWithGoogle } = useAuthContext();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
