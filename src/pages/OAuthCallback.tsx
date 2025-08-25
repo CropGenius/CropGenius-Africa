@@ -3,43 +3,45 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 
-// 🎯 PRODUCTION OAUTH CALLBACK - MANUAL HANDLING TO PREVENT LOOPS
+// 🎯 PRODUCTION OAUTH CALLBACK - FIXED IMPLEMENTATION
 export default function OAuthCallback() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuthContext();
+  const { isAuthenticated, refreshSession } = useAuthContext();
 
   useEffect(() => {
-    // 🔥 CRITICAL FIX: Manually handle the hash fragment ourselves
+    // 🔥 CRITICAL FIX: Use the correct Supabase exchange process
     const handleOAuthCallback = async () => {
       try {
-        // 1. Manually extract the session from URL
-        const { data, error } = await supabase.auth.getSessionFromUrl();
+        // Log the current URL for debugging
+        console.log('🔍 OAuthCallback processing URL:', window.location.href);
+        
+        // 1. Exchange the auth code for a session
+        // This method does multiple things:
+        // - Extracts code from URL
+        // - Exchanges code for session
+        // - Sets the session in the client
+        const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.hash);
         
         if (error) {
-          console.error('OAuth callback error:', error);
+          console.error('❌ OAuth code exchange error:', error);
           navigate('/auth', { replace: true });
           return;
         }
         
-        if (data?.session) {
-          // Session found in URL, go to dashboard
-          navigate('/dashboard', { replace: true });
-        } else if (isAuthenticated) {
-          // Already authenticated but no session in URL
-          navigate('/dashboard', { replace: true });
-        } else {
-          // No session found anywhere
-          navigate('/auth', { replace: true });
-        }
+        // Ensure we have a session by refreshing it
+        await refreshSession();
+        
+        console.log('✅ OAuth authentication successful!');
+        navigate('/dashboard', { replace: true });
       } catch (err) {
-        console.error('Failed to process OAuth callback:', err);
+        console.error('💥 Failed to process OAuth callback:', err);
         navigate('/auth', { replace: true });
       }
     };
 
     handleOAuthCallback();
-  }, [navigate, isAuthenticated]);
+  }, [navigate, refreshSession]);
 
-  // No middleman loading screen
+  // No loading screen - we redirect immediately
   return null;
 }

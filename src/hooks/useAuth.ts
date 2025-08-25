@@ -101,7 +101,7 @@ export const useAuth = (): AuthState & AuthActions => {
   // 🚀 PRODUCTION FIXED - PROPER REDIRECT URL FOR CROPGENIUS.AFRICA
   const signInWithGoogle = async () => {
     try {
-      console.log('🔑 Starting Google OAuth (Production Ready)...');
+      console.log('🔑 Starting Google OAuth (Final Fix)...');
       
       // 🎯 CRITICAL FIX: Use production domain for redirect
       const redirectURL = window.location.hostname === 'localhost' 
@@ -114,10 +114,11 @@ export const useAuth = (): AuthState & AuthActions => {
         provider: 'google',
         options: {
           redirectTo: redirectURL,
-          skipBrowserRedirect: false, // Force proper redirect handling
+          skipBrowserRedirect: false,
           queryParams: {
             access_type: 'offline',
-            prompt: 'select_account', // Force account selection to prevent auto-login loops
+            prompt: 'select_account', // Force account selection
+            // Avoid including scope parameter which might cause issues
           },
         },
       });
@@ -127,7 +128,7 @@ export const useAuth = (): AuthState & AuthActions => {
         throw error;
       }
       
-      console.log('✅ OAuth initiated successfully with production redirect');
+      console.log('✅ OAuth initiated successfully');
       return data;
     } catch (error) {
       console.error('💥 Google OAuth failed:', error);

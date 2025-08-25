@@ -8,8 +8,9 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false, // CRITICAL FIX: Don't auto-detect in URL to prevent loop
-    flowType: 'pkce'
+    detectSessionInUrl: false, // IMPORTANT: We handle this manually in OAuthCallback.tsx
+    flowType: 'pkce',
+    debug: true // Enable debug mode to log authentication issues
   }
 });
 
