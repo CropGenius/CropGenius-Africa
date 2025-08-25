@@ -145,19 +145,15 @@ export const useAuth = (): AuthState & AuthActions => {
     };
   }, [processReferralAttribution]);
 
+  // OFFICIAL Supabase OAuth implementation - Simple and Production Ready
   const signInWithGoogle = async () => {
     try {
-      console.log('Starting Google OAuth with proper configuration...');
+      console.log('Starting Google OAuth with official Supabase implementation...');
       
+      // Use the OFFICIAL Supabase OAuth method - NO custom redirectTo for now
+      // This uses the SITE_URL configured in Supabase Dashboard
       const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent'
-          }
-        }
+        provider: 'google'
       });
       
       if (error) {
@@ -165,6 +161,7 @@ export const useAuth = (): AuthState & AuthActions => {
         throw error;
       }
       
+      console.log('OAuth initiated successfully');
       return data;
     } catch (error) {
       console.error('Google OAuth failed:', error);
