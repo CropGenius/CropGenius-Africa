@@ -1,340 +1,131 @@
-import React, { useState, useEffect } from 'react';
+
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuthContext } from '@/providers/AuthProvider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useAuthContext } from '@/providers/AuthProvider';
-import { RefreshCw, AlertCircle, ArrowRight, CheckCircle } from 'lucide-react';
-import { toast } from 'sonner';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export default function OnboardingPage() {
+  const { user } = useAuthContext();
   const navigate = useNavigate();
-  const { user, isLoading } = useAuthContext();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    fullName: user?.user_metadata?.full_name || user?.user_metadata?.name || '',
-    location: '',
-    farmSize: '',
-    farmType: '',
-    experienceLevel: '',
-    primaryCrops: [],
-    goals: []
+    farmName: '',
+    totalArea: '',
+    crops: [] as string[],
+    planting_date: '',
+    harvest_date: '',
+    primary_goal: 'increase_yield',
+    primary_pain_point: 'pests',
+    has_irrigation: false,
+    has_machinery: false,
+    has_soil_test: false,
+    budget_band: 'medium',
+    preferred_language: 'en',
+    whatsapp_number: ''
   });
 
-  useEffect(() => {
-    if (!isLoading && !user) {
-      navigate('/auth');
-    }
-  }, [user, isLoading, navigate]);
-
-  const handleNext = async () => {
-    if (currentStep < 4) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      await completeOnboarding();
-    }
-  };
-
-  const completeOnboarding = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!user) return;
-    
-    setIsSubmitting(true);
+
+    setLoading(true);
     try {
-      // Save user profile
-      const { error: profileError } = await supabase
-        .from('user_profiles')
-        .upsert({
-          user_id: user.id,
-          full_name: formData.fullName,
-          location: formData.location,
-          farm_size: parseFloat(formData.farmSize) || null,
-          farm_type: formData.farmType,
-          experience_level: formData.experienceLevel,
-          primary_crops: formData.primaryCrops,
-          onboarding_completed: true
-        });
+      const { error } = await supabase.rpc('complete_onboarding', {
+        p_user_id: user.id,
+        farm_name: formData.farmName,
+        total_area: parseFloat(formData.totalArea),
+        crops: formData.crops,
+        planting_date: formData.planting_date,
+        harvest_date: formData.harvest_date,
+        primary_goal: formData.primary_goal,
+        primary_pain_point: formData.primary_pain_point,
+        has_irrigation: formData.has_irrigation,
+        has_machinery: formData.has_machinery,
+        has_soil_test: formData.has_soil_test,
+        budget_band: formData.budget_band,
+        preferred_language: formData.preferred_language,
+        whatsapp_number: formData.whatsapp_number
+      });
 
-      if (profileError) throw profileError;
+      if (error) throw error;
 
-      // Save onboarding completion
-      const { error: onboardingError } = await supabase
-        .from('onboarding')
-        .upsert({
-          user_id: user.id,
-          step: 4,
-          completed: true,
-          data: formData
-        });
-
-      if (onboardingError) throw onboardingError;
-
-      toast.success('Welcome to CropGenius! 🌾');
-      navigate('/dashboard');
+      toast.success('Welcome to CropGenius! Your farm setup is complete! 🌾');
+      navigate('/dashboard', { replace: true });
     } catch (error) {
       console.error('Onboarding error:', error);
       toast.error('Failed to complete onboarding. Please try again.');
     } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
-        <div className="text-center">
-          <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-green-600" />
-          <p className="text-green-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  const renderStep = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <Card className="w-full max-w-2xl shadow-xl">
-            <CardHeader className="text-center pb-6">
-              <div className="mx-auto mb-4 w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                <span className="text-3xl">🌾</span>
-              </div>
-              <CardTitle className="text-3xl text-green-600 mb-2">Welcome to CropGenius!</CardTitle>
-              <p className="text-gray-600">Let's get your farm set up in just a few steps</p>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <Label htmlFor="fullName" className="text-sm font-medium">Full Name</Label>
-                <Input
-                  id="fullName"
-                  value={formData.fullName}
-                  onChange={(e) => setFormData({...formData, fullName: e.target.value})}
-                  placeholder="Enter your full name"
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="location" className="text-sm font-medium">Farm Location</Label>
-                <Input
-                  id="location"
-                  value={formData.location}
-                  onChange={(e) => setFormData({...formData, location: e.target.value})}
-                  placeholder="City, Country"
-                  className="mt-1"
-                />
-              </div>
-              <Button 
-                onClick={handleNext} 
-                className="w-full bg-green-600 hover:bg-green-700 text-white py-3"
-                disabled={!formData.fullName.trim()}
-              >
-                Continue <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </CardContent>
-          </Card>
-        );
-      case 2:
-        return (
-          <Card className="w-full max-w-2xl shadow-xl">
-            <CardHeader className="text-center pb-6">
-              <CardTitle className="text-2xl text-green-600">Tell us about your farm</CardTitle>
-              <p className="text-gray-600">This helps us provide better recommendations</p>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <Label htmlFor="farmSize" className="text-sm font-medium">Farm Size (hectares)</Label>
-                <Input
-                  id="farmSize"
-                  type="number"
-                  value={formData.farmSize}
-                  onChange={(e) => setFormData({...formData, farmSize: e.target.value})}
-                  placeholder="e.g., 5.5"
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="farmType" className="text-sm font-medium">Farm Type</Label>
-                <Select onValueChange={(value) => setFormData({...formData, farmType: value})}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select farm type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="crop">Crop Farming</SelectItem>
-                    <SelectItem value="livestock">Livestock</SelectItem>
-                    <SelectItem value="mixed">Mixed Farming</SelectItem>
-                    <SelectItem value="organic">Organic Farming</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button 
-                onClick={handleNext} 
-                className="w-full bg-green-600 hover:bg-green-700 text-white py-3"
-                disabled={!formData.farmType}
-              >
-                Continue <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </CardContent>
-          </Card>
-        );
-      case 3:
-        return (
-          <Card className="w-full max-w-2xl shadow-xl">
-            <CardHeader className="text-center pb-6">
-              <CardTitle className="text-2xl text-green-600">Your farming experience</CardTitle>
-              <p className="text-gray-600">Help us tailor content to your level</p>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <Label className="text-sm font-medium">Experience Level</Label>
-                <Select onValueChange={(value) => setFormData({...formData, experienceLevel: value})}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select your experience level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="beginner">Beginner (0-2 years)</SelectItem>
-                    <SelectItem value="intermediate">Intermediate (3-10 years)</SelectItem>
-                    <SelectItem value="advanced">Advanced (10+ years)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-sm font-medium">Primary Crops (select all that apply)</Label>
-                <div className="grid grid-cols-2 gap-3 mt-3">
-                  {['Maize', 'Rice', 'Wheat', 'Soybeans', 'Tomatoes', 'Potatoes', 'Cassava', 'Yam'].map((crop) => (
-                    <div key={crop} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={crop}
-                        checked={formData.primaryCrops.includes(crop)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setFormData({
-                              ...formData,
-                              primaryCrops: [...formData.primaryCrops, crop]
-                            });
-                          } else {
-                            setFormData({
-                              ...formData,
-                              primaryCrops: formData.primaryCrops.filter(c => c !== crop)
-                            });
-                          }
-                        }}
-                      />
-                      <Label htmlFor={crop} className="text-sm">{crop}</Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <Button 
-                onClick={handleNext} 
-                className="w-full bg-green-600 hover:bg-green-700 text-white py-3"
-                disabled={!formData.experienceLevel}
-              >
-                Continue <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </CardContent>
-          </Card>
-        );
-      case 4:
-        return (
-          <Card className="w-full max-w-2xl shadow-xl">
-            <CardHeader className="text-center pb-6">
-              <div className="mx-auto mb-4 w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                <span className="text-3xl">🎉</span>
-              </div>
-              <CardTitle className="text-2xl text-green-600">Almost done!</CardTitle>
-              <p className="text-gray-600">What are your main goals with CropGenius?</p>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <Label className="text-sm font-medium">Goals (select all that apply)</Label>
-                <div className="grid grid-cols-1 gap-3 mt-3">
-                  {[
-                    'Increase crop yield',
-                    'Reduce farming costs',
-                    'Monitor crop health',
-                    'Weather forecasting',
-                    'Market price tracking',
-                    'Learn new techniques'
-                  ].map((goal) => (
-                    <div key={goal} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={goal}
-                        checked={formData.goals.includes(goal)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setFormData({
-                              ...formData,
-                              goals: [...formData.goals, goal]
-                            });
-                          } else {
-                            setFormData({
-                              ...formData,
-                              goals: formData.goals.filter(g => g !== goal)
-                            });
-                          }
-                        }}
-                      />
-                      <Label htmlFor={goal} className="text-sm">{goal}</Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <Button 
-                onClick={handleNext} 
-                className="w-full bg-green-600 hover:bg-green-700 text-white py-3"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <>
-                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                    Setting up your account...
-                  </>
-                ) : (
-                  <>
-                    Complete Setup <CheckCircle className="ml-2 h-4 w-4" />
-                  </>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-        );
-      default:
-        return null;
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl">
-        {/* Progress Indicator */}
-        <div className="mb-8">
-          <div className="flex items-center justify-center space-x-4 mb-4">
-            {[1, 2, 3, 4].map((step) => (
-              <div key={step} className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                  step <= currentStep 
-                    ? 'bg-green-600 text-white' 
-                    : 'bg-gray-200 text-gray-500'
-                }`}>
-                  {step < currentStep ? <CheckCircle className="h-4 w-4" /> : step}
-                </div>
-                {step < 4 && (
-                  <div className={`w-12 h-1 mx-2 ${
-                    step < currentStep ? 'bg-green-600' : 'bg-gray-200'
-                  }`} />
-                )}
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-lime-50 p-4">
+      <div className="max-w-2xl mx-auto py-8">
+        <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <span className="text-4xl">🌾</span>
+            </div>
+            <CardTitle className="text-3xl font-bold text-gray-900">Welcome to CropGenius</CardTitle>
+            <p className="text-gray-600 mt-2">Let's set up your farm to get AI-powered insights</p>
+          </CardHeader>
+
+          <CardContent className="px-8 pb-8">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Farm Name
+                </label>
+                <Input
+                  type="text"
+                  value={formData.farmName}
+                  onChange={(e) => setFormData({ ...formData, farmName: e.target.value })}
+                  placeholder="Enter your farm name"
+                  required
+                />
               </div>
-            ))}
-          </div>
-          <p className="text-center text-sm text-gray-600">
-            Step {currentStep} of 4
-          </p>
-        </div>
-        {renderStep()}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Total Area (hectares)
+                </label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  value={formData.totalArea}
+                  onChange={(e) => setFormData({ ...formData, totalArea: e.target.value })}
+                  placeholder="e.g., 2.5"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  WhatsApp Number (optional)
+                </label>
+                <Input
+                  type="tel"
+                  value={formData.whatsapp_number}
+                  onChange={(e) => setFormData({ ...formData, whatsapp_number: e.target.value })}
+                  placeholder="+254712345678"
+                />
+              </div>
+
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-4 text-lg"
+              >
+                {loading ? 'Setting up your farm...' : 'Complete Setup'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
