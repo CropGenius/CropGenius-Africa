@@ -15,24 +15,36 @@ export default function OAuthCallback() {
         // Log the current URL for debugging
         console.log('🔍 OAuthCallback processing URL:', window.location.href);
         
-        // 1. Exchange the auth code for a session
-        // This method does multiple things:
-        // - Extracts code from URL
-        // - Exchanges code for session
-        // - Sets the session in the client
-        const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.hash);
+        // Check if there's a code in the URL query parameters
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('code');
         
-        if (error) {
-          console.error('❌ OAuth code exchange error:', error);
+        if (!code) {
+          console.error('❌ No auth code found in URL');
           navigate('/auth', { replace: true });
           return;
         }
-        
-        // Ensure we have a session by refreshing it
-        await refreshSession();
-        
-        console.log('✅ OAuth authentication successful!');
-        navigate('/dashboard', { replace: true });
+
+        // Explicitly construct the full URL that Supabase needs for PKCE flow
+        // This ensures both code and code_verifier are properly provided
+        try {
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+          
+          if (error) {
+            console.error('❌ OAuth code exchange error:', error);
+            navigate('/auth', { replace: true });
+            return;
+          }
+          
+          // Ensure we have a session by refreshing it
+          await refreshSession();
+          
+          console.log('✅ OAuth authentication successful!');
+          navigate('/dashboard', { replace: true });
+        } catch (err) {
+          console.error('❌ OAuth token exchange failed:', err);
+          navigate('/auth', { replace: true });
+        }
       } catch (err) {
         console.error('💥 Failed to process OAuth callback:', err);
         navigate('/auth', { replace: true });
