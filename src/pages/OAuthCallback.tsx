@@ -23,51 +23,29 @@ export default function OAuthCallback() {
         }
         
         if (session?.user) {
-          // Check onboarding status before redirecting
-          const { data: profile } = await supabase
-            .from('user_profiles')
-            .select('onboarding_completed')
-            .eq('user_id', session.user.id)
-            .single();
-          
-          if (profile?.onboarding_completed) {
-            toast.success('Welcome back to CropGenius! 🌾');
-            navigate('/dashboard', { replace: true });
-          } else {
-            toast.success('Welcome to CropGenius! Let\'s get you set up 🌾');
-            navigate('/onboarding', { replace: true });
-          }
+          toast.success('Welcome to CropGenius! 🌾');
+          // Always redirect to dashboard - simple and bulletproof
+          navigate('/dashboard', { replace: true });
         } else {
-          // Listen for auth state change
+          // Listen for auth state change with timeout
           const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (event === 'SIGNED_IN' && session?.user) {
               subscription.unsubscribe();
-              
-              // Check onboarding status
-              const { data: profile } = await supabase
-                .from('user_profiles')
-                .select('onboarding_completed')
-                .eq('user_id', session.user.id)
-                .single();
-              
-              if (profile?.onboarding_completed) {
-                toast.success('Welcome back to CropGenius! 🌾');
-                navigate('/dashboard', { replace: true });
-              } else {
-                toast.success('Welcome to CropGenius! Let\'s get you set up 🌾');
-                navigate('/onboarding', { replace: true });
-              }
+              toast.success('Welcome to CropGenius! 🌾');
+              navigate('/dashboard', { replace: true });
             }
           });
           
           // Timeout after 10 seconds
           setTimeout(() => {
             subscription.unsubscribe();
+            toast.error('Authentication timeout');
             navigate('/auth', { replace: true });
           }, 10000);
         }
       } catch (error) {
         console.error('Callback error:', error);
+        toast.error('Authentication failed');
         navigate('/auth', { replace: true });
       }
     };

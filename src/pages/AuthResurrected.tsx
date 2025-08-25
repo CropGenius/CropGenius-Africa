@@ -98,9 +98,13 @@ export default function AuthResurrected() {
       <div className="w-full max-w-md">
         <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm overflow-hidden">
           <CardHeader className="text-center pb-2 pt-8">
-            {/* App Icon */}
-            <div className="mx-auto mb-4 w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <span className="text-4xl">🌾</span>
+            {/* CropGenius Logo */}
+            <div className="mx-auto mb-4">
+              <img 
+                src="/lovable-uploads/cb0009db-f4b5-4e1b-a511-bb3131d26fb7.png" 
+                alt="CropGenius Logo" 
+                className="w-20 h-20 mx-auto rounded-2xl shadow-lg"
+              />
             </div>
             
             {/* App Title */}

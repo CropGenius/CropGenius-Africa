@@ -14,6 +14,7 @@ export default function Auth() {
     );
   }
 
+  // Only redirect if we have a confirmed authenticated user
   if (isAuthenticated && user) {
     return <Navigate to="/dashboard" replace />;
   }
