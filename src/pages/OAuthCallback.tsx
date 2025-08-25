@@ -5,7 +5,7 @@ import { useAuthContext } from '@/providers/AuthProvider';
 // 🎯 DIRECT OAUTH CALLBACK - NO FAKE PROCESSING SCREEN
 export default function OAuthCallback() {
   const navigate = useNavigate();
-  const { isAuthenticated, refreshSession } = useAuthContext();
+  const { isAuthenticated } = useAuthContext();
 
   useEffect(() => {
     // 🔥 IMMEDIATE REDIRECT - NO PROCESSING
