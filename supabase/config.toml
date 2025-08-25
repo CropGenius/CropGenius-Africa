@@ -7,6 +7,14 @@ port = 54321
 [db]
 port = 54322
 
+[auth]
+enabled = true
+site_url = "http://localhost:8080"
+additional_redirect_urls = ["https://your-production-domain.com"]
+jwt_expiry = 3600
+refresh_token_rotation_enabled = true
+security_update_password_require_reauthentication = true
+
 [functions.weather]
 verify_jwt = false
 
