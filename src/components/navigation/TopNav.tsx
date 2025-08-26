@@ -5,7 +5,16 @@ import { useSubscriptionContext } from '@/providers/SubscriptionProvider';
 
 const TopNav = () => {
   const navigate = useNavigate();
-  const { isPro: subscriptionIsPro } = useSubscriptionContext();
+  
+  // Graceful degradation: try provider, fall back to localStorage
+  let subscriptionIsPro = false;
+  try {
+    const context = useSubscriptionContext();
+    subscriptionIsPro = context.isPro;
+  } catch (error) {
+    // Provider not available, fall back to localStorage
+    subscriptionIsPro = localStorage.getItem('plan_is_pro') === 'true';
+  }
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-40 premium-navbar">
