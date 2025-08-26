@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, Users, Zap, ZapOff } from 'lucide-react';
@@ -18,7 +17,7 @@ const TopNav = () => {
   }
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-40 bg-green-primary">
+    <nav className="fixed top-0 left-0 right-0 z-40 premium-navbar">
       <div className="max-w-full mx-auto px-4">
         <div className="flex justify-between items-center h-14">
           {/* Hamburger Menu */}
