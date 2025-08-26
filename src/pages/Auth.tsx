@@ -24,7 +24,6 @@ export default function Auth() {
     );
   }
 
-  // Only redirect if we are absolutely certain the user is authenticated
   if (isAuthenticated && user && hasCheckedAuth) {
     console.log('Auth page: redirecting authenticated user to dashboard');
     return <Navigate to="/dashboard" replace />;

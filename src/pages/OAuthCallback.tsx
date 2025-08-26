@@ -12,7 +12,6 @@ export default function OAuthCallback() {
       try {
         console.log('OAuth callback started');
         
-        // Let Supabase handle PKCE code exchange automatically
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -27,7 +26,6 @@ export default function OAuthCallback() {
           toast.success('Welcome to CropGenius! 🌾');
           navigate('/dashboard', { replace: true });
         } else {
-          // Wait for auth state change with timeout
           setTimeout(() => {
             navigate('/auth', { replace: true });
           }, 3000);

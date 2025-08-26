@@ -60,7 +60,6 @@ export const useAuth = (): AuthState & {
       }
     };
 
-    // Single auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.id);
@@ -107,12 +106,10 @@ export const useAuth = (): AuthState & {
   const signOut = useCallback(async () => {
     try {
       await supabase.auth.signOut();
-      // Clear local state immediately
       setSession(null);
       setUser(null);
     } catch (error) {
       console.error('Sign out error:', error);
-      // Force clear state even if API call fails
       setSession(null);
       setUser(null);
     }

@@ -7,7 +7,6 @@ interface ProtectedProps {
   children: ReactNode;
 }
 
-// Prevent redirect loops by tracking redirects
 let redirectCount = 0;
 const MAX_REDIRECTS = 3;
 
@@ -17,7 +16,6 @@ export default function Protected({ children }: ProtectedProps) {
   const [shouldRedirect, setShouldRedirect] = useState(false);
 
   useEffect(() => {
-    // Reset redirect count when location changes
     redirectCount = 0;
   }, [location.pathname]);
 
@@ -45,7 +43,6 @@ export default function Protected({ children }: ProtectedProps) {
     pathname: location.pathname 
   });
 
-  // Show loading until auth is initialized
   if (isLoading || !isInitialized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
@@ -54,13 +51,11 @@ export default function Protected({ children }: ProtectedProps) {
     );
   }
 
-  // Redirect only if explicitly determined and within limits
   if (shouldRedirect && redirectCount <= MAX_REDIRECTS) {
     console.log('Protected: redirecting unauthenticated user to auth');
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // If too many redirects, show error instead of infinite loop
   if (redirectCount > MAX_REDIRECTS) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-red-100">
