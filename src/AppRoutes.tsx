@@ -35,6 +35,7 @@ import AddCrop from './pages/AddCrop';
 import ReferralsPage from './pages/ReferralsPage';
 import JoinPage from './pages/JoinPage';
 import PaymentCallback from './pages/PaymentCallback';
+import PasswordResetPage from './pages/PasswordResetPage';
 import SubscriptionSettings from './components/pro/SubscriptionSettings';
 
 function Protected({ children }: { children: React.ReactNode }) {
@@ -55,6 +56,7 @@ export default function AppRoutes() {
     <Routes>
       <Route path="/auth" element={<Auth />} />
       <Route path="/auth/callback" element={<OAuthCallback />} />
+      <Route path="/auth/reset-password" element={<PasswordResetPage />} />
       <Route path="/join" element={<JoinPage />} />
 
       <Route path="/onboarding" element={<OnboardingPage />} />
