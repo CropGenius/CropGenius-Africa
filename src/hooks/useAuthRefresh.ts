@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import { enhancedAuth } from '@/services/EnhancedAuthService';
 
 export const useAuthRefresh = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -11,15 +10,13 @@ export const useAuthRefresh = () => {
     setError(null);
     
     try {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (error) throw error;
-      const refreshedSession = session;
-      if (!refreshedSession) {
+      const session = await enhancedAuth.refreshSession();
+      if (!session) {
         setError('Authentication expired. Please sign in again.');
         // Redirect to login or show sign-in modal
         window.location.href = '/auth';
       }
-      return refreshedSession;
+      return session;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Authentication failed';
       setError(message);

@@ -10,12 +10,14 @@ import { toast } from 'sonner';
 import { Eye, EyeOff, Mail, Lock, CheckCircle, Users, TrendingUp } from 'lucide-react';
 
 export default function AuthResurrected() {
-  const { isAuthenticated, user, isLoading, signInWithGoogle } = useAuthContext();
+  const { isAuthenticated, user, isLoading } = useAuthContext();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  console.log('AuthResurrected state:', { isLoading, isAuthenticated, userId: user?.id });
 
   if (isLoading) {
     return (
@@ -26,22 +28,29 @@ export default function AuthResurrected() {
   }
 
   if (isAuthenticated && user) {
+    console.log('AuthResurrected: redirecting authenticated user');
     return <Navigate to="/dashboard" replace />;
   }
 
-  // 🚀 PRODUCTION FIXED - USE PROPER useAuth HOOK
   const handleGoogleAuth = async () => {
     try {
       setLoading(true);
-      console.log('🔑 Starting Google OAuth with proper redirect handling...');
+      console.log('Starting Google OAuth...');
       
-      // Use the correct signInWithGoogle from useAuth hook which handles redirects properly
-      await signInWithGoogle();
-      // The useAuth hook handles the redirect automatically
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
       
+      if (error) {
+        console.error('Google OAuth error:', error);
+        toast.error('Google authentication failed');
+      }
     } catch (error) {
-      console.error('❌ Google OAuth failed:', error);
-      toast.error('Google authentication failed');
+      console.error('Google OAuth exception:', error);
+      toast.error('Authentication service unavailable');
     } finally {
       setLoading(false);
     }
@@ -58,26 +67,30 @@ export default function AuthResurrected() {
       setLoading(true);
       
       if (isSignUp) {
+        console.log('Attempting email signup...');
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`
+            emailRedirectTo: `${window.location.origin}/auth/callback`
           }
         });
         
         if (error) {
+          console.error('Signup error:', error);
           toast.error(error.message);
         } else {
           toast.success('Check your email to confirm your account');
         }
       } else {
+        console.log('Attempting email signin...');
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password
         });
         
         if (error) {
+          console.error('Signin error:', error);
           toast.error('Invalid email or password');
         }
       }
@@ -103,8 +116,9 @@ export default function AuthResurrected() {
               />
             </div>
             
+            {/* App Title */}
             <h1 className="text-3xl font-bold text-gray-900 mb-2">CropGenius</h1>
-            <p className="text-gray-600 font-medium text-lg">Smartfarming Simplified</p>
+            <p className="text-gray-600 font-medium text-lg">AI-Powered Agriculture for 100M+ Farmers</p>
           </CardHeader>
 
           <CardContent className="px-8 pb-8">
@@ -132,7 +146,7 @@ export default function AuthResurrected() {
               </div>
             </div>
 
-            {/* Google Sign In Button - OFFICIAL SUPABASE FLOW */}
+            {/* Google Sign In Button */}
             <Button
               onClick={handleGoogleAuth}
               disabled={loading}
@@ -199,6 +213,7 @@ export default function AuthResurrected() {
               </Button>
             </form>
 
+            {/* Toggle Sign Up/Sign In */}
             <div className="mt-6 text-center">
               <button
                 onClick={() => setIsSignUp(!isSignUp)}
@@ -227,6 +242,7 @@ export default function AuthResurrected() {
               </div>
             </div>
 
+            {/* Terms */}
             <p className="mt-6 text-xs text-gray-500 text-center">
               By continuing, you agree to our Terms of Service and Privacy Policy
             </p>

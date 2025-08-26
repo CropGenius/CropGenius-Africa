@@ -25,27 +25,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useAuth } from '@/hooks/useAuth';
+import { authService, type CropGeniusAuthError, AuthErrorType } from '@/services/AuthenticationService';
 import { toast } from 'sonner';
-
-// Simple local error types - no complex dependencies
-enum AuthErrorType {
-  NETWORK_ERROR = 'NETWORK_ERROR',
-  SESSION_EXPIRED = 'SESSION_EXPIRED',
-  OAUTH_ERROR = 'OAUTH_ERROR',
-  RATE_LIMITED = 'RATE_LIMITED',
-  UNKNOWN_ERROR = 'UNKNOWN_ERROR'
-}
-
-interface CropGeniusAuthError {
-  type: AuthErrorType;
-  message: string;
-  userMessage: string;
-  developerMessage?: string;
-  timestamp: string;
-  instanceId: string;
-  retryable: boolean;
-}
 
 interface AuthFallbackProps {
   error?: Error | string | CropGeniusAuthError | null;
@@ -152,8 +133,7 @@ export function AuthFallback({
   const checkAuthServiceHealth = async () => {
     try {
       setHealthStatus('checking');
-      // Simple health check - if we can call useAuth, service is healthy
-      const result = { success: true };
+      const result = await authService.healthCheck();
       setHealthStatus(result.success ? 'healthy' : 'unhealthy');
     } catch (error) {
       setHealthStatus('unhealthy');

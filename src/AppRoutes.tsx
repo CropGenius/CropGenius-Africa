@@ -15,6 +15,7 @@ import Chat from './pages/Chat';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 import OnboardingPage from './pages/OnboardingPage';
+import OAuthCallback from './pages/OAuthCallback';
 import Tasks from './pages/Tasks';
 import More from './pages/More';
 import ManageFields from './pages/ManageFields';
@@ -35,7 +36,6 @@ import ReferralsPage from './pages/ReferralsPage';
 import JoinPage from './pages/JoinPage';
 import PaymentCallback from './pages/PaymentCallback';
 import SubscriptionSettings from './components/pro/SubscriptionSettings';
-import OAuthCallback from './pages/OAuthCallback';
 
 function Protected({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuthContext();

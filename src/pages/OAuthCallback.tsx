@@ -1,72 +1,77 @@
+
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthContext } from '@/providers/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
-// 🎯 PRODUCTION OAUTH CALLBACK - FIXED IMPLEMENTATION
 export default function OAuthCallback() {
   const navigate = useNavigate();
-  const { isAuthenticated, refreshSession } = useAuthContext();
 
   useEffect(() => {
-    // 🔥 CRITICAL FIX: Use the correct Supabase exchange process
-    const handleOAuthCallback = async () => {
+    const handleCallback = async () => {
       try {
-        // Log the current URL for debugging
-        console.log('🔍 OAuthCallback processing URL:', window.location.href);
-
-        // Method 1: If code is in query params (most likely scenario based on logs)
-        const params = new URLSearchParams(window.location.search);
-        const codeFromParams = params.get('code');
-
-        // Method 2: If using hash-based flow (original Supabase approach)
-        let authCode = codeFromParams;
-
-        if (!authCode && window.location.hash) {
-          try {
-            // Try to exchange using the full hash as Supabase might handle it
-            const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.hash);
-            if (!error && data) {
-              await refreshSession();
-              console.log('✅ Hash-based OAuth successful!');
-              navigate('/dashboard', { replace: true });
-              return;
-            }
-          } catch (hashError) {
-            console.warn('Hash-based exchange failed, trying code-only approach', hashError);
-          }
-        }
-
-        if (!authCode) {
-          console.error('❌ No auth code found in URL');
-          navigate('/auth', { replace: true });
-          return;
-        }
-
-        // Direct code exchange
-        console.log('🔑 Exchanging auth code for session:', authCode);
-        const { data, error } = await supabase.auth.exchangeCodeForSession(authCode);
-          
+        console.log('OAuth callback started');
+        
+        // Wait a moment for Supabase to process the OAuth callback
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const { data: { session }, error } = await supabase.auth.getSession();
+        console.log('Session check result:', { session: !!session, error });
+        
         if (error) {
-          console.error('❌ OAuth code exchange error:', error);
+          console.error('OAuth callback error:', error);
+          toast.error('Authentication failed');
           navigate('/auth', { replace: true });
           return;
         }
+        
+        if (session?.user) {
+          console.log('User authenticated successfully:', session.user.id);
+          toast.success('Welcome to CropGenius! 🌾');
           
-        // Ensure we have a session
-        await refreshSession();
+          // Force a complete page refresh to clear any auth state issues
+          window.location.href = '/dashboard';
+          return;
+        }
+        
+        // If no session yet, wait for auth state change
+        console.log('No session found, waiting for auth state change...');
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+          console.log('Auth state change in callback:', event, !!session);
           
-        console.log('✅ OAuth authentication successful!');
-        navigate('/dashboard', { replace: true });
-      } catch (err) {
-        console.error('💥 Failed to process OAuth callback:', err);
+          if (event === 'SIGNED_IN' && session?.user) {
+            subscription.unsubscribe();
+            toast.success('Welcome to CropGenius! 🌾');
+            
+            // Force complete page refresh to dashboard
+            window.location.href = '/dashboard';
+          }
+        });
+        
+        // Timeout after 10 seconds
+        setTimeout(() => {
+          subscription.unsubscribe();
+          console.log('OAuth callback timeout');
+          toast.error('Authentication timeout');
+          navigate('/auth', { replace: true });
+        }, 10000);
+        
+      } catch (error) {
+        console.error('OAuth callback exception:', error);
+        toast.error('Authentication failed');
         navigate('/auth', { replace: true });
       }
     };
 
-    handleOAuthCallback();
-  }, [navigate, refreshSession]);
+    handleCallback();
+  }, [navigate]);
 
-  // No loading screen - we redirect immediately
-  return null;
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+        <p className="text-green-600">Completing authentication...</p>
+      </div>
+    </div>
+  );
 }

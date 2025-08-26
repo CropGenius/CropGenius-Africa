@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import { simpleAuth } from '@/lib/simpleAuth';
+import { mapSupabaseAuthError } from '../services/authService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,7 +16,6 @@ export const LoginPage = ({ onToggle }: LoginPageProps) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { signInWithGoogle } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,14 +23,11 @@ export const LoginPage = ({ onToggle }: LoginPageProps) => {
     setError(null);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      const { error } = await simpleAuth.signIn(email, password);
 
       if (error) {
         console.warn('Login failed:', error.message);
-        setError(error.message || 'Login failed');
+        setError(mapSupabaseAuthError(error));
       }
       // On success, the AuthProvider will redirect automatically.
     } catch (err) {
@@ -45,7 +41,9 @@ export const LoginPage = ({ onToggle }: LoginPageProps) => {
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-      await signInWithGoogle();
+      await simpleAuth.signInWithOAuth({
+        provider: 'google',
+      });
     } catch (error) {
       console.error('Google sign in error:', error);
       setError('Failed to sign in with Google. Please try again.');
