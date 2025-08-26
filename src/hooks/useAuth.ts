@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,139 +12,120 @@ interface AuthState {
   isInitialized: boolean;
 }
 
-interface AuthActions {
+export const useAuth = (): AuthState & {
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   refreshSession: () => Promise<void>;
-  processReferralAttribution: (user: User) => Promise<void>;
-}
-
-export const useAuth = (): AuthState & AuthActions => {
+} => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  const processReferralAttribution = useCallback(async (newUser: User) => {
+  const refreshSession = useCallback(async () => {
     try {
-      const referralCode = localStorage.getItem('referralCode');
-      const referralTimestamp = localStorage.getItem('referralTimestamp');
-      
-      if (!referralCode) return;
-      
-      // Check if referral is still valid (within 30 days)
-      if (referralTimestamp) {
-        const referralDate = new Date(referralTimestamp);
-        const now = new Date();
-        const daysDiff = (now.getTime() - referralDate.getTime()) / (1000 * 3600 * 24);
-        
-        if (daysDiff > 30) {
-          localStorage.removeItem('referralCode');
-          localStorage.removeItem('referralTimestamp');
-          return;
-        }
-      }
-      
-      // Find the referrer by matching the referral code to user ID prefix
-      const { data: users, error: usersError } = await supabase
-        .from('profiles')
-        .select('id')
-        .like('id', `${referralCode.toLowerCase()}%`)
-        .limit(1);
-        
-      if (usersError) {
-        console.error('Error finding referrer:', usersError);
-        return;
-      }
-      
-      if (users && users.length > 0) {
-        const referrerId = users[0].id;
-        
-        // Process the referral
-        const { error: referralError } = await supabase.functions.invoke('referral-credit', {
-          body: { referrerId, referredId: newUser.id }
-        });
-        
-        if (referralError) {
-          console.error('Error processing referral:', referralError);
-        } else {
-          toast.success('🎉 Welcome bonus applied!', {
-            description: 'You and your friend both received 10 FREE credits!'
-          });
-        }
-      }
-      
-      // Clean up referral data
-      localStorage.removeItem('referralCode');
-      localStorage.removeItem('referralTimestamp');
-      
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) throw error;
+      setSession(session);
+      setUser(session?.user ?? null);
     } catch (error) {
-      console.error('Error processing referral attribution:', error);
+      console.error('Error refreshing session:', error);
+      setSession(null);
+      setUser(null);
     }
   }, []);
 
-  const refreshSession = useCallback(async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    setSession(session);
-    setUser(session?.user ?? null);
-  }, []);
-
   useEffect(() => {
+    let mounted = true;
+
     const initAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        
+        if (mounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          setIsInitialized(true);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        if (mounted) {
+          setSession(null);
+          setUser(null);
+          setIsInitialized(true);
+          setIsLoading(false);
+        }
+      }
     };
 
+    // Single auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+        console.log('Auth state changed:', event, session?.user?.id);
         
-        // Process referral attribution for new signups
-        if (event === 'SIGNED_IN' && session?.user) {
-          // Check if this is a new user (created recently)
-          const userCreatedAt = new Date(session.user.created_at);
-          const now = new Date();
-          const minutesDiff = (now.getTime() - userCreatedAt.getTime()) / (1000 * 60);
+        if (mounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
           
-          // If user was created within the last 5 minutes, consider it a new signup
-          if (minutesDiff <= 5) {
-            await processReferralAttribution(session.user);
+          if (!isInitialized) {
+            setIsInitialized(true);
+            setIsLoading(false);
           }
         }
       }
     );
 
     initAuth();
-    
+
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
+  }, [isInitialized]);
+
+  const signInWithGoogle = useCallback(async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+      
+      if (error) {
+        console.error('Google OAuth error:', error);
+        toast.error('Google authentication failed');
+      }
+    } catch (error) {
+      console.error('Google OAuth exception:', error);
+      toast.error('Authentication service unavailable');
+    }
   }, []);
 
-  const signInWithGoogle = () => supabase.auth.signInWithOAuth({ 
-    provider: 'google',
-    options: {
-      redirectTo: `${window.location.origin}/auth/callback`
-    }
-  });
-
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+      // Clear local state immediately
+      setSession(null);
+      setUser(null);
+    } catch (error) {
+      console.error('Sign out error:', error);
+      // Force clear state even if API call fails
+      setSession(null);
+      setUser(null);
+    }
   }, []);
 
   return {
     user,
     session,
     isLoading,
-    isAuthenticated: !!user && !!session,
-    isInitialized: true,
+    isAuthenticated: !!user && !!session && isInitialized,
+    isInitialized,
     signInWithGoogle,
     signOut,
     refreshSession,
-    processReferralAttribution,
   };
 };
-
-export default useAuth;
