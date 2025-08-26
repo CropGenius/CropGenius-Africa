@@ -122,7 +122,12 @@ export const useAuth = (): AuthState & AuthActions => {
     };
   }, []);
 
-  const signInWithGoogle = () => supabase.auth.signInWithOAuth({ provider: 'google' });
+  const signInWithGoogle = () => supabase.auth.signInWithOAuth({ 
+    provider: 'google',
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback`
+    }
+  });
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
