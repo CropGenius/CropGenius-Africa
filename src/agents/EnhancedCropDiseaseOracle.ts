@@ -679,17 +679,17 @@ export class EnhancedCropDiseaseOracle {
   
   private async storeAnalysisResult(result: EnhancedDiseaseResult, location: GeoLocation): Promise<void> {
     try {
-      await supabase.from('scans').insert({
-        user_id: '', // This should be provided by the calling function
-        field_id: null, // This should be provided by the calling function
-        crop: result.crop_type,
-        disease: result.disease_name,
+      await supabase.from('disease_analysis_results').insert({
+        disease_name: result.disease_name,
+        crop_type: result.crop_type,
         confidence: result.confidence,
-        severity: result.severity === 'low' ? 1 : result.severity === 'medium' ? 2 : result.severity === 'high' ? 3 : 4, // Convert to number
-        status: 'completed',
-        economic_impact: result.economic_impact.yield_loss_percentage,
-        created_at: new Date().toISOString()
-      } as any); // Cast to any to avoid type issues
+        severity: result.severity,
+        location_lat: location.lat,
+        location_lng: location.lng,
+        economic_impact: result.economic_impact,
+        source_api: result.source_api,
+        analysis_date: result.timestamp
+      });
     } catch (error) {
       console.error('Error storing analysis result:', error);
     }
