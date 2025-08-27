@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import GoogleIcon from '@/components/icons/GoogleIcon';
-import { PasswordStrengthMeter } from './PasswordStrengthMeter';
 
 interface SignupPageProps {
   onToggle: () => void;
@@ -76,7 +75,6 @@ export const SignupPage = ({ onToggle }: SignupPageProps) => {
       <div>
         <Label htmlFor="password">Password</Label>
         <Input id="password" name="password" type="password" autoComplete="new-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
-        <PasswordStrengthMeter password={password} />
       </div>
       <div>
         <Button type="submit" className="w-full" disabled={loading}>

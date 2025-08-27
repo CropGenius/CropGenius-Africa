@@ -1,181 +1,30 @@
 /**
- * 🌾 CROPGENIUS – INTELLIGENT AUTHENTICATION FALLBACK
- * -------------------------------------------------------------
- * BILLIONAIRE-GRADE Authentication Error Recovery System
- * - Integrates with AuthenticationService for intelligent error handling
- * - Provides contextual recovery options based on error type
- * - Real-time connection monitoring and automatic retry
- * - Comprehensive error classification and user guidance
+ * 🌾 CROPGENIUS – SIMPLE AUTHENTICATION FALLBACK
+ * Simple, clean error handling for auth failures
  */
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  AlertTriangle, 
-  RefreshCw, 
-  Wifi, 
-  WifiOff, 
-  Shield, 
-  Clock,
-  ExternalLink,
-  Info,
-  Loader2
-} from 'lucide-react';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { authService, type CropGeniusAuthError, AuthErrorType } from '@/services/AuthenticationService';
-import { toast } from 'sonner';
 
 interface AuthFallbackProps {
-  error?: Error | string | CropGeniusAuthError | null;
+  error?: Error | string | null;
   resetError?: () => void;
-  showHealthCheck?: boolean;
-  enableAutoRetry?: boolean;
-  maxAutoRetries?: number;
 }
 
 /**
- * BILLIONAIRE-GRADE Authentication Fallback with Intelligent Error Recovery
+ * Simple Authentication Fallback - No Silicon Valley Bullshit
  */
-export function AuthFallback({ 
-  error, 
-  resetError,
-  showHealthCheck = true,
-  enableAutoRetry = true,
-  maxAutoRetries = 3
-}: AuthFallbackProps) {
+export function AuthFallback({ error, resetError }: AuthFallbackProps) {
   const navigate = useNavigate();
-  const [isRetrying, setIsRetrying] = useState(false);
-  const [autoRetryCount, setAutoRetryCount] = useState(0);
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [healthStatus, setHealthStatus] = useState<'checking' | 'healthy' | 'unhealthy'>('checking');
-  const [classifiedError, setClassifiedError] = useState<CropGeniusAuthError | null>(null);
 
-  // Classify and enhance error information
-  useEffect(() => {
-    if (error) {
-      // If it's already a classified error, use it directly
-      if (typeof error === 'object' && 'type' in error && 'userMessage' in error) {
-        setClassifiedError(error as CropGeniusAuthError);
-      } else {
-        // Classify the error using the authentication service pattern
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        const classified: CropGeniusAuthError = {
-          type: AuthErrorType.UNKNOWN_ERROR,
-          message: errorMessage,
-          userMessage: 'An authentication error occurred. Please try again.',
-          developerMessage: errorMessage,
-          timestamp: new Date().toISOString(),
-          instanceId: 'auth-fallback',
-          retryable: true
-        };
-
-        // Enhanced error classification
-        if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
-          classified.type = AuthErrorType.NETWORK_ERROR;
-          classified.userMessage = 'Connection failed. Please check your internet connection.';
-          classified.retryable = true;
-        } else if (errorMessage.includes('expired') || errorMessage.includes('invalid')) {
-          classified.type = AuthErrorType.SESSION_EXPIRED;
-          classified.userMessage = 'Your session has expired. Please sign in again.';
-          classified.retryable = false;
-        } else if (errorMessage.includes('oauth') || errorMessage.includes('provider')) {
-          classified.type = AuthErrorType.OAUTH_ERROR;
-          classified.userMessage = 'Sign-in failed. Please try again or use a different method.';
-          classified.retryable = true;
-        }
-
-        setClassifiedError(classified);
-      }
-    }
-  }, [error]);
-
-  // Monitor online status
-  useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
-
-  // Health check
-  useEffect(() => {
-    if (showHealthCheck) {
-      checkAuthServiceHealth();
-    }
-  }, [showHealthCheck]);
-
-  // Auto-retry logic
-  useEffect(() => {
-    if (enableAutoRetry && 
-        classifiedError?.retryable && 
-        autoRetryCount < maxAutoRetries && 
-        isOnline) {
-      
-      const retryDelay = Math.min(1000 * Math.pow(2, autoRetryCount), 10000);
-      
-      const timer = setTimeout(() => {
-        handleAutoRetry();
-      }, retryDelay);
-
-      return () => clearTimeout(timer);
-    }
-  }, [classifiedError, autoRetryCount, maxAutoRetries, enableAutoRetry, isOnline]);
-
-  const checkAuthServiceHealth = async () => {
-    try {
-      setHealthStatus('checking');
-      const result = await authService.healthCheck();
-      setHealthStatus(result.success ? 'healthy' : 'unhealthy');
-    } catch (error) {
-      setHealthStatus('unhealthy');
-    }
-  };
-
-  const handleAutoRetry = async () => {
-    if (autoRetryCount >= maxAutoRetries) return;
-
-    setAutoRetryCount(prev => prev + 1);
-    setIsRetrying(true);
-
-    try {
-      // Wait a moment for any network issues to resolve
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      if (resetError) {
-        resetError();
-      } else {
-        window.location.reload();
-      }
-    } catch (error) {
-      console.error('Auto-retry failed:', error);
-    } finally {
-      setIsRetrying(false);
-    }
-  };
-
-  const handleManualRetry = async () => {
-    setIsRetrying(true);
-    
-    try {
-      if (resetError) {
-        resetError();
-      } else {
-        window.location.reload();
-      }
-    } catch (error) {
-      console.error('Manual retry failed:', error);
-      toast.error('Retry failed. Please try again.');
-    } finally {
-      setIsRetrying(false);
+  const handleRetry = () => {
+    if (resetError) {
+      resetError();
+    } else {
+      window.location.reload();
     }
   };
 
@@ -183,21 +32,37 @@ export function AuthFallback({
     navigate('/auth', { replace: true });
   };
 
-  const handleContactSupport = () => {
-    // In a real app, this would open a support ticket or contact form
-    toast.info('Support contact feature coming soon. Please try refreshing the page.');
-  };
+  const errorMessage = error instanceof Error ? error.message : String(error || 'Authentication failed');
 
-  const getErrorIcon = () => {
-    if (!classifiedError) return <AlertTriangle className="h-6 w-6 text-destructive" />;
-
-    switch (classifiedError.type) {
-      case AuthErrorType.NETWORK_ERROR:
-        return isOnline ? <Wifi className="h-6 w-6 text-blue-500" /> : <WifiOff className="h-6 w-6 text-red-500" />;
-      case AuthErrorType.SESSION_EXPIRED:
-        return <Clock className="h-6 w-6 text-orange-500" />;
-      case AuthErrorType.OAUTH_ERROR:
-        return <Shield className="h-6 w-6 text-purple-500" />;
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+            <AlertTriangle className="h-6 w-6 text-red-600" />
+          </div>
+          <CardTitle className="text-xl font-semibold text-gray-900">
+            Authentication Error
+          </CardTitle>
+          <CardDescription className="text-gray-600">
+            {errorMessage}
+          </CardDescription>
+        </CardHeader>
+        
+        <CardFooter className="flex flex-col space-y-3">
+          <Button onClick={handleRetry} className="w-full" variant="outline">
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Try Again
+          </Button>
+          
+          <Button onClick={handleSignIn} className="w-full">
+            Go to Sign In
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
+  );
+}
       default:
         return <AlertTriangle className="h-6 w-6 text-destructive" />;
     }
