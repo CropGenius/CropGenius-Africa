@@ -61,15 +61,10 @@ export const useAuth = () => {
 
   const signInWithGoogle = async () => {
     try {
-      // Force localhost in development to bypass DNS redirects
-      const redirectUrl = import.meta.env.DEV 
-        ? 'http://localhost:8081/auth/callback'
-        : `${window.location.origin}/auth/callback`;
-        
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: redirectUrl
+          redirectTo: `${window.location.origin}/auth/callback`
         }
       });
       

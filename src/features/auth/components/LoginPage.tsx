@@ -44,15 +44,10 @@ export const LoginPage = ({ onToggle }: LoginPageProps) => {
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-      // Force localhost in development to bypass DNS redirects
-      const redirectUrl = import.meta.env.DEV 
-        ? 'http://localhost:8081/auth/callback'
-        : `${window.location.origin}/auth/callback`;
-        
       await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: redirectUrl
+          redirectTo: `${window.location.origin}/auth/callback`
         }
       });
     } catch (error) {
