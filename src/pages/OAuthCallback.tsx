@@ -9,26 +9,22 @@ export default function OAuthCallback() {
   const { isAuthenticated, onboardingCompleted, isLoading } = useAuthContext();
 
   useEffect(() => {
-    // Give Supabase a moment to process the callback
-    const timer = setTimeout(() => {
-      if (!isLoading) {
-        if (isAuthenticated) {
-          toast.success('Welcome to CropGenius! 🌾');
-          if (onboardingCompleted) {
-            navigate('/dashboard', { replace: true });
-          } else {
-            navigate('/onboarding', { replace: true });
-          }
+    // IMMEDIATE redirect - no artificial delays
+    if (!isLoading) {
+      if (isAuthenticated) {
+        toast.success('Welcome to CropGenius! 🌾');
+        if (onboardingCompleted) {
+          navigate('/dashboard', { replace: true });
         } else {
-          // Auth failed, redirect to login
-          navigate('/auth', { replace: true });
+          navigate('/onboarding', { replace: true });
         }
+      } else {
+        // Auth failed, redirect to login
+        navigate('/auth', { replace: true });
       }
-    }, 1000); // 1 second delay to allow auth processing
-
-    return () => clearTimeout(timer);
+    }
   }, [isAuthenticated, onboardingCompleted, isLoading, navigate]);
 
-  // NO FAKE LOADING SCREEN - just return null for silent redirect
+  // Silent redirect - no UI interference
   return null;
 }
