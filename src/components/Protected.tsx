@@ -8,26 +8,19 @@ interface ProtectedProps {
 }
 
 export default function Protected({ children }: ProtectedProps) {
-  const { isAuthenticated, onboardingCompleted, isLoading } = useAuthContext();
+  const { isAuthenticated, isLoading } = useAuthContext();
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-green-600 border-t-transparent"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-green-200 border-t-green-600"></div>
       </div>
     );
   }
 
-  // NOT authenticated → go to auth
   if (!isAuthenticated) {
     return <Navigate to="/auth" replace />;
   }
 
-  // Authenticated but needs onboarding → go to onboarding
-  if (!onboardingCompleted) {
-    return <Navigate to="/onboarding" replace />;
-  }
-
-  // All good → render children
   return <>{children}</>;
 }
