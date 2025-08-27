@@ -11,43 +11,28 @@ export const useAuth = () => {
   const [onboardingCompleted, setOnboardingCompleted] = useState(false);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        // Check onboarding status
-        supabase
-          .from('profiles')
-          .select('onboarding_completed')
-          .eq('id', session.user.id)
-          .single()
-          .then(({ data }) => {
-            setOnboardingCompleted(data?.onboarding_completed || false);
-          })
-          .catch(() => setOnboardingCompleted(false));
-      }
-      
-      setIsLoading(false);
-    });
-
-    // Listen for auth changes
+    // SINGLE auth state listener - eliminates race conditions
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
+        console.log('Auth event:', event, session?.user?.id);
+        
         setSession(session);
         setUser(session?.user ?? null);
         
+        // Check onboarding ONLY when we have a valid session
         if (session?.user) {
-          supabase
-            .from('profiles')
-            .select('onboarding_completed')
-            .eq('id', session.user.id)
-            .single()
-            .then(({ data }) => {
-              setOnboardingCompleted(data?.onboarding_completed || false);
-            })
-            .catch(() => setOnboardingCompleted(false));
+          try {
+            const { data } = await supabase
+              .from('profiles')
+              .select('onboarding_completed')
+              .eq('id', session.user.id)
+              .single();
+            
+            setOnboardingCompleted(data?.onboarding_completed || false);
+          } catch (error) {
+            console.log('No profile found, onboarding needed');
+            setOnboardingCompleted(false);
+          }
         } else {
           setOnboardingCompleted(false);
         }
@@ -55,6 +40,14 @@ export const useAuth = () => {
         setIsLoading(false);
       }
     );
+
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        setIsLoading(false);
+      }
+      // Let the listener handle the session setup
+    });
 
     return () => subscription.unsubscribe();
   }, []);
@@ -69,9 +62,11 @@ export const useAuth = () => {
       });
       
       if (error) {
+        console.error('Google auth error:', error);
         toast.error('Google authentication failed');
       }
     } catch (error) {
+      console.error('Auth service error:', error);
       toast.error('Authentication service unavailable');
     }
   };
@@ -79,14 +74,8 @@ export const useAuth = () => {
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
-      setSession(null);
-      setUser(null);
-      setOnboardingCompleted(false);
     } catch (error) {
       console.error('Sign out error:', error);
-      setSession(null);
-      setUser(null);
-      setOnboardingCompleted(false);
     }
   };
 
