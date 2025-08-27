@@ -11,25 +11,43 @@ export const useAuth = () => {
   const [onboardingCompleted, setOnboardingCompleted] = useState(false);
 
   useEffect(() => {
-    // SINGLE auth state listener - NO COMPETING LOGIC
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        // Check onboarding status
+        supabase
+          .from('profiles')
+          .select('onboarding_completed')
+          .eq('id', session.user.id)
+          .single()
+          .then(({ data }) => {
+            setOnboardingCompleted(data?.onboarding_completed || false);
+          })
+          .catch(() => setOnboardingCompleted(false));
+      }
+      
+      setIsLoading(false);
+    });
+
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // SINGLE onboarding check - NO RACE CONDITIONS
-          try {
-            const { data } = await supabase
-              .from('profiles')
-              .select('onboarding_completed')
-              .eq('id', session.user.id)
-              .single();
-            
-            setOnboardingCompleted(data?.onboarding_completed || false);
-          } catch {
-            setOnboardingCompleted(false);
-          }
+          supabase
+            .from('profiles')
+            .select('onboarding_completed')
+            .eq('id', session.user.id)
+            .single()
+            .then(({ data }) => {
+              setOnboardingCompleted(data?.onboarding_completed || false);
+            })
+            .catch(() => setOnboardingCompleted(false));
         } else {
           setOnboardingCompleted(false);
         }

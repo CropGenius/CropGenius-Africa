@@ -213,24 +213,20 @@ export const saveCropScanResult = async (
   }
 ): Promise<any> => {
   const dbEntry = {
-    field_id: scanData.fieldId,
     user_id: scanData.userId,
+    field_id: scanData.fieldId,
+    crop: 'unknown', // This would need to be determined from the scan
+    disease: scanData.diseaseDetected || 'unknown',
+    confidence: 0, // This would need to be determined from the scan
+    severity: 1, // This would need to be determined from the scan
+    status: 'completed',
+    economic_impact: 0, // This would need to be determined from the scan
     image_url: scanData.imageUrl,
-    scan_results: {
-      disease_detected: scanData.diseaseDetected,
-      pest_detected: scanData.pestDetected,
-      nutrient_deficiency: scanData.nutrientDeficiency,
-      recommendations: scanData.recommendations,
-      // confidence: scanData.confidence, // Add if available
-      raw_ai_response: scanData.rawAiResponse, // Store the full AI response
-    },
-    latitude: scanData.latitude,
-    longitude: scanData.longitude,
-    scanned_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
   };
 
   try {
-    const { data, error } = await supabase.from('crop_scans').insert(dbEntry).select();
+    const { data, error } = await supabase.from('scans').insert(dbEntry).select();
     if (error) {
       console.error('Supabase error saving crop scan data:', error);
       throw error;

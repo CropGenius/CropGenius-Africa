@@ -1,44 +1,33 @@
 
 import { useState } from 'react';
-import { useAuthContext } from '@/providers/AuthProvider';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { LoginPage } from './LoginPage';
+import { SignupPage } from './SignupPage';
 
 export const AuthPage = () => {
-  const { signInWithGoogle } = useAuthContext();
-  const [loading, setLoading] = useState(false);
-
-  const handleGoogleSignIn = async () => {
-    setLoading(true);
-    await signInWithGoogle();
-    setLoading(false);
-  };
+  const [showLogin, setShowLogin] = useState(true);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-lime-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
-            <span className="text-4xl">🌾</span>
-          </div>
-          <CardTitle className="text-3xl font-bold text-gray-900">Welcome to CropGenius</CardTitle>
-          <p className="text-gray-600 mt-2">AI-Powered Farming Intelligence</p>
-        </CardHeader>
-        
-        <CardContent className="px-8 pb-8">
-          <Button 
-            onClick={handleGoogleSignIn}
-            disabled={loading}
-            className="w-full bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold py-4 text-lg"
-          >
-            {loading ? 'Signing in...' : '🚀 Continue with Google'}
-          </Button>
-          
-          <p className="text-center text-sm text-gray-500 mt-4">
-            Join thousands of farmers using AI to maximize their harvest
-          </p>
-        </CardContent>
-      </Card>
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <img
+          className="mx-auto h-12 w-auto"
+          src="/cropgeniuslogo.png"
+          alt="CropGenius"
+        />
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          {showLogin ? 'Sign in to your account' : 'Create a new account'}
+        </h2>
+      </div>
+
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          {showLogin ? (
+            <LoginPage onToggle={() => setShowLogin(false)} />
+          ) : (
+            <SignupPage onToggle={() => setShowLogin(true)} />
+          )}
+        </div>
+      </div>
     </div>
   );
 };

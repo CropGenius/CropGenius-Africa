@@ -4,7 +4,7 @@ import { Navigate } from 'react-router-dom';
 import { AuthPage } from '@/features/auth/components/AuthPage';
 
 export default function Auth() {
-  const { isAuthenticated, onboardingCompleted, isLoading } = useAuthContext();
+  const { isAuthenticated, user, isLoading, onboardingCompleted } = useAuthContext();
 
   if (isLoading) {
     return (
@@ -14,9 +14,11 @@ export default function Auth() {
     );
   }
 
-  // SINGLE REDIRECT LOGIC - NO CONFLICTS
-  if (isAuthenticated) {
-    return <Navigate to={onboardingCompleted ? "/dashboard" : "/onboarding"} replace />;
+  if (isAuthenticated && user) {
+    if (!onboardingCompleted) {
+      return <Navigate to="/onboarding" replace />;
+    }
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <AuthPage />;
