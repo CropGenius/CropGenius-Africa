@@ -75,7 +75,8 @@ const buildFarmPlanPrompt = (input: FarmPlanInput): string => {
   }
   if (input.marketContext?.relevantListings && input.marketContext.relevantListings.length > 0) {
     const topListing = input.marketContext.relevantListings[0];
-    prompt += `Market Context Example (${topListing.crop_type}): Price KES ${topListing.price_per_kg_ksh}/kg, Quantity ${topListing.quantity_kg}kg listed on ${topListing.listing_date}.\n`;
+    // Fixed the property names to match the MarketListing interface
+    prompt += `Market Context Example (${topListing.crop_name}): Price ${topListing.currency} ${topListing.price}/${topListing.unit || 'unit'}, Location ${topListing.location} recorded on ${topListing.date_recorded}.\n`;
   }
 
   prompt += `\nPlease provide:
@@ -176,11 +177,13 @@ export const saveFarmPlanAndTasks = async (plan: FarmPlanOutput, input: FarmPlan
   // 2. Save individual tasks to the 'tasks' table
   if (plan.tasks && plan.tasks.length > 0) {
     const tasksToInsert = plan.tasks.map(task => ({
-      ...task,
-      farm_id: input.farmId,
-      user_id: input.userId, // Or specific assignee if logic changes
-      status: task.status || 'Pending',
-      // Ensure all required fields for 'tasks' table are present
+      title: task.title,
+      description: task.description,
+      priority: task.priority === 'High' ? 3 : task.priority === 'Medium' ? 2 : 1, // Convert to number (1-3)
+      due_date: task.dueDate,
+      user_id: input.userId,
+      status: task.status?.toLowerCase().replace('inprogress', 'in_progress').replace('pending', 'pending').replace('completed', 'completed') as "pending" | "in_progress" | "completed" || 'pending',
+      field_id: task.fieldId || input.farmId,
     }));
 
     const { data, error } = await supabase.from('tasks').insert(tasksToInsert).select();

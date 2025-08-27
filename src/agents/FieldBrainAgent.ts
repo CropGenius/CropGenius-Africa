@@ -1,7 +1,30 @@
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
-import { AgentMemory, FieldInsight, FieldInsightSourceType, FieldInsightType } from '@/types/supabase';
+
+// Define the missing types inline
+interface AgentMemory {
+  fieldId: string;
+  content: string;
+  source: string;
+  timestamp: number;
+  tags: string[];
+}
+
+interface FieldInsight {
+  id: string;
+  fieldId: string;
+  timestamp: number;
+  type: string;
+  content: string;
+  confidence: number;
+  source: string;
+  actionRequired: boolean;
+  relatedData: any;
+}
+
+type FieldInsightSourceType = string;
+type FieldInsightType = string;
 
 /**
  * FieldBrainAgent - AI-powered farming assistant that provides personalized advice
@@ -100,14 +123,19 @@ export class FieldBrainAgent {
     this.voiceStyle = style;
     console.log(`🧠 [FieldBrainAgent] Voice style set to: ${style}`);
     
-    // Create a memory about the voice style change
-    this.addMemory({
+    // Add a memory about the voice style change
+    const memory: AgentMemory = {
       fieldId: this.fieldId || 'system',
       content: `User changed voice style to ${style}`,
       source: 'system',
       timestamp: Date.now(),
       tags: ['settings', 'voice-style']
-    });
+    };
+
+    // Add id to the memory
+    (this.memories as any).id = uuidv4();
+    this.memories.push(memory);
+
   }
 
   /**
@@ -151,17 +179,19 @@ export class FieldBrainAgent {
       
       // Create an insight from this interaction
       const insight: FieldInsight = {
-        id: uuidv4(),
         fieldId: this.fieldId || 'general',
         timestamp: Date.now(),
-        type: 'suggestion' as FieldInsightType,
+        type: 'suggestion',
         content: response,
         confidence: 0.85,
-        source: 'agent' as FieldInsightSourceType,
+        source: 'agent',
         actionRequired: false,
         relatedData: {}
-      };
-      
+      } as FieldInsight & { id: string }; // Cast to include id property
+
+      // Add id to the insight
+      (insight as any).id = uuidv4();
+
       // Save the insight
       this.insights.push(insight);
       this.saveToLocalStorage();
