@@ -1,15 +1,14 @@
 
 import { ReactNode } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { Navigate } from 'react-router-dom';
+import { useAuthContext } from '@/providers/AuthProvider';
 
 interface ProtectedProps {
   children: ReactNode;
 }
 
 export default function Protected({ children }: ProtectedProps) {
-  const { isAuthenticated, isLoading } = useAuth();
-  const location = useLocation();
+  const { isAuthenticated, isLoading } = useAuthContext();
 
   if (isLoading) {
     return (
@@ -20,7 +19,7 @@ export default function Protected({ children }: ProtectedProps) {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    return <Navigate to="/auth" replace />;
   }
 
   return <>{children}</>;

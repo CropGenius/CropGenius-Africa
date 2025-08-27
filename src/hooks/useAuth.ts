@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -10,40 +10,44 @@ export const useAuth = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [onboardingCompleted, setOnboardingCompleted] = useState(false);
 
-  const checkOnboardingStatus = useCallback(async (userId: string) => {
-    try {
-      const { data } = await supabase
-        .from('profiles')
-        .select('onboarding_completed')
-        .eq('id', userId)
-        .single();
-      
-      setOnboardingCompleted(data?.onboarding_completed || false);
-    } catch (error) {
-      console.error('Error checking onboarding:', error);
-      setOnboardingCompleted(false);
-    }
-  }, []);
-
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
       if (session?.user) {
-        checkOnboardingStatus(session.user.id);
+        // Check onboarding status
+        supabase
+          .from('profiles')
+          .select('onboarding_completed')
+          .eq('id', session.user.id)
+          .single()
+          .then(({ data }) => {
+            setOnboardingCompleted(data?.onboarding_completed || false);
+          })
+          .catch(() => setOnboardingCompleted(false));
       }
+      
       setIsLoading(false);
     });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          await checkOnboardingStatus(session.user.id);
+          supabase
+            .from('profiles')
+            .select('onboarding_completed')
+            .eq('id', session.user.id)
+            .single()
+            .then(({ data }) => {
+              setOnboardingCompleted(data?.onboarding_completed || false);
+            })
+            .catch(() => setOnboardingCompleted(false));
         } else {
           setOnboardingCompleted(false);
         }
@@ -53,9 +57,9 @@ export const useAuth = () => {
     );
 
     return () => subscription.unsubscribe();
-  }, [checkOnboardingStatus]);
+  }, []);
 
-  const signInWithGoogle = useCallback(async () => {
+  const signInWithGoogle = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -70,9 +74,9 @@ export const useAuth = () => {
     } catch (error) {
       toast.error('Authentication service unavailable');
     }
-  }, []);
+  };
 
-  const signOut = useCallback(async () => {
+  const signOut = async () => {
     try {
       await supabase.auth.signOut();
       setSession(null);
@@ -84,7 +88,7 @@ export const useAuth = () => {
       setUser(null);
       setOnboardingCompleted(false);
     }
-  }, []);
+  };
 
   return {
     user,

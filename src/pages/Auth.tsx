@@ -1,11 +1,10 @@
 
-import { useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuthContext } from '@/providers/AuthProvider';
 import { Navigate } from 'react-router-dom';
-import AuthResurrected from './AuthResurrected';
+import { AuthPage } from '@/features/auth/components/AuthPage';
 
 export default function Auth() {
-  const { isAuthenticated, user, isLoading, onboardingCompleted } = useAuth();
+  const { isAuthenticated, user, isLoading, onboardingCompleted } = useAuthContext();
 
   if (isLoading) {
     return (
@@ -22,5 +21,5 @@ export default function Auth() {
     return <Navigate to="/dashboard" replace />;
   }
 
-  return <AuthResurrected />;
+  return <AuthPage />;
 }

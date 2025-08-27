@@ -1,12 +1,12 @@
 
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuthContext } from '@/providers/AuthProvider';
 import { toast } from 'sonner';
 
 export default function OAuthCallback() {
   const navigate = useNavigate();
-  const { isAuthenticated, onboardingCompleted, isLoading } = useAuth();
+  const { isAuthenticated, onboardingCompleted, isLoading } = useAuthContext();
 
   useEffect(() => {
     if (!isLoading) {
