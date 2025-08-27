@@ -4,85 +4,56 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-interface AuthState {
-  user: User | null;
-  session: Session | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  isInitialized: boolean;
-}
-
-export const useAuth = (): AuthState & {
-  signInWithGoogle: () => Promise<void>;
-  signOut: () => Promise<void>;
-  refreshSession: () => Promise<void>;
-} => {
+export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [onboardingCompleted, setOnboardingCompleted] = useState(false);
 
-  const refreshSession = useCallback(async () => {
+  const checkOnboardingStatus = useCallback(async (userId: string) => {
     try {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (error) throw error;
-      setSession(session);
-      setUser(session?.user ?? null);
+      const { data } = await supabase
+        .from('profiles')
+        .select('onboarding_completed')
+        .eq('id', userId)
+        .single();
+      
+      setOnboardingCompleted(data?.onboarding_completed || false);
     } catch (error) {
-      console.error('Error refreshing session:', error);
-      setSession(null);
-      setUser(null);
+      console.error('Error checking onboarding:', error);
+      setOnboardingCompleted(false);
     }
   }, []);
 
   useEffect(() => {
-    let mounted = true;
-
-    const initAuth = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) throw error;
-        
-        if (mounted) {
-          setSession(session);
-          setUser(session?.user ?? null);
-          setIsInitialized(true);
-          setIsLoading(false);
-        }
-      } catch (error) {
-        console.error('Error initializing auth:', error);
-        if (mounted) {
-          setSession(null);
-          setUser(null);
-          setIsInitialized(true);
-          setIsLoading(false);
-        }
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        checkOnboardingStatus(session.user.id);
       }
-    };
+      setIsLoading(false);
+    });
 
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.id);
+        setSession(session);
+        setUser(session?.user ?? null);
         
-        if (mounted) {
-          setSession(session);
-          setUser(session?.user ?? null);
-          
-          if (!isInitialized) {
-            setIsInitialized(true);
-            setIsLoading(false);
-          }
+        if (session?.user) {
+          await checkOnboardingStatus(session.user.id);
+        } else {
+          setOnboardingCompleted(false);
         }
+        
+        setIsLoading(false);
       }
     );
 
-    initAuth();
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, [isInitialized]);
+    return () => subscription.unsubscribe();
+  }, [checkOnboardingStatus]);
 
   const signInWithGoogle = useCallback(async () => {
     try {
@@ -94,11 +65,9 @@ export const useAuth = (): AuthState & {
       });
       
       if (error) {
-        console.error('Google OAuth error:', error);
         toast.error('Google authentication failed');
       }
     } catch (error) {
-      console.error('Google OAuth exception:', error);
       toast.error('Authentication service unavailable');
     }
   }, []);
@@ -108,10 +77,12 @@ export const useAuth = (): AuthState & {
       await supabase.auth.signOut();
       setSession(null);
       setUser(null);
+      setOnboardingCompleted(false);
     } catch (error) {
       console.error('Sign out error:', error);
       setSession(null);
       setUser(null);
+      setOnboardingCompleted(false);
     }
   }, []);
 
@@ -119,10 +90,9 @@ export const useAuth = (): AuthState & {
     user,
     session,
     isLoading,
-    isAuthenticated: !!user && !!session && isInitialized,
-    isInitialized,
+    isAuthenticated: !!user && !!session,
+    onboardingCompleted,
     signInWithGoogle,
     signOut,
-    refreshSession,
   };
 };

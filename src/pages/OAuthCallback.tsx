@@ -1,43 +1,27 @@
 
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
 export default function OAuthCallback() {
   const navigate = useNavigate();
+  const { isAuthenticated, onboardingCompleted, isLoading } = useAuth();
 
   useEffect(() => {
-    const handleCallback = async () => {
-      try {
-        console.log('OAuth callback started');
-        
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('OAuth callback error:', error);
-          toast.error('Authentication failed');
-          navigate('/auth', { replace: true });
-          return;
-        }
-
-        if (session?.user) {
-          console.log('User authenticated successfully:', session.user.id);
-          toast.success('Welcome to CropGenius! 🌾');
+    if (!isLoading) {
+      if (isAuthenticated) {
+        toast.success('Welcome to CropGenius! 🌾');
+        if (onboardingCompleted) {
           navigate('/dashboard', { replace: true });
         } else {
-          setTimeout(() => {
-            navigate('/auth', { replace: true });
-          }, 3000);
+          navigate('/onboarding', { replace: true });
         }
-      } catch (error) {
-        console.error('OAuth callback exception:', error);
+      } else {
         navigate('/auth', { replace: true });
       }
-    };
-
-    handleCallback();
-  }, [navigate]);
+    }
+  }, [isAuthenticated, onboardingCompleted, isLoading, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
