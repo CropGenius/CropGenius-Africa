@@ -79,7 +79,7 @@ export const useAuth = () => {
       subscription.unsubscribe();
       clearTimeout(timeoutId);
     };
-  }, [isLoading]);
+  }, []); // Empty dependency array to run only once
 
   const signInWithGoogle = async () => {
     try {
