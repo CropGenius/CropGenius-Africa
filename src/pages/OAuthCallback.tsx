@@ -1,26 +1,32 @@
-import { useEffect, useState } from 'react';
+
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 
 export default function OAuthCallback() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuthContext();
+  const { isAuthenticated, authInitialized, onboardingCompleted } = useAuthContext();
 
   useEffect(() => {
-    // Direct redirect based on auth state - no processing delays
+    // Wait for auth to be fully initialized before making decisions
+    if (!authInitialized) return;
+
     if (isAuthenticated) {
       toast.success('Welcome to CropGenius! 🌾');
       
-      // Bypass onboarding completely - redirect all authenticated users directly to dashboard
-      navigate('/dashboard', { replace: true });
+      // Redirect based on onboarding status
+      if (onboardingCompleted) {
+        navigate('/dashboard', { replace: true });
+      } else {
+        navigate('/onboarding', { replace: true });
+      }
     } else {
-      // If auth failed, go back to auth page
+      // If auth failed after initialization, go back to auth page
       toast.error('Authentication failed. Please try again.');
       navigate('/auth', { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, authInitialized, onboardingCompleted, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
