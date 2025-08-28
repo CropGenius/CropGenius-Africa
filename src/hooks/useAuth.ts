@@ -11,6 +11,14 @@ export const useAuth = () => {
   const [onboardingCompleted, setOnboardingCompleted] = useState(false);
 
   useEffect(() => {
+    // Timeout to prevent indefinite loading
+    const timeoutId = setTimeout(() => {
+      if (isLoading) {
+        console.log('Auth timeout - forcing loading to false');
+        setIsLoading(false);
+      }
+    }, 3000); // 3 second timeout
+
     // SINGLE auth state listener - eliminates race conditions
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -42,15 +50,36 @@ export const useAuth = () => {
     );
 
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        setIsLoading(false);
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session) {
+        // Set session and user immediately
+        setSession(session);
+        setUser(session.user);
+        
+        // Check onboarding status
+        try {
+          const { data } = await supabase
+            .from('profiles')
+            .select('onboarding_completed')
+            .eq('id', session.user.id)
+            .single();
+          
+          setOnboardingCompleted(data?.onboarding_completed || false);
+        } catch (error) {
+          console.log('No profile found, onboarding needed');
+          setOnboardingCompleted(false);
+        }
       }
-      // Let the listener handle the session setup
+      
+      // Always set loading to false after initial check
+      setIsLoading(false);
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeoutId);
+    };
+  }, [isLoading]);
 
   const signInWithGoogle = async () => {
     try {
