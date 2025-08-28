@@ -61,7 +61,7 @@ export default function AppRoutes() {
 
       <Route path="/onboarding" element={<OnboardingPage />} />
       
-      <Route path="/" element={<Protected><Navigate to="/dashboard" replace /></Protected>} />
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/dashboard" element={<Protected><Index /></Protected>} />
       <Route path="/fields" element={<Protected><Fields /></Protected>} />
       <Route path="/fields/:id" element={<Protected><FieldDetail /></Protected>} />
