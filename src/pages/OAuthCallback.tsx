@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '@/providers/AuthProvider';
@@ -18,20 +17,14 @@ export default function OAuthCallback() {
         const code = urlParams.get('code');
         
         if (code) {
-          // Process the OAuth callback
-          const { data, error } = await supabase.auth.getSession();
-          
-          if (error) {
-            console.error('OAuth callback error:', error);
-            toast.error('Authentication failed. Please try again.');
-            setProcessing(false);
-            return;
-          }
+          // The session should be automatically handled by Supabase auth state listener
+          // We just need to wait for the auth context to update
+          console.log('OAuth callback received, waiting for auth context update');
           
           // Wait for auth context to update
           setTimeout(() => {
             setProcessing(false);
-          }, 500);
+          }, 1000);
         } else {
           // No code in URL, skip processing
           setProcessing(false);

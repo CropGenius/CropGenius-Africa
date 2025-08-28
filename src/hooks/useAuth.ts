@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,7 +16,7 @@ export const useAuth = () => {
         console.log('Auth timeout - forcing loading to false');
         setIsLoading(false);
       }
-    }, 3000); // 3 second timeout
+    }, 15000); // Increased timeout to 15 seconds to accommodate network delays
 
     // SINGLE auth state listener - eliminates race conditions
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -29,17 +28,44 @@ export const useAuth = () => {
         
         // Check onboarding ONLY when we have a valid session
         if (session?.user) {
-          try {
-            const { data } = await supabase
-              .from('profiles')
-              .select('onboarding_completed')
-              .eq('id', session.user.id)
-              .single();
-            
-            setOnboardingCompleted(data?.onboarding_completed || false);
-          } catch (error) {
-            console.log('No profile found, onboarding needed');
-            setOnboardingCompleted(false);
+          // Try to get profile with retry logic
+          let retries = 0;
+          const maxRetries = 5; // Increased retries
+          
+          while (retries <= maxRetries) {
+            try {
+              const { data, error } = await supabase
+                .from('profiles')
+                .select('onboarding_completed')
+                .eq('id', session.user.id)
+                .single();
+              
+              if (error) {
+                console.log(`Profile lookup attempt ${retries + 1} failed:`, error.message);
+                if (retries < maxRetries) {
+                  // Wait before retry with exponential backoff
+                  await new Promise(resolve => setTimeout(resolve, 1000 * (retries + 1)));
+                  retries++;
+                  continue;
+                }
+              }
+              
+              // Even if there's an error on the last retry, we still need to set a value
+              setOnboardingCompleted(data?.onboarding_completed || false);
+              console.log('Profile lookup result:', data?.onboarding_completed || false);
+              break;
+            } catch (error) {
+              console.log(`Profile lookup exception attempt ${retries + 1}:`, error);
+              if (retries >= maxRetries) {
+                console.log('No profile found after all retries, onboarding needed');
+                setOnboardingCompleted(false);
+                break;
+              }
+              
+              // Wait before retry with exponential backoff
+              await new Promise(resolve => setTimeout(resolve, 1000 * (retries + 1)));
+              retries++;
+            }
           }
         } else {
           setOnboardingCompleted(false);
@@ -51,23 +77,50 @@ export const useAuth = () => {
 
     // Get initial session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      console.log('Initial session check:', session?.user?.id);
       if (session) {
         // Set session and user immediately
         setSession(session);
         setUser(session.user);
         
-        // Check onboarding status
-        try {
-          const { data } = await supabase
-            .from('profiles')
-            .select('onboarding_completed')
-            .eq('id', session.user.id)
-            .single();
-          
-          setOnboardingCompleted(data?.onboarding_completed || false);
-        } catch (error) {
-          console.log('No profile found, onboarding needed');
-          setOnboardingCompleted(false);
+        // Check onboarding status with retry logic
+        let retries = 0;
+        const maxRetries = 5; // Increased retries
+        
+        while (retries <= maxRetries) {
+          try {
+            const { data, error } = await supabase
+              .from('profiles')
+              .select('onboarding_completed')
+              .eq('id', session.user.id)
+              .single();
+            
+            if (error) {
+              console.log(`Initial profile lookup attempt ${retries + 1} failed:`, error.message);
+              if (retries < maxRetries) {
+                // Wait before retry with exponential backoff
+                await new Promise(resolve => setTimeout(resolve, 1000 * (retries + 1)));
+                retries++;
+                continue;
+              }
+            }
+            
+            // Even if there's an error on the last retry, we still need to set a value
+            setOnboardingCompleted(data?.onboarding_completed || false);
+            console.log('Initial profile lookup result:', data?.onboarding_completed || false);
+            break;
+          } catch (error) {
+            console.log(`Initial profile lookup exception attempt ${retries + 1}:`, error);
+            if (retries >= maxRetries) {
+              console.log('No profile found after all retries in initial check, onboarding needed');
+              setOnboardingCompleted(false);
+              break;
+            }
+            
+            // Wait before retry with exponential backoff
+            await new Promise(resolve => setTimeout(resolve, 1000 * (retries + 1)));
+            retries++;
+          }
         }
       }
       
