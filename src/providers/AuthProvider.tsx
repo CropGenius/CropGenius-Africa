@@ -1,3 +1,4 @@
+
 import { createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { useAuth } from '@/hooks/useAuth';
@@ -21,17 +22,7 @@ export function useAuthContext() {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const auth = useAuth();
-  
-  // Log auth state changes for debugging
-  console.log('AuthProvider state:', {
-    isAuthenticated: auth.isAuthenticated,
-    isLoading: auth.isLoading,
-    onboardingCompleted: auth.onboardingCompleted,
-    userId: auth.user?.id
-  });
-  
-  return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={useAuth()}>{children}</AuthContext.Provider>;
 }
 
 export default AuthProvider;

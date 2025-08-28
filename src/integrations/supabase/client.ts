@@ -49,7 +49,7 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true,   // Enable session detection in URL for OAuth callbacks
+    detectSessionInUrl: false,   // Manually handle session detection to avoid racing conditions
     flowType: 'pkce'  // Ensure PKCE flow for security
   }
 });
