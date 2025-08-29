@@ -35,6 +35,9 @@ export default [
         { allowConstantExport: true },
       ],
       "@typescript-eslint/no-unused-vars": "off",
+      "no-unused-vars": "off",
+      "no-undef": "off",
+      "react-hooks/exhaustive-deps": "warn",
     },
   }
 ];
