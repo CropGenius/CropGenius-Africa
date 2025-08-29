@@ -13,11 +13,8 @@ export default function Auth() {
     );
   }
 
-  // Only redirect authenticated users who have completed onboarding
-  // Allow users who want to see login options to stay
+  // Bypass onboarding completely - redirect all authenticated users directly to dashboard
   if (isAuthenticated && user) {
-    // Check if user has completed onboarding to decide where to redirect
-    // For now, redirect to dashboard but this could be enhanced later
     return <Navigate to="/dashboard" replace />;
   }
 

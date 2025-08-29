@@ -7,7 +7,6 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
-  authInitialized: boolean;
   isAuthenticated: boolean;
   onboardingCompleted: boolean;
   signInWithGoogle: () => Promise<void>;

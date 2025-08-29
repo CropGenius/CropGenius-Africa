@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '@/providers/AuthProvider';
@@ -36,7 +37,7 @@ export default function OnboardingPage() {
       const { error } = await supabase.rpc('complete_onboarding', {
         p_user_id: user.id,
         farm_name: formData.farmName,
-        total_area: formData.totalArea ? parseFloat(formData.totalArea) : null,
+        total_area: parseFloat(formData.totalArea),
         crops: formData.crops,
         planting_date: formData.planting_date,
         harvest_date: formData.harvest_date,
@@ -62,11 +63,6 @@ export default function OnboardingPage() {
     }
   };
 
-  const handleSkip = () => {
-    // Allow users to skip onboarding entirely
-    navigate('/dashboard', { replace: true });
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-lime-50 p-4">
       <div className="max-w-2xl mx-auto py-8">
@@ -77,7 +73,6 @@ export default function OnboardingPage() {
             </div>
             <CardTitle className="text-3xl font-bold text-gray-900">Welcome to CropGenius</CardTitle>
             <p className="text-gray-600 mt-2">Let's set up your farm to get AI-powered insights</p>
-            <p className="text-sm text-gray-500 mt-2">All fields are optional - you can skip this step</p>
           </CardHeader>
 
           <CardContent className="px-8 pb-8">
@@ -90,7 +85,8 @@ export default function OnboardingPage() {
                   type="text"
                   value={formData.farmName}
                   onChange={(e) => setFormData({ ...formData, farmName: e.target.value })}
-                  placeholder="Enter your farm name (optional)"
+                  placeholder="Enter your farm name"
+                  required
                 />
               </div>
 
@@ -103,7 +99,8 @@ export default function OnboardingPage() {
                   step="0.1"
                   value={formData.totalArea}
                   onChange={(e) => setFormData({ ...formData, totalArea: e.target.value })}
-                  placeholder="e.g., 2.5 (optional)"
+                  placeholder="e.g., 2.5"
+                  required
                 />
               </div>
 
@@ -115,28 +112,17 @@ export default function OnboardingPage() {
                   type="tel"
                   value={formData.whatsapp_number}
                   onChange={(e) => setFormData({ ...formData, whatsapp_number: e.target.value })}
-                  placeholder="+254712345678 (optional)"
+                  placeholder="+254712345678"
                 />
               </div>
 
-              <div className="flex space-x-4">
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-4 text-lg"
-                >
-                  {loading ? 'Setting up your farm...' : 'Complete Setup'}
-                </Button>
-                
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleSkip}
-                  className="flex-1 font-semibold py-4 text-lg"
-                >
-                  Skip for now
-                </Button>
-              </div>
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-4 text-lg"
+              >
+                {loading ? 'Setting up your farm...' : 'Complete Setup'}
+              </Button>
             </form>
           </CardContent>
         </Card>

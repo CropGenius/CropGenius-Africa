@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -8,115 +8,78 @@ export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [authInitialized, setAuthInitialized] = useState(false);
   const [onboardingCompleted, setOnboardingCompleted] = useState(false);
-  const initializationRef = useRef(false);
 
   useEffect(() => {
-    // Prevent duplicate initialization
-    if (initializationRef.current) return;
-    initializationRef.current = true;
+    // Timeout to prevent indefinite loading
+    const timeoutId = setTimeout(() => {
+      if (isLoading) {
+        console.log('Auth timeout - forcing loading to false');
+        setIsLoading(false);
+      }
+    }, 3000); // 3 second timeout
 
-    let mounted = true;
-
-    const initializeAuth = async () => {
-      try {
-        // Step 1: Get initial session
-        const { data: { session: initialSession } } = await supabase.auth.getSession();
+    // SINGLE auth state listener - eliminates race conditions
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth event:', event, session?.user?.id);
         
-        if (!mounted) return;
-
-        // Step 2: Set up single auth state listener
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-          async (event, session) => {
-            if (!mounted) return;
-
-            console.log('Auth event:', event, session?.user?.id);
-            
-            setSession(session);
-            setUser(session?.user ?? null);
-            
-            // Handle onboarding status for authenticated users
-            if (session?.user) {
-              try {
-                const { data } = await supabase
-                  .from('profiles')
-                  .select('onboarding_completed')
-                  .eq('id', session.user.id)
-                  .single();
-                
-                if (mounted) {
-                  setOnboardingCompleted(data?.onboarding_completed || false);
-                }
-              } catch (error) {
-                console.log('No profile found, onboarding needed');
-                if (mounted) {
-                  setOnboardingCompleted(false);
-                }
-              }
-            } else {
-              if (mounted) {
-                setOnboardingCompleted(false);
-              }
-            }
-            
-            if (mounted) {
-              setAuthInitialized(true);
-              setIsLoading(false);
-            }
-          }
-        );
-
-        // Step 3: Process initial session
-        if (initialSession) {
-          setSession(initialSession);
-          setUser(initialSession.user);
-          
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        // Check onboarding ONLY when we have a valid session
+        if (session?.user) {
           try {
             const { data } = await supabase
               .from('profiles')
               .select('onboarding_completed')
-              .eq('id', initialSession.user.id)
+              .eq('id', session.user.id)
               .single();
             
-            if (mounted) {
-              setOnboardingCompleted(data?.onboarding_completed || false);
-            }
+            setOnboardingCompleted(data?.onboarding_completed || false);
           } catch (error) {
             console.log('No profile found, onboarding needed');
-            if (mounted) {
-              setOnboardingCompleted(false);
-            }
+            setOnboardingCompleted(false);
           }
+        } else {
+          setOnboardingCompleted(false);
         }
-
-        if (mounted) {
-          setAuthInitialized(true);
-          setIsLoading(false);
-        }
-
-        return () => {
-          subscription.unsubscribe();
-        };
         
-      } catch (error) {
-        console.error('Auth initialization error:', error);
-        if (mounted) {
-          setIsLoading(false);
-          setAuthInitialized(true);
+        setIsLoading(false);
+      }
+    );
+
+    // Get initial session
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session) {
+        // Set session and user immediately
+        setSession(session);
+        setUser(session.user);
+        
+        // Check onboarding status
+        try {
+          const { data } = await supabase
+            .from('profiles')
+            .select('onboarding_completed')
+            .eq('id', session.user.id)
+            .single();
+          
+          setOnboardingCompleted(data?.onboarding_completed || false);
+        } catch (error) {
+          console.log('No profile found, onboarding needed');
+          setOnboardingCompleted(false);
         }
       }
-    };
+      
+      // Always set loading to false after initial check
+      setIsLoading(false);
+    });
 
-    // Initialize auth and set up cleanup
-    const cleanup = initializeAuth();
-    
-    // Cleanup function
     return () => {
-      mounted = false;
-      cleanup.then(cleanupFn => cleanupFn?.());
+      subscription.unsubscribe();
+      clearTimeout(timeoutId);
     };
-  }, []); // Empty dependency array - run once only
+  }, [isLoading]);
 
   const signInWithGoogle = async () => {
     try {
@@ -140,7 +103,6 @@ export const useAuth = () => {
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
-      setOnboardingCompleted(false);
     } catch (error) {
       console.error('Sign out error:', error);
     }
@@ -150,8 +112,7 @@ export const useAuth = () => {
     user,
     session,
     isLoading,
-    authInitialized,
-    isAuthenticated: !!user && !!session && authInitialized,
+    isAuthenticated: !!user && !!session,
     onboardingCompleted,
     signInWithGoogle,
     signOut,
