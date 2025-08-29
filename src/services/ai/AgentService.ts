@@ -242,7 +242,10 @@ export class AgentService {
 
       return response;
     } catch (error) {
-      console.error('Agent routing error:', error);
+      // Log critical error for monitoring but don't spam console
+      if (error instanceof Error && error.message.includes('network')) {
+        toast.error('Network connectivity issue. Please check your connection.');
+      }
       
       // Fallback response
       return this.generateFallbackResponse(message, context, Date.now() - startTime);
@@ -309,7 +312,6 @@ export class AgentService {
         });
       }
     } catch (error) {
-      console.error('Crop disease query error:', error);
       return this.generateAgentFallback(AgentType.CROP_DISEASE, message, context);
     }
   }
@@ -325,7 +327,6 @@ export class AgentService {
         agentType: AgentType.WEATHER
       });
     } catch (error) {
-      console.error('Weather query error:', error);
       return this.generateAgentFallback(AgentType.WEATHER, message, context);
     }
   }
@@ -341,7 +342,6 @@ export class AgentService {
         agentType: AgentType.FIELD_BRAIN
       });
     } catch (error) {
-      console.error('Field brain query error:', error);
       return this.generateAgentFallback(AgentType.FIELD_BRAIN, message, context);
     }
   }
@@ -357,7 +357,6 @@ export class AgentService {
         agentType: AgentType.MARKET_INTELLIGENCE
       });
     } catch (error) {
-      console.error('Market query error:', error);
       return this.generateAgentFallback(AgentType.MARKET_INTELLIGENCE, message, context);
     }
   }
@@ -373,7 +372,6 @@ export class AgentService {
         agentType: AgentType.CROP_RECOMMENDATIONS
       });
     } catch (error) {
-      console.error('Crop recommendation query error:', error);
       return this.generateAgentFallback(AgentType.CROP_RECOMMENDATIONS, message, context);
     }
   }
@@ -389,7 +387,6 @@ export class AgentService {
         agentType: AgentType.GENERAL_FARMING
       });
     } catch (error) {
-      console.error('General farming query error:', error);
       return this.generateAgentFallback(AgentType.GENERAL_FARMING, message, context);
     }
   }

@@ -102,7 +102,7 @@ export class FieldIntelligenceEngine {
       const data = await response.json();
       this.accessToken = data.access_token;
     } catch (error) {
-      console.error('Sentinel Hub authentication failed:', error);
+      // Sentinel Hub authentication failed
       throw error;
     }
   }
@@ -171,7 +171,7 @@ export class FieldIntelligenceEngine {
         }
       };
     } catch (error) {
-      console.error('Failed to get satellite imagery:', error);
+      // Failed to get satellite imagery
       throw error;
     }
   }
@@ -240,7 +240,7 @@ export class FieldIntelligenceEngine {
         healthZones: ndviValues.zones
       };
     } catch (error) {
-      console.error('NDVI calculation failed:', error);
+      // NDVI calculation failed
       // Return simulated data as fallback
       return this.simulateNDVICalculation(coordinates);
     }

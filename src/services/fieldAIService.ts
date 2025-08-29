@@ -94,16 +94,12 @@ export const getFieldRecommendations = async (fieldId: string): Promise<string[]
     .eq('id', fieldId)
     .single();
 
-  console.log(`🧠 Calling GEMINI-2.5-FLASH for field ${fieldId}...`);
+  // Calling GEMINI AI for field analysis
 
   // Call GEMINI-2.5-FLASH directly - EXACTLY like AI Crop Scanner
   const insights = await analyzeFieldWithGemini(fieldData);
 
-  console.log('✅ GEMINI AI Response received:', {
-    recommendations: insights.recommendations?.length || 0,
-    confidence: insights.confidence,
-    processingTime: Date.now() - startTime
-  });
+  // GEMINI AI Response received
 
   // Cache the results
   await cacheFieldInsights(fieldId, user.id, insights);
@@ -124,7 +120,7 @@ export const checkFieldRisks = async (fieldId: string): Promise<FieldRiskAssessm
     .eq('id', fieldId)
     .single();
 
-  console.log(`🔍 Analyzing field risks for ${fieldId}...`);
+  // Analyzing field risks
 
   // Call GEMINI for risk analysis
   const insights = await analyzeFieldWithGemini(fieldData);
@@ -331,19 +327,12 @@ export const getComprehensiveFieldAnalysis = async (fieldId: string): Promise<Fi
     .eq('id', fieldId)
     .single();
 
-  console.log(`🚀 Running comprehensive AI analysis for field ${fieldId}...`);
+  // Running comprehensive AI analysis
 
   // Call GEMINI directly
   const insights = await analyzeFieldWithGemini(fieldData);
 
-  console.log('✅ Comprehensive AI Analysis Complete:', {
-    recommendations: insights.recommendations?.length || 0,
-    diseaseRisks: insights.disease_risks?.risks?.length || 0,
-    soilHealth: insights.soil_health?.health_score || 0,
-    cropSuggestions: insights.crop_rotation?.suggestions?.length || 0,
-    processingTime: insights.processing_time_ms,
-    confidence: insights.confidence
-  });
+  // Comprehensive AI Analysis Complete
 
   // Cache the results
   await cacheFieldInsights(fieldId, user.id, insights);
@@ -374,7 +363,7 @@ const cacheFieldInsights = async (fieldId: string, userId: string, insights: Fie
       onConflict: 'field_id,user_id'
     });
 
-  console.log('💾 Field insights cached successfully');
+  // Field insights cached successfully
 };
 
 /**
@@ -397,7 +386,7 @@ export const getCachedFieldInsights = async (fieldId: string): Promise<FieldInsi
     .single();
 
   if (cached) {
-    console.log('💾 Using cached field insights from', cached.generated_at);
+    // Using cached field insights
     return cached.ai_analysis_data as FieldInsightsResult;
   }
 

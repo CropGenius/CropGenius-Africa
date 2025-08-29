@@ -81,7 +81,6 @@ export class YieldPredictorOracle {
 
     try {
       // Generate comprehensive prediction with Gemini-2.5-Flash
-      console.log('🧠 Analyzing with Gemini-2.5-Flash LIVE for yield prediction...');
       const prediction = await this.analyzeWithGeminiFlash(input);
       
       const result: YieldPredictionResult = {
@@ -96,13 +95,10 @@ export class YieldPredictorOracle {
         processingTimeMs: Date.now() - startTime
       };
       
-      console.log(`✅ Gemini-2.5-Flash yield prediction complete: ${result.predictedYieldKgPerHa}kg/ha (${result.confidenceScore}% confidence) in ${result.processingTimeMs}ms`);
-      
       return result;
 
     } catch (error) {
-      console.error('❌ Gemini-2.5-Flash yield prediction error:', error);
-      throw new Error(`Prediction failed: ${error.message}`);
+      throw new Error(`Prediction failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -166,7 +162,6 @@ export class YieldPredictorOracle {
       return this.parseGeminiPredictionResponse(analysisText, input);
 
     } catch (error) {
-      console.error('Gemini-2.5-Flash API error:', error);
       throw error;
     }
   }
@@ -283,7 +278,7 @@ Analyze and respond with JSON only:`;
         };
       }
     } catch (parseError) {
-      console.warn('Failed to parse Gemini JSON response:', parseError);
+      // JSON parsing failed, using fallback response
     }
 
     // Fallback response if parsing fails

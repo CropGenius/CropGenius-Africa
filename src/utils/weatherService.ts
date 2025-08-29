@@ -94,7 +94,7 @@ export const fetchWeatherData = async (location: LocationData): Promise<WeatherD
       alert
     };
   } catch (error) {
-    console.error("Error fetching weather data:", error);
+    // Error fetching weather data, using fallback
     
     // Return fallback weather data if API call fails
     return {
@@ -161,7 +161,7 @@ export const getFarmingRecommendations = async (weather: WeatherData, crops: str
     
     return recommendations;
   } catch (error) {
-    console.error("Error getting farming recommendations:", error);
+    // Error getting farming recommendations
     return ["Unable to generate recommendations at this time"];
   }
 };

@@ -24,7 +24,7 @@ export const syncOfflineFields = async (): Promise<{
   const { data: { session }} = await supabase.auth.getSession();
   
   if (!session?.user) {
-    console.warn('Cannot sync offline fields: User not authenticated');
+    // Cannot sync offline fields: User not authenticated
     return { success: false, synced: 0, failed: 0, remaining: 0 };
   }
   
@@ -35,7 +35,7 @@ export const syncOfflineFields = async (): Promise<{
     return { success: true, synced: 0, failed: 0, remaining: 0 };
   }
   
-  console.log(`🔄 [syncOfflineFields] Attempting to sync ${offlineFields.length} offline fields`);
+  // Attempting to sync offline fields
   
   // Track results
   let syncedCount = 0;
@@ -97,13 +97,13 @@ export const syncOfflineFields = async (): Promise<{
         .single();
         
       if (error) {
-        console.error('❌ [syncOfflineFields] Failed to sync field:', error);
+        // Failed to sync field
         failedCount++;
         remainingFields.push(field);
         continue;
       }
       
-      console.log('✅ [syncOfflineFields] Field synced successfully:', data);
+      // Field synced successfully
       syncedCount++;
       
       // If there are associated crops, sync them too
@@ -128,12 +128,12 @@ export const syncOfflineFields = async (): Promise<{
           const updatedOfflineCrops = offlineCrops.filter((c: any) => c.id !== crop.id);
           localStorage.setItem('cropgenius_offline_crops', JSON.stringify(updatedOfflineCrops));
         } catch (cropError) {
-          console.error('❌ [syncOfflineFields] Failed to sync crop:', cropError);
+          // Failed to sync crop
           // Non-critical, continue
         }
       }
     } catch (error) {
-      console.error('❌ [syncOfflineFields] Error syncing field:', error);
+      // Error syncing field
       failedCount++;
       remainingFields.push(field);
     }
@@ -143,7 +143,7 @@ export const syncOfflineFields = async (): Promise<{
   localStorage.setItem('cropgenius_offline_fields', JSON.stringify(remainingFields));
   
   // Log results
-  console.log(`🔄 [syncOfflineFields] Sync complete: ${syncedCount} synced, ${failedCount} failed, ${remainingFields.length} remaining`);
+  // Sync complete
   
   return {
     success: failedCount === 0,
@@ -189,11 +189,11 @@ export const saveFieldOffline = (field: Partial<Field>): string => {
     offlineFields.push(offlineField);
     localStorage.setItem('cropgenius_offline_fields', JSON.stringify(offlineFields));
     
-    console.log('✅ [saveFieldOffline] Field saved offline:', offlineField);
+    // Field saved offline
     
     return fieldId;
   } catch (error) {
-    console.error('❌ [saveFieldOffline] Error saving field offline:', error);
+    // Error saving field offline
     toast.error("Couldn't save field", {
       description: "There was a problem saving your field locally"
     });
@@ -210,7 +210,7 @@ export const getUnsyncedFieldsCount = (): number => {
     const offlineFields = JSON.parse(localStorage.getItem('cropgenius_offline_fields') || '[]');
     return offlineFields.filter((field: Field) => !field.is_synced).length;
   } catch (error) {
-    console.error('❌ [getUnsyncedFieldsCount] Error:', error);
+    // Error getting unsynced fields count
     return 0;
   }
 };

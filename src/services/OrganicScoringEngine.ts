@@ -199,7 +199,7 @@ export class OrganicScoringEngine {
 
       return certificationProgress;
     } catch (error) {
-      console.error('Failed to calculate organic score:', error);
+      // Failed to calculate organic score, using default
       return this.getDefaultScore();
     }
   }
@@ -443,7 +443,7 @@ export class OrganicScoringEngine {
 
       return true;
     } catch (error) {
-      console.error('Failed to track practice adoption:', error);
+      // Failed to track practice adoption
       return false;
     }
   }
@@ -499,7 +499,7 @@ export class OrganicScoringEngine {
           next_milestone: progress.nextMilestone
         });
     } catch (error) {
-      console.error('Failed to save score history:', error);
+      // Failed to save score history
     }
   }
 

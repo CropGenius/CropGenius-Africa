@@ -48,7 +48,7 @@ export async function fetchLiveMarketPrices(
   crop: string, 
   region: string = 'kenya'
 ): Promise<MarketDataResponse> {
-  console.log(`🌍 Fetching live market data for ${crop} in ${region}...`);
+  // Fetching live market data
 
   try {
     // Try live market data first
@@ -66,7 +66,7 @@ export async function fetchLiveMarketPrices(
       };
     }
   } catch (error) {
-    console.warn('Live market data unavailable:', error);
+    // Live market data unavailable, using fallback
   }
 
   // Fallback to cached data
@@ -81,7 +81,7 @@ export async function fetchLiveMarketPrices(
       };
     }
   } catch (error) {
-    console.warn('Cached market data unavailable:', error);
+    // Cached market data unavailable
   }
 
   // Final fallback to static data
@@ -118,7 +118,7 @@ async function fetchFromLiveAPIs(crop: string, region: string): Promise<LiveMark
           return parseMarketResponse(data, source, region);
         }
       } catch (error) {
-        console.warn(`Failed to fetch from ${source}:`, error);
+        // Failed to fetch from source
       }
       return [];
     });
@@ -146,7 +146,7 @@ async function fetchFromLiveAPIs(crop: string, region: string): Promise<LiveMark
         results.push(...parseMarketResponse(data, region, region));
       }
     } catch (error) {
-      console.warn(`Failed to fetch from ${region}:`, error);
+      // Failed to fetch from region
     }
   }
 
@@ -181,7 +181,7 @@ function parseMarketResponse(data: any, source: string, region: string): LiveMar
       }
     });
   } catch (error) {
-    console.warn('Error parsing market response:', error);
+    // Error parsing market response
   }
 
   return results;
@@ -218,7 +218,7 @@ async function cacheLiveMarketData(data: LiveMarketPrice[]): Promise<void> {
       });
 
     if (error) {
-      console.warn('Failed to cache market data:', error);
+      // Failed to cache market data
     } else {
       console.log(`✅ Cached ${cacheEntries.length} market entries`);
     }

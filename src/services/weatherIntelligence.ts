@@ -116,7 +116,7 @@ export class WeatherIntelligenceEngine {
         yieldPredictions
       };
     } catch (error) {
-      console.error('Weather forecast failed:', error);
+      // Weather forecast failed, using fallback
       return this.getFallbackWeatherData(location, cropTypes);
     }
   }

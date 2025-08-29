@@ -62,7 +62,7 @@ export class FieldBrainAgent {
       this.speechSynthesis = window.speechSynthesis;
     }
     
-    console.log("🧠 [FieldBrainAgent] Created");
+    // Agent initialized
   }
 
   /**
@@ -81,7 +81,7 @@ export class FieldBrainAgent {
       }
       
       this.isInitialized = true;
-      console.log(`🧠 [FieldBrainAgent] Initialized for user: ${userId}`);
+      // Initialization complete
       
       // Add a system memory to record initialization
       this.addMemory({
@@ -94,7 +94,7 @@ export class FieldBrainAgent {
       
       return true;
     } catch (error) {
-      console.error("🧠 [FieldBrainAgent] Initialization failed:", error);
+      // Initialization failed
       return false;
     }
   }
@@ -104,7 +104,7 @@ export class FieldBrainAgent {
    */
   public setFieldContext(fieldId: string): void {
     this.fieldId = fieldId;
-    console.log(`🧠 [FieldBrainAgent] Field context set to: ${fieldId}`);
+    // Field context updated
     
     // Add a memory about switching field context
     this.addMemory({
@@ -121,7 +121,7 @@ export class FieldBrainAgent {
    */
   public setVoiceStyle(style: 'wise' | 'expert' | 'friendly'): void {
     this.voiceStyle = style;
-    console.log(`🧠 [FieldBrainAgent] Voice style set to: ${style}`);
+    // Voice style updated
     
     // Add a memory about the voice style change
     const memory: AgentMemory = {
@@ -168,7 +168,7 @@ export class FieldBrainAgent {
           // For now, we'll generate a simple response based on the question
           response = this.generateLocalResponse(question, relevantMemories);
         } catch (error) {
-          console.error("🧠 [FieldBrainAgent] Failed to get AI response:", error);
+          // AI response failed, using fallback
           // Fall back to local processing
           response = this.generateFallbackResponse(question);
         }
@@ -207,12 +207,12 @@ export class FieldBrainAgent {
       
       // Try to sync in the background
       this.syncWithServer().catch(error => {
-        console.error("🧠 [FieldBrainAgent] Background sync failed:", error);
+        // Background sync failed
       });
       
       return { response, insight };
     } catch (error) {
-      console.error("🧠 [FieldBrainAgent] Error processing question:", error);
+      // Error processing question, providing fallback
       return { 
         response: "I'm having trouble thinking right now. Let's try again later."
       };
@@ -312,7 +312,7 @@ export class FieldBrainAgent {
    */
   public speak(text: string): void {
     if (!this.speechSynthesis) {
-      console.warn("🧠 [FieldBrainAgent] Speech synthesis not available");
+      // Speech synthesis not available
       return;
     }
     
@@ -369,7 +369,7 @@ export class FieldBrainAgent {
     // Try to sync in the background
     if (this.isOnline) {
       this.syncWithServer().catch(error => {
-        console.error("🧠 [FieldBrainAgent] Memory sync failed:", error);
+        // Memory sync failed
       });
     }
   }
@@ -389,7 +389,7 @@ export class FieldBrainAgent {
     // Try to sync in the background
     if (this.isOnline) {
       this.syncWithServer().catch(error => {
-        console.error("🧠 [FieldBrainAgent] Insight sync failed:", error);
+        // Insight sync failed
       });
     }
     
@@ -467,10 +467,10 @@ export class FieldBrainAgent {
     
     // Final sync attempt if online
     if (this.isOnline) {
-      this.syncWithServer().catch(console.error);
+      this.syncWithServer().catch(() => {});
     }
     
-    console.log("🧠 [FieldBrainAgent] Shutdown complete");
+    // Shutdown complete
   }
 
   /**
@@ -478,11 +478,11 @@ export class FieldBrainAgent {
    */
   private handleOnline = (): void => {
     this.isOnline = true;
-    console.log("🧠 [FieldBrainAgent] Network connection restored");
+    // Network connection restored
     
     // Try to sync with server
     this.syncWithServer().catch(error => {
-      console.error("🧠 [FieldBrainAgent] Sync on reconnect failed:", error);
+      // Sync on reconnect failed
     });
   };
 
@@ -491,7 +491,7 @@ export class FieldBrainAgent {
    */
   private handleOffline = (): void => {
     this.isOnline = false;
-    console.log("🧠 [FieldBrainAgent] Network connection lost, switching to offline mode");
+    // Network connection lost, switching to offline mode
   };
 
   /**
@@ -511,9 +511,9 @@ export class FieldBrainAgent {
         this.insights = JSON.parse(insightsJson);
       }
       
-      console.log(`🧠 [FieldBrainAgent] Loaded ${this.memories.length} memories and ${this.insights.length} insights from local storage`);
+      // Loaded memories and insights from local storage
     } catch (error) {
-      console.error("🧠 [FieldBrainAgent] Error loading from local storage:", error);
+      // Error loading from local storage
       // Initialize with empty arrays if loading fails
       this.memories = [];
       this.insights = [];
@@ -537,7 +537,7 @@ export class FieldBrainAgent {
         JSON.stringify(this.insights)
       );
     } catch (error) {
-      console.error("🧠 [FieldBrainAgent] Error saving to local storage:", error);
+      // Error saving to local storage
       
       // If we hit storage limits, prune older memories
       if (error instanceof DOMException && error.name === 'QuotaExceededError') {
@@ -563,7 +563,7 @@ export class FieldBrainAgent {
       this.insights = this.insights.slice(0, 50);
     }
     
-    console.log("🧠 [FieldBrainAgent] Pruned memories to save space");
+    // Pruned memories to save space
   }
 
   /**
@@ -579,7 +579,7 @@ export class FieldBrainAgent {
       // Only sync if enough time has passed since last sync (rate limiting)
       const now = Date.now();
       if (now - this.lastSyncTime < 60000) {
-        console.log("🧠 [FieldBrainAgent] Skipping sync (rate limited)");
+        // Skipping sync (rate limited)
         this.syncInProgress = false;
         return;
       }
@@ -588,13 +588,13 @@ export class FieldBrainAgent {
       
       // In a real implementation, this would sync with the server
       // For now, we'll just simulate a successful sync
-      console.log(`🧠 [FieldBrainAgent] Synced ${this.memories.length} memories and ${this.insights.length} insights`);
+      // Synced memories and insights
       
       // If this were real, we'd upload new memories/insights and download any new ones from the server
       
       this.syncInProgress = false;
     } catch (error) {
-      console.error("🧠 [FieldBrainAgent] Sync failed:", error);
+      // Sync failed
       this.syncInProgress = false;
     }
   }

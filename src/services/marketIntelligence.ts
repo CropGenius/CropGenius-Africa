@@ -131,7 +131,7 @@ export class MarketIntelligenceEngine {
       prices.push(...localPrices);
 
     } catch (error) {
-      console.error('Error fetching market prices:', error);
+      // Error fetching market prices, using fallback
       // Fallback to local price database
       return this.getLocalMarketPrices(location, crops);
     }
@@ -179,7 +179,7 @@ export class MarketIntelligenceEngine {
         }
       }
     } catch (error) {
-      console.error('WFP API error:', error);
+      // WFP API error
     }
 
     return prices;
@@ -222,7 +222,7 @@ export class MarketIntelligenceEngine {
         }
       }
     } catch (error) {
-      console.error('ESOKO API error:', error);
+      // ESOKO API error
     }
 
     return prices;

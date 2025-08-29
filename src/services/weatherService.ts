@@ -50,7 +50,7 @@ export const fetchWeatherData = async (params: WeatherParams): Promise<WeatherDa
       farmingInsights: generateFarmingInsights(data),
     };
   } catch (error) {
-    console.error('Error fetching weather data:', error);
+    // Error fetching weather data
     throw error;
   }
 };

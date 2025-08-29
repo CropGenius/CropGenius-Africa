@@ -138,7 +138,7 @@ export const fetchMarketPrices = async (
 
     return ApiResponseHandler.success(filteredData, 'Market prices fetched successfully');
   } catch (error) {
-    console.error('Error in fetchMarketPrices:', error);
+    // Error fetching market prices
     return ApiResponseHandler.error(
       error instanceof Error ? error.message : 'An unknown error occurred',
       500
@@ -220,7 +220,7 @@ export const calculatePriceTrends = async (
 
     return ApiResponseHandler.success(priceTrend, 'Price trend calculated successfully');
   } catch (error) {
-    console.error('Error in calculatePriceTrends:', error);
+    // Error calculating price trends
     return ApiResponseHandler.error(
       error instanceof Error ? error.message : 'An unknown error occurred',
       500
@@ -301,7 +301,7 @@ export const generateDemandIndicators = async (
 
     return ApiResponseHandler.success(demandIndicator, 'Demand indicators generated successfully');
   } catch (error) {
-    console.error('Error in generateDemandIndicators:', error);
+    // Error generating demand indicators
     return ApiResponseHandler.error(
       error instanceof Error ? error.message : 'An unknown error occurred',
       500
@@ -386,7 +386,7 @@ export const getMarketAnalysis = async (
 
     return ApiResponseHandler.success(analysis, 'Market analysis completed successfully');
   } catch (error) {
-    console.error('Error in getMarketAnalysis:', error);
+    // Error getting market analysis
     return ApiResponseHandler.error(
       error instanceof Error ? error.message : 'An unknown error occurred',
       500
@@ -434,7 +434,7 @@ export const getMarketOverview = async (
 
     return ApiResponseHandler.success(overviewData, 'Market overview generated successfully');
   } catch (error) {
-    console.error('Error in getMarketOverview:', error);
+    // Error getting market overview
     return ApiResponseHandler.error(
       error instanceof Error ? error.message : 'An unknown error occurred',
       500

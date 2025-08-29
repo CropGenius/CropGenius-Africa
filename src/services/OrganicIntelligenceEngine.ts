@@ -81,7 +81,7 @@ export class OrganicIntelligenceEngine {
         const fieldSuperpowers = this.extractOrganicSuperpowers(analysis, field);
         superpowers.push(...fieldSuperpowers);
       } catch (error) {
-        console.log('Field analysis failed for:', field.name);
+        // Field analysis failed
       }
     }
 

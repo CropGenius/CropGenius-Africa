@@ -10,10 +10,10 @@ import { WeatherData as DbWeatherData } from "@/types/supabase";
  */
 export const fetchUserWeatherData = async (userId: string, location: LocationData): Promise<AppWeatherData | null> => {
   try {
-    console.log("Fetching weather data for user:", userId, "at location:", location);
+    // Fetching weather data for user
     
     if (!userId) {
-      console.error("User ID is required to fetch weather data");
+      // User ID is required
       toast.error("Authentication error", {
         description: "Please sign in to access weather data."
       });
@@ -35,7 +35,7 @@ export const fetchUserWeatherData = async (userId: string, location: LocationDat
     
     // If we have data, return it
     if (data && data.length > 0) {
-      console.log("Weather data found in Supabase:", data[0]);
+      // Weather data found in Supabase
       
       // Transform the data to match our WeatherData type
       const weatherData: AppWeatherData = {
@@ -55,10 +55,10 @@ export const fetchUserWeatherData = async (userId: string, location: LocationDat
     }
     
     // If we don't have data in Supabase, fetch from the weather service
-    console.log("No weather data found in Supabase for this location");
+    // No weather data found for location
     return null;
   } catch (error) {
-    console.error("Error fetching weather data from Supabase:", error);
+    // Error fetching weather data from Supabase
     toast.error("Failed to fetch weather data", {
       description: "There was an error retrieving your weather data. Please try again."
     });
@@ -83,7 +83,7 @@ export const storeWeatherData = async (
       };
     }
     
-    console.log("Storing weather data in Supabase:", weatherData);
+    // Storing weather data in Supabase
     
     // Validate data before sending to Supabase
     // These checks complement server-side validation triggers
@@ -127,14 +127,14 @@ export const storeWeatherData = async (
       .select();
     
     if (error) {
-      console.error("Database error storing weather data:", error);
+      // Database error storing weather data
       throw error;
     }
     
-    console.log("Weather data stored successfully:", data);
+    // Weather data stored successfully
     return { data, error: null };
   } catch (error: any) {
-    console.error("Error storing weather data:", error);
+    // Error storing weather data
     toast.error("Failed to store weather data", {
       description: error.message || "An unexpected error occurred"
     });
@@ -162,7 +162,7 @@ export const subscribeToWeatherUpdates = (
         filter: `user_id=eq.${userId}&location_name=eq.${locationName}`
       },
       (payload) => {
-        console.log('New weather data received:', payload);
+        // New weather data received
         if (payload.new) {
           const newData = payload.new as DbWeatherData;
           
