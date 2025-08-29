@@ -24,8 +24,8 @@ function requireEnv(key: string): string {
 }
 
 // Validate required Supabase environment variables
-const supabaseUrl = requireEnv('SUPABASE_URL');
-const supabaseAnonKey = requireEnv('SUPABASE_ANON_KEY');
+const supabaseUrl = requireEnv('VITE_SUPABASE_URL');
+const supabaseAnonKey = requireEnv('VITE_SUPABASE_ANON_KEY');
 
 // Validate URL format
 if (!supabaseUrl.startsWith('https://') || !supabaseUrl.includes('.supabase.co')) {
@@ -39,11 +39,6 @@ if (!supabaseAnonKey.startsWith('eyJ')) {
     `Expected: JWT starting with 'eyJ'`);
 }
 
-console.log('✅ Supabase Environment Validation Passed:', {
-  url: supabaseUrl,
-  keyPrefix: supabaseAnonKey.substring(0, 20) + '...',
-  environment: import.meta.env.NODE_ENV || import.meta.env.VITE_NODE_ENV || 'development'
-});
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {

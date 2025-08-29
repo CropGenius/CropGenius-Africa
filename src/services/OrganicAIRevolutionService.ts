@@ -401,7 +401,7 @@ export class OrganicAIRevolutionService {
 
             if (error) throw error;
 
-            const viralData = this.generateViralContent(action, contentType);
+            const viralData = this.createViralContentData(action, contentType);
 
             // Save viral content
             const { data: savedContent, error: contentError } = await supabase
@@ -533,7 +533,7 @@ export class OrganicAIRevolutionService {
         ];
     }
 
-    private generateViralContent(action: any, contentType: string): any {
+    private createViralContentData(action: any, contentType: string): any {
         return {
             title: `🔥 I just saved ₦${action.money_saved} with this organic hack!`,
             description: `Used ${action.title} and got ${action.yield_boost}! Who else wants to try this? 💪`,

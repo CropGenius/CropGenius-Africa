@@ -25,7 +25,19 @@
       "Bash(supabase functions:*)",
       "Bash(curl:*)",
       "Bash(vercel:*)",
-      "Bash(printenv:*)"
+      "Bash(printenv:*)",
+      "Bash(claude doctor)",
+      "Bash(npm config:*)",
+      "Bash(claude mcp add supabase:*)",
+      "mcp__supabase__list_projects",
+      "mcp__supabase__get_project",
+      "mcp__supabase__get_anon_key",
+      "mcp__supabase__list_tables",
+      "mcp__supabase__execute_sql",
+      "mcp__supabase__get_logs",
+      "mcp__supabase__get_advisors",
+      "mcp__supabase__apply_migration",
+      "Bash(npm audit:*)"
     ],
     "deny": []
   }

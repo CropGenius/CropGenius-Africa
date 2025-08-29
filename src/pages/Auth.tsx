@@ -24,8 +24,4 @@ export default function Auth() {
   }
 
   return <AuthPage />;
-}    return <Navigate to="/dashboard" replace />;
-  }
-
-  return <AuthPage />;
 }

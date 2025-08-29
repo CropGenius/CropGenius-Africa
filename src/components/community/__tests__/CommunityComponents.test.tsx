@@ -16,7 +16,40 @@ import { VotingButtons } from '../VotingButtons';
 import { AskQuestionForm } from '../AskQuestionForm';
 import { AnswerCard } from '../AnswerCard';
 import { MobileCommunityCard } from '../MobileCommunityCard';
-import { CommunityQuestion, CommunityAnswer } from '@/services/CommunityService';
+
+// Local type definitions for tests
+interface CommunityQuestion {
+  id: string;
+  user_id: string;
+  title: string;
+  content: string;
+  category_id: string;
+  tags: string[];
+  images: string[];
+  status: 'open' | 'answered' | 'closed';
+  view_count: number;
+  vote_score: number;
+  answer_count: number;
+  ai_preliminary_answer?: string;
+  ai_confidence_score?: number;
+  created_at: string;
+  updated_at: string;
+  category?: { name: string; icon: string; color: string };
+  user_display_name?: string;
+  user_avatar_url?: string;
+}
+
+interface CommunityAnswer {
+  id: string;
+  question_id: string;
+  user_id: string;
+  content: string;
+  vote_score: number;
+  is_accepted: boolean;
+  is_ai_generated: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
 // Mock dependencies
 vi.mock('@/services/CommunityService', () => ({
