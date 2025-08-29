@@ -76,9 +76,13 @@ export const LoginPage = ({ onToggle }: LoginPageProps) => {
       </div>
       <div className="flex items-center justify-between">
         <div className="text-sm">
-          <a href="#" className="font-medium text-indigo-600 hover:text-indigo-500">
+          <button 
+            type="button"
+            onClick={() => window.location.href = '/auth/reset-password'} 
+            className="font-medium text-indigo-600 hover:text-indigo-500 underline"
+          >
             Forgot your password?
-          </a>
+          </button>
         </div>
       </div>
       <div>

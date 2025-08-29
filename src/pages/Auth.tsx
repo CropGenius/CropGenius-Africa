@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { AuthPage } from '@/features/auth/components/AuthPage';
 
 export default function Auth() {
-  const { isAuthenticated, user, isLoading } = useAuthContext();
+  const { isAuthenticated, user, isLoading, onboardingCompleted } = useAuthContext();
 
   if (isLoading) {
     return (
@@ -13,9 +13,18 @@ export default function Auth() {
     );
   }
 
-  // Bypass onboarding completely - redirect all authenticated users directly to dashboard
-  if (isAuthenticated && user) {
+  // Redirect to onboarding if authenticated but onboarding not completed
+  if (isAuthenticated && user && !onboardingCompleted) {
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  // Redirect to dashboard if authenticated and onboarding completed
+  if (isAuthenticated && user && onboardingCompleted) {
     return <Navigate to="/dashboard" replace />;
+  }
+
+  return <AuthPage />;
+}    return <Navigate to="/dashboard" replace />;
   }
 
   return <AuthPage />;

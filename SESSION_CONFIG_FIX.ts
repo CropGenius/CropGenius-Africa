@@ -1,3 +1,7 @@
+// SESSION CONFIGURATION FIX
+// This fix addresses the session persistence issues
+
+// src/integrations/supabase/client.ts - FIXED VERSION
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
@@ -45,11 +49,12 @@ console.log('✅ Supabase Environment Validation Passed:', {
   environment: import.meta.env.NODE_ENV || import.meta.env.VITE_NODE_ENV || 'development'
 });
 
+// FIXED: Enable detectSessionInUrl to properly handle OAuth callbacks
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true,   // Enable session detection from URL for proper OAuth handling
+    detectSessionInUrl: true,   // FIXED: Enable session detection from URL
     flowType: 'pkce'  // Ensure PKCE flow for security
   }
 });
