@@ -40,6 +40,7 @@ export const SignupPage = ({ onToggle }: SignupPageProps) => {
     } else if (data.user && !data.session) {
       // This means email confirmation is required
       setMessage('Please check your email to confirm your account.');
+      setShowResend(true);
     }
     // On success with auto-confirmation, the AuthProvider will handle the redirect.
     setLoading(false);
@@ -56,6 +57,33 @@ export const SignupPage = ({ onToggle }: SignupPageProps) => {
     setLoading(false);
   };
 
+  const handleResendConfirmation = async () => {
+    setResendLoading(true);
+    setError(null);
+    setMessage(null);
+
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+
+      if (error) {
+        setError(mapSupabaseAuthError(error));
+      } else {
+        setMessage('Confirmation email has been resent. Please check your inbox.');
+      }
+    } catch (err) {
+      console.error('Resend confirmation error:', err);
+      setError('Failed to resend confirmation email. Please try again.');
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
   return (
     <form className="space-y-6" onSubmit={handleSignup}>
       {error && (
@@ -67,7 +95,21 @@ export const SignupPage = ({ onToggle }: SignupPageProps) => {
       {message && (
         <Alert>
           <AlertTitle>Success!</AlertTitle>
-          <AlertDescription>{message}</AlertDescription>
+          <AlertDescription>
+            {message}
+            {showResend && (
+              <div className="mt-3">
+                <button
+                  type="button"
+                  onClick={handleResendConfirmation}
+                  disabled={resendLoading}
+                  className="text-sm text-indigo-600 hover:text-indigo-500 underline disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {resendLoading ? 'Sending...' : "Didn't receive the email? Click to resend"}
+                </button>
+              </div>
+            )}
+          </AlertDescription>
         </Alert>
       )}
       <div>
@@ -101,6 +143,16 @@ export const SignupPage = ({ onToggle }: SignupPageProps) => {
         <button type="button" onClick={onToggle} className="font-medium text-indigo-600 hover:text-indigo-500">
           Sign in
         </button>
+      </p>
+      <p className="mt-4 text-center text-xs text-gray-500">
+        By creating an account, you agree to our{' '}
+        <a href="/terms" className="text-indigo-600 hover:text-indigo-500 underline" target="_blank" rel="noopener noreferrer">
+          Terms of Service
+        </a>
+        {' '}and{' '}
+        <a href="/privacy" className="text-indigo-600 hover:text-indigo-500 underline" target="_blank" rel="noopener noreferrer">
+          Privacy Policy
+        </a>
       </p>
     </form>
   );
