@@ -82,29 +82,24 @@ export class FieldIntelligenceEngine {
   }
 
   private async authenticateWithSentinel(): Promise<void> {
-    try {
-      const response = await fetch(`${SENTINEL_BASE_URL}/oauth/token`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: new URLSearchParams({
-          grant_type: 'client_credentials',
-          client_id: SENTINEL_CLIENT_ID,
-          client_secret: SENTINEL_CLIENT_SECRET
-        })
-      });
+    const response = await fetch(`${SENTINEL_BASE_URL}/oauth/token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: new URLSearchParams({
+        grant_type: 'client_credentials',
+        client_id: SENTINEL_CLIENT_ID,
+        client_secret: SENTINEL_CLIENT_SECRET
+      })
+    });
 
-      if (!response.ok) {
-        throw new Error(`Sentinel authentication failed: ${response.status}`);
-      }
-
-      const data = await response.json();
-      this.accessToken = data.access_token;
-    } catch (error) {
-      // Sentinel Hub authentication failed
-      throw error;
+    if (!response.ok) {
+      throw new Error(`Sentinel authentication failed: ${response.status}`);
     }
+
+    const data = await response.json();
+    this.accessToken = data.access_token;
   }
 
   private async getSatelliteImagery(coordinates: [number, number][]): Promise<{ imageUrl: string; metadata: any }> {
@@ -145,35 +140,30 @@ export class FieldIntelligenceEngine {
       evalscript: this.getTrueColorEvalScript()
     };
 
-    try {
-      const response = await fetch(`${SENTINEL_BASE_URL}/api/v1/process`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestBody)
-      });
+    const response = await fetch(`${SENTINEL_BASE_URL}/api/v1/process`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestBody)
+    });
 
-      if (!response.ok) {
-        throw new Error(`Satellite imagery request failed: ${response.status}`);
-      }
-
-      const imageBlob = await response.blob();
-      const imageUrl = URL.createObjectURL(imageBlob);
-
-      return {
-        imageUrl,
-        metadata: {
-          acquisitionDate: new Date().toISOString(),
-          cloudCoverage: Math.random() * 20, // Simulated
-          resolution: '10m'
-        }
-      };
-    } catch (error) {
-      // Failed to get satellite imagery
-      throw error;
+    if (!response.ok) {
+      throw new Error(`Satellite imagery request failed: ${response.status}`);
     }
+
+    const imageBlob = await response.blob();
+    const imageUrl = URL.createObjectURL(imageBlob);
+
+    return {
+      imageUrl,
+      metadata: {
+        acquisitionDate: new Date().toISOString(),
+        cloudCoverage: Math.random() * 20, // Simulated
+        resolution: '10m'
+      }
+    };
   }
 
   private async calculateNDVI(coordinates: [number, number][]): Promise<{

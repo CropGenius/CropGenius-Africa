@@ -12,47 +12,42 @@ export interface WeatherParams {
 }
 
 export const fetchWeatherData = async (params: WeatherParams): Promise<WeatherData> => {
-  try {
-    const { lat, lon, exclude, units = 'metric', lang = 'en' } = params;
-    
-    const queryParams = new URLSearchParams({
-      lat: lat.toString(),
-      lon: lon.toString(),
-      appid: API_KEY,
-      units,
-      lang,
-      ...(exclude && { exclude }),
-    });
+  const { lat, lon, exclude, units = 'metric', lang = 'en' } = params;
+  
+  const queryParams = new URLSearchParams({
+    lat: lat.toString(),
+    lon: lon.toString(),
+    appid: API_KEY,
+    units,
+    lang,
+    ...(exclude && { exclude }),
+  });
 
-    const response = await fetch(`${BASE_URL}?${queryParams.toString()}`);
+  const response = await fetch(`${BASE_URL}?${queryParams.toString()}`);
 
-    if (!response.ok) {
-      throw new Error(`Weather API error: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    
-    return {
-      temperature: data.current.temp,
-      humidity: data.current.humidity,
-      rainfall: data.current.rain?.['1h'] || 0,
-      windSpeed: data.current.wind_speed,
-      forecast: data.daily.slice(0, 5).map((day: any): WeatherForecast => ({
-        date: new Date(day.dt * 1000).toISOString().split('T')[0],
-        temperature: { 
-          min: day.temp.min, 
-          max: day.temp.max 
-        },
-        humidity: day.humidity,
-        rainfall: day.rain || 0,
-        conditions: day.weather[0].description,
-      })),
-      farmingInsights: generateFarmingInsights(data),
-    };
-  } catch (error) {
-    // Error fetching weather data
-    throw error;
+  if (!response.ok) {
+    throw new Error(`Weather API error: ${response.statusText}`);
   }
+
+  const data = await response.json();
+  
+  return {
+    temperature: data.current.temp,
+    humidity: data.current.humidity,
+    rainfall: data.current.rain?.['1h'] || 0,
+    windSpeed: data.current.wind_speed,
+    forecast: data.daily.slice(0, 5).map((day: any): WeatherForecast => ({
+      date: new Date(day.dt * 1000).toISOString().split('T')[0],
+      temperature: { 
+        min: day.temp.min, 
+        max: day.temp.max 
+      },
+      humidity: day.humidity,
+      rainfall: day.rain || 0,
+      conditions: day.weather[0].description,
+    })),
+    farmingInsights: generateFarmingInsights(data),
+  };
 };
 
 const generateFarmingInsights = (data: any) => {

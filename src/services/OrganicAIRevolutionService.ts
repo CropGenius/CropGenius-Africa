@@ -9,14 +9,7 @@
 import { supabase } from '../integrations/supabase/client';
 import { Database } from '../integrations/supabase/types';
 
-// User context type definition
-interface UserContext {
-    location: string;
-    crops: string[];
-    availableResources: string[];
-    farmSize: number;
-    organicLevel: string;
-}
+// User context type definition (merged with later definition)
 
 // 🧠 GEMINI FLASH AI INTEGRATION
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;

@@ -104,13 +104,14 @@ class GamificationEngine {
 
   private updateStats(action: string) {
     switch (action) {
-      case 'daily_login':
+      case 'daily_login': {
         const today = new Date().toDateString();
         if (this.userStats.lastLogin !== today) {
           this.userStats.loginStreak++;
           this.userStats.lastLogin = today;
         }
         break;
+      }
       case 'crop_scan':
         this.userStats.scansCompleted++;
         break;

@@ -134,51 +134,6 @@ export class PerformanceService {
     }
   }
 
-  public useOptimizedQuery<T>(
-    queryKey: string[],
-    queryFn: () => Promise<T>,
-    options?: {
-      staleTime?: number;
-      cacheTime?: number;
-      retry?: number;
-    }
-  ) {
-    return useQuery({
-      queryKey,
-      queryFn,
-      staleTime: options?.staleTime || 5 * 60 * 1000, // 5 minutes
-      cacheTime: options?.cacheTime || 10 * 60 * 1000, // 10 minutes
-      retry: options?.retry || 2,
-      onError: (error) => {
-        toast.error('Failed to fetch data');
-        console.error('Query error:', error);
-      }
-    });
-  }
-
-  public useInfiniteQuery<T>(
-    queryKey: string[],
-    queryFn: (pageParam?: any) => Promise<T>,
-    options?: {
-      getNextPageParam?: (lastPage: T, allPages: T[]) => any;
-      staleTime?: number;
-      cacheTime?: number;
-      retry?: number;
-    }
-  ) {
-    return useInfiniteQuery({
-      queryKey,
-      queryFn,
-      getNextPageParam: options?.getNextPageParam,
-      staleTime: options?.staleTime || 5 * 60 * 1000, // 5 minutes
-      cacheTime: options?.cacheTime || 10 * 60 * 1000, // 10 minutes
-      retry: options?.retry || 2,
-      onError: (error) => {
-        toast.error('Failed to fetch data');
-        console.error('Infinite query error:', error);
-      }
-    });
-  }
 
   public async optimizeImageUpload(
     file: File,
@@ -318,4 +273,51 @@ export class PerformanceService {
       throw error;
     }
   }
+}
+
+// React Hook functions (moved outside class to fix ESLint errors)
+export function useOptimizedQuery<T>(
+  queryKey: string[],
+  queryFn: () => Promise<T>,
+  options?: {
+    staleTime?: number;
+    cacheTime?: number;
+    retry?: number;
+  }
+) {
+  return useQuery({
+    queryKey,
+    queryFn,
+    staleTime: options?.staleTime || 5 * 60 * 1000, // 5 minutes
+    cacheTime: options?.cacheTime || 10 * 60 * 1000, // 10 minutes
+    retry: options?.retry || 2,
+    onError: (error) => {
+      toast.error('Failed to fetch data');
+      console.error('Query error:', error);
+    }
+  });
+}
+
+export function useInfiniteOptimizedQuery<T>(
+  queryKey: string[],
+  queryFn: (pageParam?: any) => Promise<T>,
+  options?: {
+    getNextPageParam?: (lastPage: T, allPages: T[]) => any;
+    staleTime?: number;
+    cacheTime?: number;
+    retry?: number;
+  }
+) {
+  return useInfiniteQuery({
+    queryKey,
+    queryFn,
+    getNextPageParam: options?.getNextPageParam,
+    staleTime: options?.staleTime || 5 * 60 * 1000, // 5 minutes
+    cacheTime: options?.cacheTime || 10 * 60 * 1000, // 10 minutes
+    retry: options?.retry || 2,
+    onError: (error) => {
+      toast.error('Failed to fetch data');
+      console.error('Infinite query error:', error);
+    }
+  });
 }

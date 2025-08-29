@@ -137,33 +137,28 @@ export class YieldPredictorOracle {
       }]
     };
 
-    try {
-      const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
-      });
+    const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload)
+    });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
-      }
-
-      const result = await response.json();
-      const analysisText = result.candidates?.[0]?.content?.parts?.[0]?.text;
-
-      if (!analysisText) {
-        throw new Error('No analysis text received from Gemini');
-      }
-
-      // Parse structured response from Gemini
-      return this.parseGeminiPredictionResponse(analysisText, input);
-
-    } catch (error) {
-      throw error;
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
     }
+
+    const result = await response.json();
+    const analysisText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!analysisText) {
+      throw new Error('No analysis text received from Gemini');
+    }
+
+    // Parse structured response from Gemini
+    return this.parseGeminiPredictionResponse(analysisText, input);
   }
 
   /**

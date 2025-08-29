@@ -46,19 +46,7 @@ const SatelliteImageryDisplay: React.FC<SatelliteImageryDisplayProps> = ({
   fullscreen = false
 }) => {
   const navigate = useNavigate();
-  const isPro = useMemo(() => {
-    try { return localStorage.getItem('plan_is_pro') === 'true'; } catch { return false; }
-  }, []);
-
-  // Redirect to upgrade if not pro
-  useEffect(() => {
-    if (!isPro) {
-      navigate('/upgrade');
-    }
-  }, [isPro, navigate]);
-
-  // Don't render anything if not pro (will redirect)
-  if (!isPro) return null;
+  const { user } = useAuth();
   const [viewMode, setViewMode] = useState<'ndvi' | 'rgb' | 'infrared' | 'moisture'>('ndvi');
   const [selectedField, setSelectedField] = useState<any>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -75,9 +63,11 @@ const SatelliteImageryDisplay: React.FC<SatelliteImageryDisplayProps> = ({
     ]
   );
 
-  const { user } = useAuth();
+  const isPro = useMemo(() => {
+    try { return localStorage.getItem('plan_is_pro') === 'true'; } catch { return false; }
+  }, []);
 
-  const handleFieldAnalysis = async () => {
+  const handleFieldAnalysis = useCallback(async () => {
     setIsAnalyzing(true);
     const analysis = {
       fieldHealth: 0.75,
@@ -91,14 +81,24 @@ const SatelliteImageryDisplay: React.FC<SatelliteImageryDisplayProps> = ({
     };
     setAnalysisData(analysis);
     setIsAnalyzing(false);
-  };
+  }, []);
+
+  // Redirect to upgrade if not pro
+  useEffect(() => {
+    if (!isPro) {
+      navigate('/upgrade');
+    }
+  }, [isPro, navigate]);
 
   // Auto-analyze on mount if coordinates are provided
   useEffect(() => {
     if (fieldCoordinates && fieldCoordinates.length > 0) {
       handleFieldAnalysis();
     }
-  }, [fieldCoordinates]);
+  }, [fieldCoordinates, handleFieldAnalysis]);
+
+  // Don't render anything if not pro (will redirect)
+  if (!isPro) return null;
 
   // 🔥 FULLSCREEN MODE - PRODUCTION READY!
   if (fullscreen) {

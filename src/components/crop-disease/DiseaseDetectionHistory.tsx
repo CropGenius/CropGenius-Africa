@@ -106,9 +106,10 @@ export default function DiseaseDetectionHistory() {
           return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
         case 'confidence':
           return b.confidence - a.confidence;
-        case 'severity':
+        case 'severity': {
           const severityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
           return (severityOrder[b.result_data.severity] || 0) - (severityOrder[a.result_data.severity] || 0);
+        }
         default:
           return 0;
       }

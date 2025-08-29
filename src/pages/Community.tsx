@@ -132,7 +132,7 @@ interface Expert {
   isFollowing?: boolean;
 }
 
-interface Badge {
+interface UserBadge {
   id: number;
   name: string;
   description: string;
@@ -332,7 +332,7 @@ const Community = () => {
     }
   ]);
   
-  const [badges, setBadges] = useState<Badge[]>([
+  const [badges, setBadges] = useState<UserBadge[]>([
     {
       id: 1,
       name: "Soil Master",

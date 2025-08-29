@@ -28,7 +28,9 @@ const AIChatWidget = () => {
         localStorage.setItem('day_anchor', current);
         localStorage.setItem('chat_used_day', '0');
       }
-    } catch {}
+    } catch {
+      // Ignore localStorage errors
+    }
   };
   const canSend = () => {
     try {
@@ -62,7 +64,9 @@ const AIChatWidget = () => {
         const used = parseInt(localStorage.getItem('chat_used_day') || '0', 10) || 0;
         localStorage.setItem('chat_used_day', String(used + 1));
       }
-    } catch {}
+    } catch {
+      // Ignore localStorage errors
+    }
     
     const { data } = await supabase.functions.invoke('ai-chat', { body: { message: messageText } });
     const aiMessage = { id: (Date.now() + 1).toString(), content: data?.response || 'I\'m here to help!', isUser: false };
