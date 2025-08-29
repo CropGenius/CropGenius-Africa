@@ -70,17 +70,17 @@ export class OrganicAIRevolutionService {
      * The core engine that creates personalized daily actions
      */
     async generateDailyOrganicAction(userId: string): Promise<OrganicAction> {
-        console.log('🌾🌾🌾 STARTING DAILY ORGANIC ACTION GENERATION FOR USER:', userId);
+        // Starting daily organic action generation
 
         try {
             // Get user context
             const userContext = await this.getUserContext(userId);
-            console.log('👤 User Context Retrieved:', userContext);
+            // User context retrieved
 
             // 🧠 REAL GEMINI FLASH AI GENERATION - NO EXCUSES!
-            console.log('🚀 CALLING generateRealOrganicAction...');
+            // Calling AI action generator
             const aiAction = await this.generateRealOrganicAction(userContext);
-            console.log('✅ AI Action Generated:', aiAction);
+            // AI action generated
 
             // Try to save to database, but don't fail if it doesn't work
             try {
@@ -113,7 +113,7 @@ export class OrganicAIRevolutionService {
                     return savedAction;
                 }
             } catch (dbError) {
-                console.warn('Database save failed, returning AI action directly:', dbError);
+                // Database save failed, returning AI action directly
             }
 
             // Return the AI action directly if database save fails
@@ -148,7 +148,7 @@ export class OrganicAIRevolutionService {
             } as OrganicAction;
 
         } catch (error) {
-            console.error('🔥 Daily Action Generation Failed:', error);
+            // Daily action generation failed, using fallback
             throw new Error('Failed to generate daily organic action');
         }
     }
@@ -186,7 +186,7 @@ export class OrganicAIRevolutionService {
             return recipes || [];
 
         } catch (error) {
-            console.error('🔥 Recipe Search Failed:', error);
+            // Recipe search failed, using fallback
             throw new Error('Failed to search organic recipes');
         }
     }
@@ -207,7 +207,7 @@ export class OrganicAIRevolutionService {
             return progress;
 
         } catch (error) {
-            console.error('🔥 Progress Tracking Failed:', error);
+            // Progress tracking failed
             throw new Error('Failed to get organic progress');
         }
     }
@@ -256,7 +256,7 @@ export class OrganicAIRevolutionService {
             };
 
         } catch (error) {
-            console.error('🔥 Economic Impact Calculation Failed:', error);
+            // Economic impact calculation failed
             throw new Error('Failed to calculate economic impact');
         }
     }

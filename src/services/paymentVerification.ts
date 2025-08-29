@@ -15,7 +15,7 @@ export class PaymentVerificationService {
     let retries = 0;
     let currentInterval = this.INITIAL_RETRY_INTERVAL;
     
-    console.log(`Starting payment verification for order: ${orderTrackingId}`);
+    // Starting payment verification
     
     while (retries < this.MAX_RETRIES) {
       try {
@@ -35,10 +35,10 @@ export class PaymentVerificationService {
             };
           }
         } else if (payment) {
-          console.log(`Payment found with status: ${payment.status} (attempt ${retries + 1})`);
+          // Payment found
           
           if (payment.status === 'COMPLETED') {
-            console.log('Payment completed successfully!');
+            // Payment completed successfully
             return {
               status: 'success',
               payment
@@ -51,10 +51,10 @@ export class PaymentVerificationService {
             };
           } else {
             // Still pending, continue retrying with shorter intervals initially
-            console.log(`Payment still pending (attempt ${retries + 1}), retrying in ${currentInterval}ms...`);
+            // Payment still pending, retrying
           }
         } else {
-          console.log(`Payment record not yet created (attempt ${retries + 1}), retrying...`);
+          // Payment record not yet created, retrying
         }
 
         retries++;
@@ -75,7 +75,7 @@ export class PaymentVerificationService {
       }
     }
 
-    console.log(`Payment verification timeout after ${this.MAX_RETRIES} attempts, trying manual verification...`);
+    // Payment verification timeout, trying manual verification
     
     // Try manual verification as fallback
     try {
@@ -98,7 +98,7 @@ export class PaymentVerificationService {
   }
 
   static async manualVerifyPayment(orderTrackingId: string): Promise<any> {
-    console.log(`Attempting manual payment verification for: ${orderTrackingId}`);
+    // Attempting manual payment verification
     
     const { data, error } = await supabase.functions.invoke('verify-payment-status', {
       body: { orderTrackingId }

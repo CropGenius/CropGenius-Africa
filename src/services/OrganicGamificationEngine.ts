@@ -96,7 +96,7 @@ class OrganicGamificationEngine {
         achievements
       };
     } catch (error) {
-      console.error('Failed to get user stats:', error);
+      // Failed to get user stats, using defaults
       return {
         level: this.levels[0],
         totalSavings: 0,
@@ -136,7 +136,7 @@ class OrganicGamificationEngine {
       const stats = await this.getUserStats(userId);
       return stats.achievements.filter(a => a.earned);
     } catch (error) {
-      console.error('Failed to record action:', error);
+      // Failed to record action
       return [];
     }
   }
