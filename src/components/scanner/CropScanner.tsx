@@ -203,7 +203,9 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
           });
           loadScanHistory(); // Refresh history after new scan
         }
-      } catch {}
+      } catch {
+        // Ignore errors
+      }
 
       // Increment monthly scan counter for FREE users
       try {
@@ -213,7 +215,9 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
           const used = parseInt(localStorage.getItem('scans_used_month') || '0', 10) || 0;
           localStorage.setItem('scans_used_month', String(used + 1));
         }
-      } catch {}
+      } catch {
+        // Ignore errors
+      }
 
       if (onScanComplete) {
         onScanComplete({
@@ -290,7 +294,9 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
         localStorage.setItem('month_anchor', current);
         localStorage.setItem('scans_used_month', '0');
       }
-    } catch {}
+    } catch {
+      // Ignore localStorage errors
+    }
   };
 
   // Load scan history and redirect to upgrade if needed when component mounts
@@ -313,7 +319,9 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
           .limit(5);
         setScanHistory(data || []);
       }
-    } catch {}
+    } catch {
+      // Ignore localStorage errors
+    }
   };
 
   const canScan = () => {

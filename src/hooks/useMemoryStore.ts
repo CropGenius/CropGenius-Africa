@@ -240,9 +240,6 @@ export const useMemoryStore = () => {
         
         return true;
       }
-      
-      setIsInitialized(true);
-      return true;
   };
 
   // Reset memory to defaults (for logout or testing)

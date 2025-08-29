@@ -17,19 +17,30 @@ export function useServiceWorker() {
   useEffect(() => {
     if (!state.isSupported || process.env.NODE_ENV !== 'production') return;
 
+    let registration: ServiceWorkerRegistration | null = null;
+    
+    const handleUpdateFound = () => {
+      setState(prev => ({ ...prev, updateAvailable: true }));
+    };
+
     const register = async () => {
       try {
-        const registration = await navigator.serviceWorker.register('/service-worker.js');
+        registration = await navigator.serviceWorker.register('/service-worker.js');
         setState(prev => ({ ...prev, isRegistered: true }));
-        registration.addEventListener('updatefound', () => {
-          setState(prev => ({ ...prev, updateAvailable: true }));
-        });
+        registration.addEventListener('updatefound', handleUpdateFound);
       } catch (error) {
         console.error('Service worker registration failed:', error);
       }
     };
 
     register();
+
+    // Cleanup function to prevent memory leaks
+    return () => {
+      if (registration) {
+        registration.removeEventListener('updatefound', handleUpdateFound);
+      }
+    };
   }, [state.isSupported]);
 
   const applyUpdate = () => window.location.reload();

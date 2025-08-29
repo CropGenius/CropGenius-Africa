@@ -28,6 +28,12 @@ export const SwipeableCard: React.FC<SwipeableCardProps> = ({
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   
+  // Transform values for swipe indicators (moved to top level to fix React Hook violations)
+  const leftOpacity = useTransform(x, [50, 100], [0, 1]);
+  const leftScale = useTransform(x, [50, 100], [0.8, 1.2]);
+  const rightOpacity = useTransform(x, [-100, -50], [1, 0]);
+  const rightScale = useTransform(x, [-100, -50], [1.2, 0.8]);
+  
   // Transform values for visual feedback
   const rotateZ = useTransform(x, [-200, 200], [-10, 10]);
   const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0.5, 0.8, 1, 0.8, 0.5]);
@@ -102,8 +108,8 @@ export const SwipeableCard: React.FC<SwipeableCardProps> = ({
       <motion.div
         className="absolute top-1/2 left-4 transform -translate-y-1/2 text-green-primary text-2xl opacity-0"
         animate={{
-          opacity: useTransform(x, [50, 100], [0, 1]).get(),
-          scale: useTransform(x, [50, 100], [0.8, 1.2]).get()
+          opacity: leftOpacity.get(),
+          scale: leftScale.get()
         }}
       >
         →
@@ -112,8 +118,8 @@ export const SwipeableCard: React.FC<SwipeableCardProps> = ({
       <motion.div
         className="absolute top-1/2 right-4 transform -translate-y-1/2 text-green-primary text-2xl opacity-0"
         animate={{
-          opacity: useTransform(x, [-100, -50], [1, 0]).get(),
-          scale: useTransform(x, [-100, -50], [1.2, 0.8]).get()
+          opacity: rightOpacity.get(),
+          scale: rightScale.get()
         }}
       >
         ←

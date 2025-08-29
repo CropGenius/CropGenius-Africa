@@ -206,11 +206,12 @@ export const MarketListings: React.FC<MarketListingsProps> = ({
             comparison = distanceA - distanceB;
           }
           break;
-        case 'quality':
+        case 'quality': {
           const qualityOrder = { 'A': 3, 'B': 2, 'C': 1, 'unknown': 0 };
           comparison = (qualityOrder[a.quality_grade || 'unknown'] || 0) -
             (qualityOrder[b.quality_grade || 'unknown'] || 0);
           break;
+        }
       }
 
       return sortOrder === 'asc' ? comparison : -comparison;

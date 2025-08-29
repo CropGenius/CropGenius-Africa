@@ -29,6 +29,10 @@ export class OfflineManager {
   private static instance: OfflineManager;
   private isOnline: boolean = navigator.onLine;
   private listeners: Array<(online: boolean) => void> = [];
+  
+  // Store bound functions for proper cleanup
+  private onlineHandler = () => this.setOnlineStatus(true);
+  private offlineHandler = () => this.setOnlineStatus(false);
 
   static getInstance(): OfflineManager {
     if (!OfflineManager.instance) {
@@ -38,8 +42,8 @@ export class OfflineManager {
   }
 
   constructor() {
-    window.addEventListener('online', () => this.setOnlineStatus(true));
-    window.addEventListener('offline', () => this.setOnlineStatus(false));
+    window.addEventListener('online', this.onlineHandler);
+    window.addEventListener('offline', this.offlineHandler);
   }
 
   private setOnlineStatus(online: boolean) {
@@ -56,6 +60,13 @@ export class OfflineManager {
     return () => {
       this.listeners = this.listeners.filter(l => l !== listener);
     };
+  }
+
+  // Cleanup method to prevent memory leaks
+  destroy(): void {
+    window.removeEventListener('online', this.onlineHandler);
+    window.removeEventListener('offline', this.offlineHandler);
+    this.listeners = [];
   }
 }
 

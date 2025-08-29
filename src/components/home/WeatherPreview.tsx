@@ -9,7 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-interface WeatherPreview {
+interface WeatherData {
   temp: number;
   condition: string;
   icon: "sun" | "cloud" | "rain" | "storm";
@@ -28,7 +28,7 @@ interface WeatherPreview {
 }
 
 export default function WeatherPreview() {
-  const [weather, setWeather] = useState<WeatherPreview | null>(null);
+  const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(false); // Always set loading to false to prevent loading screens
   const [activeDay, setActiveDay] = useState(0);
   const [animation, setAnimation] = useState(false);

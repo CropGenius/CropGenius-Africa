@@ -149,12 +149,13 @@ const SatelliteImageLayer: React.FC<{
         // Infrared: vegetation appears red/pink
         return 'bg-gradient-to-br from-red-700 via-pink-500 to-purple-600';
       
-      case 'moisture':
+      case 'moisture': {
         // Moisture: blue (wet) to brown (dry)
         const moisture = analysisData.vegetationIndices.ndmi;
         if (moisture > 0.6) return 'bg-gradient-to-br from-blue-500 via-cyan-400 to-green-500';
         if (moisture > 0.4) return 'bg-gradient-to-br from-cyan-400 via-green-400 to-yellow-400';
         return 'bg-gradient-to-br from-yellow-400 via-orange-400 to-brown-500';
+      }
       
       default:
         return 'bg-gradient-to-br from-green-600 to-brown-500';
