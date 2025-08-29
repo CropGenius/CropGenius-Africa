@@ -5,10 +5,10 @@
 CREATE OR REPLACE FUNCTION complete_onboarding(
   p_user_id UUID,
   p_farm_name TEXT,
-  p_total_area NUMERIC,
-  p_crops TEXT[],
-  p_planting_date TEXT,
-  p_harvest_date TEXT,
+  p_total_area NUMERIC DEFAULT NULL,
+  p_crops TEXT[] DEFAULT ARRAY[]::TEXT[],
+  p_planting_date TEXT DEFAULT NULL,
+  p_harvest_date TEXT DEFAULT NULL,
   p_primary_goal TEXT DEFAULT 'increase_yield',
   p_primary_pain_point TEXT DEFAULT 'pests',
   p_has_irrigation BOOLEAN DEFAULT FALSE,
@@ -19,13 +19,15 @@ CREATE OR REPLACE FUNCTION complete_onboarding(
 ) RETURNS JSONB AS $$
 DECLARE
   v_farm_id UUID;
-  v_field_id UUID;
   v_result JSONB;
 BEGIN
   -- Create farm and complete onboarding logic
-  INSERT INTO farms (name, size, user_id) 
-  VALUES (p_farm_name, p_total_area, p_user_id) 
-  RETURNING id INTO v_farm_id;
+  -- Only create farm if farm name is provided
+  IF p_farm_name IS NOT NULL AND p_farm_name != '' THEN
+    INSERT INTO farms (name, size, user_id) 
+    VALUES (p_farm_name, p_total_area, p_user_id) 
+    RETURNING id INTO v_farm_id;
+  END IF;
   
   UPDATE profiles SET onboarding_completed = TRUE WHERE id = p_user_id;
   
