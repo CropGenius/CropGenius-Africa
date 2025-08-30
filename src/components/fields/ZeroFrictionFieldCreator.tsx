@@ -3,12 +3,42 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useSimpleAuthContext } from '@/providers/SimpleAuthProvider';
 
 export const ZeroFrictionFieldCreator: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useSimpleAuthContext();
   const [isCreating, setIsCreating] = useState(false);
 
   const createInstantField = async () => {
+    if (!user?.id) {
+      toast.error('Please sign in to create fields');
+      navigate('/auth');
+      return;
+    }
+
+    // Check if user is pro
+    const isPro = localStorage.getItem('plan_is_pro') === 'true';
+    
+    if (!isPro) {
+      // For free users, check field count limitation (1 field max)
+      const { data: existingFields, error: countError } = await supabase
+        .from('fields')
+        .select('id')
+        .eq('user_id', user.id);
+        
+      if (countError) {
+        toast.error('Failed to check field count');
+        return;
+      }
+      
+      if (existingFields && existingFields.length >= 1) {
+        toast.error('Free users can only create 1 field. Upgrade to Pro for unlimited fields.');
+        navigate('/upgrade');
+        return;
+      }
+    }
+    
     setIsCreating(true);
     
     try {
@@ -27,8 +57,8 @@ export const ZeroFrictionFieldCreator: React.FC = () => {
           boundary: boundaryWkt,
           crop_type: 'mixed',
           season: new Date().getFullYear().toString(),
-          user_id: `guest_${Date.now()}`,
-          farm_id: `farm_${Date.now()}`,
+          user_id: user.id,
+          farm_id: user.id,
           created_at: new Date().toISOString()
         };
         
@@ -50,8 +80,8 @@ export const ZeroFrictionFieldCreator: React.FC = () => {
           boundary: fallbackBoundary,
           crop_type: 'mixed',
           season: new Date().getFullYear().toString(),
-          user_id: `guest_${Date.now()}`,
-          farm_id: `farm_${Date.now()}`,
+          user_id: user.id,
+          farm_id: user.id,
           created_at: new Date().toISOString()
         };
         

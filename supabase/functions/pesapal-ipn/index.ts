@@ -23,29 +23,75 @@ serve(async (req) => {
   try {
     let OrderNotificationType, OrderMerchantReference, OrderTrackingId;
     
-    // Handle both JSON and form-encoded data from Pesapal
-    const contentType = req.headers.get('content-type') || '';
+    // Parse URL params first since IPN is registered as GET
+    const url = new URL(req.url);
+    console.log('Raw IPN URL:', req.url);
+    console.log('All URL params:', Array.from(url.searchParams.entries()));
     
-    if (contentType.includes('application/json')) {
-      const jsonData = await req.json();
-      OrderNotificationType = jsonData.OrderNotificationType;
-      OrderMerchantReference = jsonData.OrderMerchantReference;
-      OrderTrackingId = jsonData.OrderTrackingId;
-    } else if (contentType.includes('application/x-www-form-urlencoded')) {
-      const formData = await req.text();
-      const params = new URLSearchParams(formData);
-      OrderNotificationType = params.get('pesapal_notification_type');
-      OrderMerchantReference = params.get('pesapal_merchant_reference');
-      OrderTrackingId = params.get('pesapal_transaction_tracking_id');
-    } else {
-      // Try URL params as fallback
-      const url = new URL(req.url);
-      OrderNotificationType = url.searchParams.get('OrderNotificationType') || 'IPNCHANGE';
-      OrderMerchantReference = url.searchParams.get('OrderMerchantReference');
-      OrderTrackingId = url.searchParams.get('OrderTrackingId');
+    // Try multiple possible parameter names from Pesapal docs
+    OrderTrackingId = url.searchParams.get('OrderTrackingId') ||
+                     url.searchParams.get('orderTrackingId') ||
+                     url.searchParams.get('pesapal_transaction_tracking_id') ||
+                     url.searchParams.get('tracking_id');
+    
+    OrderMerchantReference = url.searchParams.get('OrderMerchantReference') ||
+                            url.searchParams.get('orderMerchantReference') ||
+                            url.searchParams.get('pesapal_merchant_reference') ||
+                            url.searchParams.get('merchant_reference');
+    
+    OrderNotificationType = url.searchParams.get('OrderNotificationType') ||
+                           url.searchParams.get('orderNotificationType') ||
+                           url.searchParams.get('pesapal_notification_type') ||
+                           url.searchParams.get('notification_type') ||
+                           'IPNCHANGE';
+
+    // Fallback to POST body parsing for backwards compatibility
+    if (!OrderTrackingId && req.method === 'POST') {
+      const contentType = req.headers.get('content-type') || '';
+      
+      if (contentType.includes('application/json')) {
+        const jsonData = await req.json();
+        OrderNotificationType = jsonData.OrderNotificationType;
+        OrderMerchantReference = jsonData.OrderMerchantReference;
+        OrderTrackingId = jsonData.OrderTrackingId;
+      } else if (contentType.includes('application/x-www-form-urlencoded')) {
+        const formData = await req.text();
+        const params = new URLSearchParams(formData);
+        OrderNotificationType = params.get('pesapal_notification_type');
+        OrderMerchantReference = params.get('pesapal_merchant_reference');
+        OrderTrackingId = params.get('pesapal_transaction_tracking_id');
+      }
     }
 
-    console.log('IPN received:', { OrderNotificationType, OrderMerchantReference, OrderTrackingId });
+    console.log('IPN parsed:', { OrderNotificationType, OrderMerchantReference, OrderTrackingId });
+
+    // Log the event for debugging
+    await logPaymentEvent("ipn_parsed", {
+      orderTrackingId: OrderTrackingId,
+      notificationType: OrderNotificationType,
+      merchantReference: OrderMerchantReference,
+      method: req.method,
+      url: req.url
+    });
+
+    // Validate required parameters
+    if (!OrderTrackingId) {
+      const errorMsg = "Missing OrderTrackingId parameter";
+      console.error(errorMsg);
+      await logPaymentEvent("ipn_error", {
+        error: errorMsg,
+        orderTrackingId: OrderTrackingId,
+        notificationType: OrderNotificationType,
+        merchantReference: OrderMerchantReference,
+        allParams: Array.from(url.searchParams.entries())
+      });
+      
+      // Still return 200 to prevent Pesapal retries
+      return new Response(JSON.stringify({ status: "200", message: errorMsg }), {
+        headers: { "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
 
     if (OrderNotificationType === "IPNCHANGE" || OrderNotificationType === "CHANGE") {
       // Asynchronously handle the payment status change

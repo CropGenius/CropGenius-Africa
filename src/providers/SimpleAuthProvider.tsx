@@ -25,6 +25,7 @@ interface SimpleAuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   signOut: () => Promise<void>;
+  refreshSession: () => Promise<void>;
 }
 
 const SimpleAuthContext = createContext<SimpleAuthContextType | undefined>(undefined);
@@ -50,9 +51,27 @@ export function SimpleAuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const refreshSession = async () => {
+    try {
+      console.log('Refreshing user session...');
+      const { data, error } = await supabase.auth.refreshSession();
+      if (error) {
+        console.error('Session refresh error:', error);
+        toast.error('Failed to refresh session');
+      } else {
+        console.log('Session refreshed successfully:', data.session?.user?.email);
+        toast.success('Session refreshed');
+      }
+    } catch (error) {
+      console.error('Refresh session error:', error);
+      toast.error('Failed to refresh session');
+    }
+  };
+
   const value: SimpleAuthContextType = {
     ...authState,
     signOut,
+    refreshSession,
   };
 
   return (

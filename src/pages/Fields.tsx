@@ -55,12 +55,17 @@ const Fields = () => {
   }, [isPro, navigate]);
   
   const { data: fields } = useQuery<Field[]>({
-    queryKey: ['all-fields'],
+    queryKey: ['user-fields', user?.id],
     queryFn: async () => {
-      // Load all fields without authentication
+      if (!user?.id) {
+        return [];
+      }
+      
+      // Load ONLY fields belonging to the authenticated user
       const { data } = await supabase
         .from('fields')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       
       // Map database fields to our UI model

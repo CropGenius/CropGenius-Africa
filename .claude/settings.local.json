@@ -38,7 +38,8 @@
       "mcp__supabase__get_advisors",
       "mcp__supabase__apply_migration",
       "Bash(npm audit:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "mcp__supabase__deploy_edge_function"
     ],
     "deny": []
   }
