@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useUserFarms, useCreateFarm } from '@/hooks/useUserFarms';
-import { useAuthContext } from '@/providers/AuthProvider';
+import { useSimpleAuthContext } from '@/providers/SimpleAuthProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, Loader2, Leaf } from 'lucide-react';
@@ -85,7 +85,7 @@ const CreateFarmDialog = ({ user }) => {
   };
 
 export const FarmsList: React.FC<FarmsListProps> = ({ onFarmSelect, selectedFarmId }) => {
-  const { user } = useAuthContext();
+  const { user } = useSimpleAuthContext();
   const { data: farms, isLoading, error } = useUserFarms();
 
   if (isLoading) {

@@ -31,14 +31,14 @@ import {
 } from "lucide-react";
 // Logo now uses PNG from public directory
 import { supabase } from '@/integrations/supabase/client';
-import { useAuthContext } from '@/providers/AuthProvider';
+import { useSimpleAuthContext } from '@/providers/SimpleAuthProvider';
 import { toast } from "sonner";
 
 export default function GlobalMenu() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuthContext();
+  const { user } = useSimpleAuthContext();
   const [userStats, setUserStats] = useState({ credits: 0, farms: 0, newFeatures: 0 });
 
   useEffect(() => {

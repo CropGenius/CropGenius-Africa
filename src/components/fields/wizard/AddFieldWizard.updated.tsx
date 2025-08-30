@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tractor, MapPin, ArrowRight, Circle, CheckCircle, Sparkles, AlertTriangle, Loader2, Shield, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuthContext } from '@/providers/AuthProvider';
+import { useSimpleAuthContext } from '@/providers/SimpleAuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 // useErrorLogging eliminated - using console.error instead
 import { Field, Boundary, Coordinates } from '@/types/field';
@@ -65,7 +65,7 @@ const clearWizardSessionData = (): void => {
 export default function AddFieldWizard({ onSuccess, onCancel, defaultLocation }: AddFieldWizardProps) {
   const { logError, logSuccess, trackOperation } = useErrorLogging('AddFieldWizard');
   const navigate = useNavigate();
-  const { user } = useAuthContext();
+  const { user } = useSimpleAuthContext();
   
   // Initialize state from session storage if available
   const [currentStep, setCurrentStep] = useState(() => 

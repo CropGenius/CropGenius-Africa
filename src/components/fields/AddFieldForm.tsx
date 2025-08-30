@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader } from "@/co
 import { toast } from "sonner";
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from "react-router-dom";
-import { useAuthContext } from '@/providers/AuthProvider';
+import { useSimpleAuthContext } from '@/providers/SimpleAuthProvider';
 
 
 const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
@@ -38,7 +38,7 @@ export default function AddFieldForm({
 }: FieldFormProps) {
   // Simplified error handling
   const navigate = useNavigate();
-  const { user } = useAuthContext();
+  const { user } = useSimpleAuthContext();
   const [boundary, setBoundary] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fieldLocation, setFieldLocation] = useState<{ lat: number; lng: number } | null>(null);
