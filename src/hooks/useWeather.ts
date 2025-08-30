@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchWeatherData } from '@/services/weatherService';
-import { useAuth } from '@/hooks/useAuth';
+import { useSimpleAuthContext as useAuth } from '@/providers/SimpleAuthProvider';
 import { toast } from 'sonner';
 
 export interface WeatherData {

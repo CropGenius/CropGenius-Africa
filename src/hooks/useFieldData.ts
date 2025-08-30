@@ -12,7 +12,7 @@
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
+import { useSimpleAuthContext as useAuth } from '@/providers/SimpleAuthProvider';
 import { getCurrentWeather } from '@/agents/WeatherAgent';
 import { toast } from 'sonner';
 

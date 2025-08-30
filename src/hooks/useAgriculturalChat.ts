@@ -14,7 +14,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { agentService, AgentResponse, AgentType } from '@/services/ai/AgentService';
 import { useFarmContext, FarmContext } from '@/hooks/useFarmContext';
-import { useAuth } from '@/hooks/useAuth';
+import { useSimpleAuthContext as useAuth } from '@/providers/SimpleAuthProvider';
 import { toast } from 'sonner';
 
 export interface ChatMessage {
