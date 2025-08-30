@@ -2,10 +2,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useGrowthEngine } from '@/providers/GrowthEngineProvider';
-import { useAuthContext } from '@/providers/AuthProvider';
+import { useSimpleAuthContext } from '@/providers/SimpleAuthProvider';
 
 export default function LowCreditBanner({ credits }: { credits: number }) {
-  const { user } = useAuthContext();
+  const { user } = useSimpleAuthContext();
   const { trigger_referral_funnel } = useGrowthEngine();
 
   if (!user) return null;

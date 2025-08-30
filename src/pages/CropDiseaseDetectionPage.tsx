@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuthContext } from '@/providers/AuthProvider';
+import { useSimpleAuthContext } from '@/providers/SimpleAuthProvider';
 import { useDiseaseDetection } from '@/hooks/use-disease-detection';
 import { Camera, Upload, RefreshCw, Leaf, AlertTriangle, Loader2 } from 'lucide-react';
 
@@ -32,7 +32,7 @@ const CROP_TYPES = [
 
 const CropDiseaseDetectionPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuthContext();
+  const { user } = useSimpleAuthContext();
   const { isDetecting, detectionResult, error, detectDisease, clearError, clearResult } = useDiseaseDetection();
   
   const [activeTab, setActiveTab] = useState<string>('upload');

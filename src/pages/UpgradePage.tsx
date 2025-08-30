@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Pricing } from '@/components/ui/pricing';
-import { useAuthContext } from '@/providers/AuthProvider';
+import { useSimpleAuthContext } from '@/providers/SimpleAuthProvider';
 import { createCropGeniusPayment, CROPGENIUS_PRICING } from '@/services/pesapal';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -8,7 +8,7 @@ import { Sparkles } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 const UpgradePage = () => {
-  const { user } = useAuthContext();
+  const { user } = useSimpleAuthContext();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleUpgrade = async (plan: 'monthly' | 'annual') => {

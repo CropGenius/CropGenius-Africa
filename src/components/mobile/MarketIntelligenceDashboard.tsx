@@ -7,7 +7,7 @@ import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useMarketPrices } from '@/hooks/useBackendIntelligence';
 import { useDashboardManager } from '@/hooks/useDashboardManager';
-import { useAuthContext } from '@/providers/AuthProvider';
+import { useSimpleAuthContext } from '@/providers/SimpleAuthProvider';
 import { toast } from 'sonner';
 
 interface MarketData {
@@ -28,7 +28,7 @@ interface MarketSummary {
 
 export const MarketIntelligenceDashboard: React.FC = () => {
   const [selectedCrop, setSelectedCrop] = useState<string>('all');
-  const { user } = useAuthContext();
+  const { user } = useSimpleAuthContext();
   const dashboard = useDashboardManager(user?.id);
   
   // Use real location for market data

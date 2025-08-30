@@ -1,11 +1,11 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useGrowthEngine } from '@/providers/GrowthEngineProvider';
-import { useAuthContext } from '@/providers/AuthProvider';
+import { useSimpleAuthContext } from '@/providers/SimpleAuthProvider';
 import { Clock3 } from 'lucide-react';
 
 export default function OverdriveModal({ onClose }: { onClose: () => void }) {
-  const { user } = useAuthContext();
+  const { user } = useSimpleAuthContext();
   const { activate_overdrive } = useGrowthEngine();
 
   if (!user) return null;

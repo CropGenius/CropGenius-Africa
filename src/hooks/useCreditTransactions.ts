@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuthContext as useAuth } from '@/providers/AuthProvider';
+import { useSimpleAuthContext as useAuth } from '@/providers/SimpleAuthProvider';
 
 export interface CreditTransactionRow {
   id: string;

@@ -19,7 +19,7 @@ import {
   CropScanInput,
   ProcessedCropScanResult
 } from '../agents/CropScanAgent';
-import { useAuthContext } from '@/providers/AuthProvider'; // Import useAuth
+import { useSimpleAuthContext } from '@/providers/SimpleAuthProvider';
 import {
   generateYieldPrediction as generateYieldPredictionInternal,
   saveYieldPrediction as saveYieldPredictionInternal,
@@ -74,7 +74,7 @@ import {
 // };
 
 export const useAIAgentHub = () => {
-  const { user, session } = useAuthContext(); // Get user from AuthContext
+  const { user, session } = useSimpleAuthContext();
   // --- State for AI Weather Agent ---
   const [currentWeather, setCurrentWeather] = useState<ProcessedCurrentWeather | null>(null);
   const [weatherForecast, setWeatherForecast] = useState<ProcessedForecast | null>(null);

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, ReactNode, useEffect } from 'react';
 import { useSubscription, Subscription } from '@/hooks/useSubscription';
-import { useAuthContext } from './AuthProvider';
+import { useSimpleAuthContext } from './SimpleAuthProvider';
 
 interface SubscriptionContextType {
   subscription: Subscription | null;
@@ -18,7 +18,7 @@ export function useSubscriptionContext() {
 }
 
 export function SubscriptionProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuthContext();
+  const { user } = useSimpleAuthContext();
   const subscriptionData = useSubscription();
   
   // On app initialization, check localStorage and synchronize if needed

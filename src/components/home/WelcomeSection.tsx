@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import WelcomeBackCard from '@/components/welcome/WelcomeBackCard';
 import GeniusBadge from '@/components/badges/GeniusBadge';
 import { useMemoryStore } from '@/hooks/useMemoryStore';
-import { useAuthContext as useAuth } from '@/providers/AuthProvider';
+import { useSimpleAuthContext as useAuth } from '@/providers/SimpleAuthProvider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Users, Zap, AlertTriangle } from 'lucide-react';

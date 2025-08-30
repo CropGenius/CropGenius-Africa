@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { AuthProvider } from '@/providers/AuthProvider'
+import { SimpleAuthProvider } from '@/providers/SimpleAuthProvider'
 import AppRoutes from '@/AppRoutes'
 
 const createTestQueryClient = () =>
@@ -22,11 +22,11 @@ const RouteTestWrapper = ({ initialEntries = ['/'] }: { initialEntries?: string[
   
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
+      <SimpleAuthProvider>
         <MemoryRouter initialEntries={initialEntries}>
           <AppRoutes />
         </MemoryRouter>
-      </AuthProvider>
+      </SimpleAuthProvider>
     </QueryClientProvider>
   )
 }

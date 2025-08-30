@@ -1,11 +1,11 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { useAuthContext } from './providers/AuthProvider';
+import { useSimpleAuthContext } from './providers/SimpleAuthProvider';
 import { Navigate } from 'react-router-dom';
 import { MobileLayout } from './components/mobile/MobileLayout';
 import { OrbitalLoader } from './components/ui/orbital-loader';
 
-import Auth from './pages/Auth';
+import SimpleAuthPage from './pages/SimpleAuthPage';
 import Index from './pages/Index';
 import Fields from './pages/Fields';
 import Weather from './pages/Weather';
@@ -39,7 +39,7 @@ import PasswordResetPage from './pages/PasswordResetPage';
 import SubscriptionSettings from './components/pro/SubscriptionSettings';
 
 function Protected({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuthContext();
+  const { isAuthenticated, isLoading } = useSimpleAuthContext();
   
   if (isLoading) return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
@@ -54,8 +54,7 @@ function Protected({ children }: { children: React.ReactNode }) {
 export default function AppRoutes() {
   return (
     <Routes>
-      <Route path="/auth" element={<Auth />} />
-      <Route path="/auth/callback" element={<OAuthCallback />} />
+      <Route path="/auth" element={<SimpleAuthPage />} />
       <Route path="/auth/reset-password" element={<PasswordResetPage />} />
       <Route path="/join" element={<JoinPage />} />
 

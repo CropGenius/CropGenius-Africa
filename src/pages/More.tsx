@@ -14,12 +14,12 @@ import {
   Sparkles
 } from 'lucide-react';
 
-import { useAuthContext } from '@/providers/AuthProvider';
+import { useSimpleAuthContext } from '@/providers/SimpleAuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 
 const More = () => {
   const navigate = useNavigate();
-  const { user } = useAuthContext();
+  const { user } = useSimpleAuthContext();
   const [userStats, setUserStats] = useState({ credits: 0, farms: 0, scans: 0 });
   const [loading, setLoading] = useState(true);
 

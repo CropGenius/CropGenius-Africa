@@ -21,7 +21,7 @@ import {
   Check
 } from 'lucide-react';
 import { useDailyTasks } from '@/hooks/useDailyTasks';
-import { useAuthContext } from '@/providers/AuthProvider';
+import { useSimpleAuthContext } from '@/providers/SimpleAuthProvider';
 import { GeniusTask, TaskStatus, TaskType, TaskPriority } from '@/types/geniusTask';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -29,7 +29,7 @@ type ViewMode = 'calendar' | 'list';
 
 const TaskManager: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuthContext();
+  const { user } = useSimpleAuthContext();
   const [viewMode, setViewMode] = useState<ViewMode>('calendar');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showAddModal, setShowAddModal] = useState(false);

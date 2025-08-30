@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { useAuthContext } from '@/providers/AuthProvider';
+import { useSimpleAuthContext } from '@/providers/SimpleAuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2 } from 'lucide-react';
 
 export function VerifySubscription() {
-  const { user, refreshSession } = useAuthContext();
+  const { user, refreshSession } = useSimpleAuthContext();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 

@@ -10,11 +10,11 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Bell } from 'lucide-react';
 import { AlertDashboard } from '@/components/alerts/AlertDashboard';
 import { useDashboardManager } from '@/hooks/useDashboardManager';
-import { useAuthContext } from '@/providers/AuthProvider';
+import { useSimpleAuthContext } from '@/providers/SimpleAuthProvider';
 
 export default function Alerts() {
   const navigate = useNavigate();
-  const { user } = useAuthContext();
+  const { user } = useSimpleAuthContext();
   const dashboard = useDashboardManager(user?.id);
 
   return (

@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import { useAuthContext } from '@/providers/AuthProvider';
+import { useSimpleAuthContext } from '@/providers/SimpleAuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface DiseaseDetectionResult {
@@ -49,7 +49,7 @@ export function useDiseaseDetection(): UseDiseaseDetectionReturn {
   const [detectionHistory, setDetectionHistory] = useState<DetectionHistoryItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   
-  const { user } = useAuthContext();
+  const { user } = useSimpleAuthContext();
 
   const detectDisease = useCallback(async (file: File, cropType: string) => {
     setIsDetecting(true);

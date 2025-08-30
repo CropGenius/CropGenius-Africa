@@ -5,14 +5,14 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import confetti from 'canvas-confetti';
 import { useSubscription } from '@/hooks/useSubscription';
-import { useAuthContext } from '@/providers/AuthProvider';
+import { useSimpleAuthContext } from '@/providers/SimpleAuthProvider';
 
 const PaymentCallback = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState<'loading' | 'success' | 'failed'>('loading');
   const [payment, setPayment] = useState<any>(null);
-  const { refreshSession } = useAuthContext();
+  const { refreshSession } = useSimpleAuthContext();
   
   // Force subscription refresh
   useSubscription();

@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useMemoryStore } from '@/hooks/useMemoryStore';
-import { useAuthContext as useAuth } from '@/providers/AuthProvider';
+import { useSimpleAuthContext as useAuth } from '@/providers/SimpleAuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import {

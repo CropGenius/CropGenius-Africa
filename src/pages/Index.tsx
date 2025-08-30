@@ -1,6 +1,6 @@
 import React, { useState, memo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthContext } from '../providers/AuthProvider';
+import { useSimpleAuthContext } from '../providers/SimpleAuthProvider';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Menu, MapPin, CloudRain, Camera, MessageCircle, BarChart3, TrendingUp, RefreshCw, Calendar, Users, Copy, Share2, Check } from 'lucide-react';
@@ -14,7 +14,7 @@ import { DailyOrganicActionCard } from '@/components/organic/DailyOrganicActionC
 
 const Index = memo(function Index() {
   const navigate = useNavigate();
-  const { user } = useAuthContext();
+  const { user } = useSimpleAuthContext();
   const dashboard = useDashboardManager(user?.id);
   const { referralStats, referralCode, referralLink, copyToClipboard } = useReferralSystem();
   const { plans } = useFarmPlanning();

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuthContext as useAuth } from '@/providers/AuthProvider';
+import { useSimpleAuthContext as useAuth } from '@/providers/SimpleAuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 

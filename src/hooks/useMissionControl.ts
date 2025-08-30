@@ -6,11 +6,11 @@
 import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { useAuthContext } from '@/providers/AuthProvider';
+import { useSimpleAuthContext } from '@/providers/SimpleAuthProvider';
 import { fetchUsers, deleteUser, getSystemStats, updateUserRole } from '@/api/missionControlApi';
 
 export const useMissionControl = () => {
-  const { session } = useAuthContext();
+  const { session } = useSimpleAuthContext();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);

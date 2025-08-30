@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuthContext } from '@/providers/AuthProvider';
+import { useSimpleAuthContext } from '@/providers/SimpleAuthProvider';
 
 export interface Subscription {
   id: string;
@@ -12,7 +12,7 @@ export interface Subscription {
 }
 
 export function useSubscription() {
-  const { user } = useAuthContext();
+  const { user } = useSimpleAuthContext();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
 

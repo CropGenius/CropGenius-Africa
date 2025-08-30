@@ -2,12 +2,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Shield, Users, Database, Activity, Settings, BarChart3 } from 'lucide-react';
-import { useAuthContext } from '@/providers/AuthProvider';
+import { useSimpleAuthContext } from '@/providers/SimpleAuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect } from 'react';
 
 const MissionControlPage = () => {
-  const { user } = useAuthContext();
+  const { user } = useSimpleAuthContext();
   const [stats, setStats] = useState({ users: 0, farms: 0, scans: 0 });
 
   useEffect(() => {

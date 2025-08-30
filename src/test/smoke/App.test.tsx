@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { AuthProvider } from '@/providers/AuthProvider'
+import { SimpleAuthProvider } from '@/providers/SimpleAuthProvider'
 import App from '@/App'
 
 // Create a test query client
@@ -22,9 +22,9 @@ const AppWithProviders = ({ children }: { children: React.ReactNode }) => {
   
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
+      <SimpleAuthProvider>
         {children}
-      </AuthProvider>
+      </SimpleAuthProvider>
     </QueryClientProvider>
   )
 }

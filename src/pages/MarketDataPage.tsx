@@ -20,7 +20,7 @@ import {
   Bell,
   Download
 } from 'lucide-react';
-import { useAuthContext } from '@/providers/AuthProvider';
+import { useSimpleAuthContext } from '@/providers/SimpleAuthProvider';
 import { MarketOverview } from '@/components/market-data/MarketOverview';
 import { MarketPriceChart } from '@/components/market-data/MarketPriceChart';
 import { DemandIndicator } from '@/components/market-data/DemandIndicator';
@@ -29,7 +29,7 @@ import { toast } from 'sonner';
 
 const MarketDataPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuthContext();
+  const { user } = useSimpleAuthContext();
   const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number } | undefined>();
   const [monitoringEnabled, setMonitoringEnabled] = useState(false);
 

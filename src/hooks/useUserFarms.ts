@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuthContext } from '@/providers/AuthProvider';
+import { useSimpleAuthContext } from '@/providers/SimpleAuthProvider';
 
 const fetchFarms = async (userId: string) => {
   if (!userId) return null;
@@ -15,7 +15,7 @@ const fetchFarms = async (userId: string) => {
 };
 
 export const useUserFarms = () => {
-  const { user } = useAuthContext();
+  const { user } = useSimpleAuthContext();
   return useQuery({
     queryKey: ['farms', user?.id],
     queryFn: () => fetchFarms(user!.id),

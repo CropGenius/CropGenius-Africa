@@ -1,14 +1,14 @@
 
 import { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuthContext } from '@/providers/AuthProvider';
+import { useSimpleAuthContext } from '@/providers/SimpleAuthProvider';
 
 interface ProtectedProps {
   children: ReactNode;
 }
 
 export default function Protected({ children }: ProtectedProps) {
-  const { isAuthenticated, isLoading } = useAuthContext();
+  const { isAuthenticated, isLoading } = useSimpleAuthContext();
 
   if (isLoading) {
     return (

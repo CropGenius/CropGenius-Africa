@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { useAuthContext } from '@/providers/AuthProvider';
+import { useSimpleAuthContext } from '@/providers/SimpleAuthProvider';
 import { useQuery } from '@tanstack/react-query';
 
 // Type for coordinates
@@ -40,7 +40,7 @@ import { ZeroFrictionFieldCreator } from '@/components/fields/ZeroFrictionFieldC
 
 const Fields = () => {
   const navigate = useNavigate();
-  const { user } = useAuthContext();
+  const { user } = useSimpleAuthContext();
   
   const isPro = useMemo(() => {
     try { return localStorage.getItem('plan_is_pro') === 'true'; } catch { return false; }
