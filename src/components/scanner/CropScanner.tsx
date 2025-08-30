@@ -20,7 +20,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { cropDiseaseOracle, type DiseaseDetectionResult } from '@/agents/CropDiseaseOracle';
-import { supabase } from '@/integrations/supabase/client';
+import { saveCropScan, requestExpertReview, getCurrentUser } from '@/services/cropScanService';
 
 type ScanState = "idle" | "capturing" | "scanning" | "results";
 type DiseaseSeverity = "low" | "medium" | "high" | "critical";
@@ -173,10 +173,10 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
 
       // Save scan to database
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const user = await getCurrentUser();
         if (user && results) {
           const econ = computeEconomicImpact(results);
-          await supabase.from('crop_scans').insert({
+          await saveCropScan({
             user_id: user.id,
             crop_type: cropType,
             disease_name: results.disease_name,
@@ -689,9 +689,9 @@ const CropScanner: React.FC<CropScannerProps> = ({ onScanComplete, cropType, loc
               className="flex-1 bg-soil-brown-600 hover:bg-soil-brown-700 text-white"
               onClick={async () => {
                 try {
-                  const { data: { user } } = await supabase.auth.getUser();
+                  const user = await getCurrentUser();
                   if (user && scanResults) {
-                    await supabase.from('expert_reviews').insert({
+                    await requestExpertReview({
                       user_id: user.id,
                       disease_name: scanResults.disease_name,
                       confidence: scanResults.confidence,

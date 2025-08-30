@@ -6,7 +6,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { CropDiseaseOracle } from './CropDiseaseOracle';
-import { getCurrentWeather, getWeatherForecast } from '../utils/weatherService';
+import { fetchWeatherData } from '../services/weatherService';
 import { fetchRealMarketData } from '../intelligence/realMarketIntelligence';
 import { analyzeFieldEnhanced } from '../intelligence/enhancedFieldIntelligence';
 
@@ -231,10 +231,10 @@ export class ProductionWhatsAppBot {
       await this.updateFarmerLocation(farmer.phone_number, message.location);
       
       // Get weather for location
-      const weather = await getCurrentWeather(
-        message.location.latitude,
-        message.location.longitude
-      );
+      const weather = await fetchWeatherData({
+        lat: message.location.latitude,
+        lon: message.location.longitude
+      });
       
       return this.formatLocationResponse(message.location, weather, farmer.preferred_language);
       

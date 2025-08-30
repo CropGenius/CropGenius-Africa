@@ -8,7 +8,7 @@ import { uploadCropImage, UploadedFileResponse } from '../services/storageServic
  * and saving scan data to Supabase.
  */
 
-import { supabase } from '../services/supabaseClient';
+import { supabase } from '../integrations/supabase/client';
 
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 // Gemini Vision API endpoint supporting multimodal (image+text) requests

@@ -4,7 +4,7 @@
  * NO PLACEHOLDERS - REAL WHATSAPP COMMUNICATION
  */
 
-import { supabase } from '../services/supabaseClient';
+import { supabase } from '../integrations/supabase/client';
 import { detectDiseaseWithPlantNet } from './CropDiseaseIntelligence';
 import { getFarmingWeatherIntelligence } from './WeatherIntelligenceEngine';
 

@@ -4,7 +4,7 @@
  * Integrates live market APIs with intelligent fallback
  */
 
-import { supabase } from '../services/supabaseClient';
+import { supabase } from '../integrations/supabase/client';
 import { fetchLiveMarketPrices, getMarketTrends, type LiveMarketPrice, type MarketDataResponse } from '../services/marketDataService';
 
 export interface MarketDataInput {

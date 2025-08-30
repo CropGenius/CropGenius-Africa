@@ -5,7 +5,7 @@
  * @description Agent for generating AI-driven farm plans and tasks using Gemini.
  */
 
-import { supabase } from '../services/supabaseClient';
+import { supabase } from '../integrations/supabase/client';
 import { ProcessedCurrentWeather, ProcessedForecastItem } from './WeatherAgent';
 import { MarketListing } from './SmartMarketAgent'; // For market context
 

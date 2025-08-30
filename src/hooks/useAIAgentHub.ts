@@ -41,7 +41,7 @@ import {
   FarmTask
 } from '../agents/AIFarmPlanAgent';
 // import { useAuth } from '../context/AuthContext'; // Assuming AuthContext provides user info
-// import { supabase } from '../services/supabaseClient'; // Supabase client
+// import { supabase } from '../integrations/supabase/client'; // Supabase client
 
 // --- Agent-specific service imports (examples, to be created) ---
 // import * as WeatherAgent from '../agents/WeatherAgent';

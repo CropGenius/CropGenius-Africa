@@ -4,7 +4,7 @@
  * NO PLACEHOLDERS - REAL WEATHER DATA WITH FARMING INSIGHTS
  */
 
-import { supabase } from '../services/supabaseClient';
+import { supabase } from '../integrations/supabase/client';
 
 // Environment variables for REAL weather APIs
 const OPENWEATHER_API_KEY = import.meta.env.VITE_OPENWEATHERMAP_API_KEY;

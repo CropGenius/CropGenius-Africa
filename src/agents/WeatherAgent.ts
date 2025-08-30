@@ -1,5 +1,5 @@
 // src/agents/WeatherAgent.ts
-import { supabase } from '../services/supabaseClient';
+import { supabase } from '../integrations/supabase/client';
 
 /**
  * @file WeatherAgent.ts

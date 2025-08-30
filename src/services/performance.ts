@@ -1,4 +1,4 @@
-import { supabase } from '../services/supabaseClient';
+import { supabase } from '../integrations/supabase/client';
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { openDB } from 'idb';

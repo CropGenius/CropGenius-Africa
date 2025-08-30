@@ -4,7 +4,7 @@
  * NO PLACEHOLDERS - REAL AGRICULTURAL INTELLIGENCE
  */
 
-import { supabase } from '../services/supabaseClient';
+import { supabase } from '../integrations/supabase/client';
 
 // Environment variables for REAL APIs
 const PLANTNET_API_KEY = import.meta.env.VITE_PLANTNET_API_KEY;
