@@ -44,20 +44,40 @@ export const SimpleAuth: React.FC<SimpleAuthProps> = ({ onSuccess }) => {
       setLoading(true);
       setError(null);
       
-      const { error } = await supabase.auth.signInWithOAuth({
+      console.log('🔍 Starting Google OAuth with redirectTo:', `${window.location.origin}/auth/callback`);
+      console.log('🔍 Current origin:', window.location.origin);
+      console.log('🔍 Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
+      
+      // For hosted Supabase, redirect to app callback after OAuth
+      // Supabase handles: Google -> Supabase OAuth -> App callback
+      const redirectTo = `${window.location.origin}/auth/callback`;
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+          scopes: 'openid email profile'
         }
       });
       
+      console.log('🔍 OAuth response data:', data);
+      console.log('🔍 OAuth error:', error);
+      
       if (error) {
-        setError('Google sign-in failed. Please try again.');
-        console.error('Google auth error:', error);
+        setError(`Google sign-in failed: ${error.message}`);
+        console.error('🚨 Detailed Google auth error:', {
+          message: error.message,
+          status: error.status,
+          details: error
+        });
       }
-    } catch (err) {
-      setError('Unable to connect. Please check your connection.');
-      console.error('Auth error:', err);
+    } catch (err: any) {
+      setError(`Connection error: ${err.message}`);
+      console.error('🚨 Auth connection error:', err);
     } finally {
       setLoading(false);
     }
