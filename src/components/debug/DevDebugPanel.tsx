@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { useAuthContext as useAuth } from '@/providers/AuthProvider';
+import { useSimpleAuthContext as useAuth } from '@/providers/SimpleAuthProvider';
 import { Bug, ChevronUp, ChevronDown, Wifi, WifiOff, RefreshCw, AlertTriangle, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { diagnostics } from "@/utils/diagnosticService";
