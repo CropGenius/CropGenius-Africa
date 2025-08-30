@@ -39,7 +39,9 @@
       "mcp__supabase__apply_migration",
       "Bash(npm audit:*)",
       "Bash(sed:*)",
-      "mcp__supabase__deploy_edge_function"
+      "mcp__supabase__deploy_edge_function",
+      "WebSearch",
+      "WebFetch(domain:developer.pesapal.com)"
     ],
     "deny": []
   }

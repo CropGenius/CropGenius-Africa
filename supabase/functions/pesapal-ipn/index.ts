@@ -28,38 +28,22 @@ serve(async (req) => {
     console.log('Raw IPN URL:', req.url);
     console.log('All URL params:', Array.from(url.searchParams.entries()));
     
-    // Try multiple possible parameter names from Pesapal docs
-    OrderTrackingId = url.searchParams.get('OrderTrackingId') ||
-                     url.searchParams.get('orderTrackingId') ||
-                     url.searchParams.get('pesapal_transaction_tracking_id') ||
-                     url.searchParams.get('tracking_id');
-    
-    OrderMerchantReference = url.searchParams.get('OrderMerchantReference') ||
-                            url.searchParams.get('orderMerchantReference') ||
-                            url.searchParams.get('pesapal_merchant_reference') ||
-                            url.searchParams.get('merchant_reference');
-    
-    OrderNotificationType = url.searchParams.get('OrderNotificationType') ||
-                           url.searchParams.get('orderNotificationType') ||
-                           url.searchParams.get('pesapal_notification_type') ||
-                           url.searchParams.get('notification_type') ||
-                           'IPNCHANGE';
+    // Use EXACT API 3.0 parameter names from official Pesapal documentation
+    // Official format: ?OrderTrackingId=xxx&OrderMerchantReference=xxx&OrderNotificationType=IPNCHANGE
+    OrderTrackingId = url.searchParams.get('OrderTrackingId');
+    OrderMerchantReference = url.searchParams.get('OrderMerchantReference');
+    OrderNotificationType = url.searchParams.get('OrderNotificationType') || 'IPNCHANGE';
 
-    // Fallback to POST body parsing for backwards compatibility
+    // Fallback to POST body parsing using EXACT API 3.0 format
     if (!OrderTrackingId && req.method === 'POST') {
       const contentType = req.headers.get('content-type') || '';
       
       if (contentType.includes('application/json')) {
         const jsonData = await req.json();
+        // Use EXACT API 3.0 parameter names from official docs
         OrderNotificationType = jsonData.OrderNotificationType;
         OrderMerchantReference = jsonData.OrderMerchantReference;
         OrderTrackingId = jsonData.OrderTrackingId;
-      } else if (contentType.includes('application/x-www-form-urlencoded')) {
-        const formData = await req.text();
-        const params = new URLSearchParams(formData);
-        OrderNotificationType = params.get('pesapal_notification_type');
-        OrderMerchantReference = params.get('pesapal_merchant_reference');
-        OrderTrackingId = params.get('pesapal_transaction_tracking_id');
       }
     }
 
@@ -182,19 +166,20 @@ async function handlePaymentStatusChange(trackingId: string, merchantReference: 
       throw new Error(`Payment record not found for tracking ID: ${trackingId}`);
     }
 
-    // Map Pesapal status correctly - try multiple possible field names
-    const pesapalStatus = status.payment_status_description || status.status || status.payment_status || 'UNKNOWN';
-    const userEmail = status.billing_address?.email_address || paymentRecord.user_email;
+    // Use EXACT API 3.0 response field names from official documentation
+    const pesapalStatus = status.payment_status_description || 'UNKNOWN';
+    const userEmail = paymentRecord.user_email;  // Use from our database record
     const amount = status.amount || 0;
     
     console.log('Mapped values:', { pesapalStatus, userEmail, amount });
 
+    // Use EXACT API 3.0 response field names per official documentation
     const { error } = await supabase.rpc('update_payment_and_subscription', {
         p_order_tracking_id: trackingId,
         p_merchant_reference: merchantReference,
         p_status: pesapalStatus,
         p_payment_method: status.payment_method || 'UNKNOWN',
-        p_confirmation_code: status.confirmation_code || status.tracking_id || trackingId,
+        p_confirmation_code: status.confirmation_code || trackingId,
         p_user_email: userEmail,
         p_amount: amount
     });
