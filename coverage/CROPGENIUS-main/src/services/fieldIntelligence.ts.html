@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/404</span>
+                <span class='fraction'>0/393</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/404</span>
+                <span class='fraction'>0/393</span>
             </div>
         
             
@@ -640,17 +640,7 @@
 <a name='L575'></a><a href='#L575'>575</a>
 <a name='L576'></a><a href='#L576'>576</a>
 <a name='L577'></a><a href='#L577'>577</a>
-<a name='L578'></a><a href='#L578'>578</a>
-<a name='L579'></a><a href='#L579'>579</a>
-<a name='L580'></a><a href='#L580'>580</a>
-<a name='L581'></a><a href='#L581'>581</a>
-<a name='L582'></a><a href='#L582'>582</a>
-<a name='L583'></a><a href='#L583'>583</a>
-<a name='L584'></a><a href='#L584'>584</a>
-<a name='L585'></a><a href='#L585'>585</a>
-<a name='L586'></a><a href='#L586'>586</a>
-<a name='L587'></a><a href='#L587'>587</a>
-<a name='L588'></a><a href='#L588'>588</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L578'></a><a href='#L578'>578</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -745,19 +735,14 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -797,7 +782,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -823,10 +807,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -892,7 +872,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -1321,29 +1301,24 @@ interface SoilAnalysis {
 <span class="cstat-no" title="statement not covered" >  }</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  private async authenticateWithSentinel(): Promise&lt;void&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    try {</span>
-<span class="cstat-no" title="statement not covered" >      const response = await fetch(`${SENTINEL_BASE_URL}/oauth/token`, {</span>
-<span class="cstat-no" title="statement not covered" >        method: 'POST',</span>
-<span class="cstat-no" title="statement not covered" >        headers: {</span>
-<span class="cstat-no" title="statement not covered" >          'Content-Type': 'application/x-www-form-urlencoded'</span>
-<span class="cstat-no" title="statement not covered" >        },</span>
-<span class="cstat-no" title="statement not covered" >        body: new URLSearchParams({</span>
-<span class="cstat-no" title="statement not covered" >          grant_type: 'client_credentials',</span>
-<span class="cstat-no" title="statement not covered" >          client_id: SENTINEL_CLIENT_ID,</span>
-<span class="cstat-no" title="statement not covered" >          client_secret: SENTINEL_CLIENT_SECRET</span>
-<span class="cstat-no" title="statement not covered" >        })</span>
-<span class="cstat-no" title="statement not covered" >      });</span>
+<span class="cstat-no" title="statement not covered" >    const response = await fetch(`${SENTINEL_BASE_URL}/oauth/token`, {</span>
+<span class="cstat-no" title="statement not covered" >      method: 'POST',</span>
+<span class="cstat-no" title="statement not covered" >      headers: {</span>
+<span class="cstat-no" title="statement not covered" >        'Content-Type': 'application/x-www-form-urlencoded'</span>
+<span class="cstat-no" title="statement not covered" >      },</span>
+<span class="cstat-no" title="statement not covered" >      body: new URLSearchParams({</span>
+<span class="cstat-no" title="statement not covered" >        grant_type: 'client_credentials',</span>
+<span class="cstat-no" title="statement not covered" >        client_id: SENTINEL_CLIENT_ID,</span>
+<span class="cstat-no" title="statement not covered" >        client_secret: SENTINEL_CLIENT_SECRET</span>
+<span class="cstat-no" title="statement not covered" >      })</span>
+<span class="cstat-no" title="statement not covered" >    });</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >      if (!response.ok) {</span>
-<span class="cstat-no" title="statement not covered" >        throw new Error(`Sentinel authentication failed: ${response.status}`);</span>
-<span class="cstat-no" title="statement not covered" >      }</span>
-&nbsp;
-<span class="cstat-no" title="statement not covered" >      const data = await response.json();</span>
-<span class="cstat-no" title="statement not covered" >      this.accessToken = data.access_token;</span>
-<span class="cstat-no" title="statement not covered" >    } catch (error) {</span>
-<span class="cstat-no" title="statement not covered" >      console.error('Sentinel Hub authentication failed:', error);</span>
-<span class="cstat-no" title="statement not covered" >      throw error;</span>
+<span class="cstat-no" title="statement not covered" >    if (!response.ok) {</span>
+<span class="cstat-no" title="statement not covered" >      throw new Error(`Sentinel authentication failed: ${response.status}`);</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >    const data = await response.json();</span>
+<span class="cstat-no" title="statement not covered" >    this.accessToken = data.access_token;</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  private async getSatelliteImagery(coordinates: [number, number][]): Promise&lt;{ imageUrl: string; metadata: any }&gt; {</span>
@@ -1384,35 +1359,30 @@ interface SoilAnalysis {
 <span class="cstat-no" title="statement not covered" >      evalscript: this.getTrueColorEvalScript()</span>
 <span class="cstat-no" title="statement not covered" >    };</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    try {</span>
-<span class="cstat-no" title="statement not covered" >      const response = await fetch(`${SENTINEL_BASE_URL}/api/v1/process`, {</span>
-<span class="cstat-no" title="statement not covered" >        method: 'POST',</span>
-<span class="cstat-no" title="statement not covered" >        headers: {</span>
-<span class="cstat-no" title="statement not covered" >          'Authorization': `Bearer ${this.accessToken}`,</span>
-<span class="cstat-no" title="statement not covered" >          'Content-Type': 'application/json'</span>
-<span class="cstat-no" title="statement not covered" >        },</span>
-<span class="cstat-no" title="statement not covered" >        body: JSON.stringify(requestBody)</span>
-<span class="cstat-no" title="statement not covered" >      });</span>
+<span class="cstat-no" title="statement not covered" >    const response = await fetch(`${SENTINEL_BASE_URL}/api/v1/process`, {</span>
+<span class="cstat-no" title="statement not covered" >      method: 'POST',</span>
+<span class="cstat-no" title="statement not covered" >      headers: {</span>
+<span class="cstat-no" title="statement not covered" >        'Authorization': `Bearer ${this.accessToken}`,</span>
+<span class="cstat-no" title="statement not covered" >        'Content-Type': 'application/json'</span>
+<span class="cstat-no" title="statement not covered" >      },</span>
+<span class="cstat-no" title="statement not covered" >      body: JSON.stringify(requestBody)</span>
+<span class="cstat-no" title="statement not covered" >    });</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >      if (!response.ok) {</span>
-<span class="cstat-no" title="statement not covered" >        throw new Error(`Satellite imagery request failed: ${response.status}`);</span>
-<span class="cstat-no" title="statement not covered" >      }</span>
-&nbsp;
-<span class="cstat-no" title="statement not covered" >      const imageBlob = await response.blob();</span>
-<span class="cstat-no" title="statement not covered" >      const imageUrl = URL.createObjectURL(imageBlob);</span>
-&nbsp;
-<span class="cstat-no" title="statement not covered" >      return {</span>
-<span class="cstat-no" title="statement not covered" >        imageUrl,</span>
-<span class="cstat-no" title="statement not covered" >        metadata: {</span>
-<span class="cstat-no" title="statement not covered" >          acquisitionDate: new Date().toISOString(),</span>
-<span class="cstat-no" title="statement not covered" >          cloudCoverage: Math.random() * 20, // Simulated</span>
-<span class="cstat-no" title="statement not covered" >          resolution: '10m'</span>
-<span class="cstat-no" title="statement not covered" >        }</span>
-<span class="cstat-no" title="statement not covered" >      };</span>
-<span class="cstat-no" title="statement not covered" >    } catch (error) {</span>
-<span class="cstat-no" title="statement not covered" >      console.error('Failed to get satellite imagery:', error);</span>
-<span class="cstat-no" title="statement not covered" >      throw error;</span>
+<span class="cstat-no" title="statement not covered" >    if (!response.ok) {</span>
+<span class="cstat-no" title="statement not covered" >      throw new Error(`Satellite imagery request failed: ${response.status}`);</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >    const imageBlob = await response.blob();</span>
+<span class="cstat-no" title="statement not covered" >    const imageUrl = URL.createObjectURL(imageBlob);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >    return {</span>
+<span class="cstat-no" title="statement not covered" >      imageUrl,</span>
+<span class="cstat-no" title="statement not covered" >      metadata: {</span>
+<span class="cstat-no" title="statement not covered" >        acquisitionDate: new Date().toISOString(),</span>
+<span class="cstat-no" title="statement not covered" >        cloudCoverage: Math.random() * 20, // Simulated</span>
+<span class="cstat-no" title="statement not covered" >        resolution: '10m'</span>
+<span class="cstat-no" title="statement not covered" >      }</span>
+<span class="cstat-no" title="statement not covered" >    };</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  private async calculateNDVI(coordinates: [number, number][]): Promise&lt;{</span>
@@ -1479,7 +1449,7 @@ interface SoilAnalysis {
 <span class="cstat-no" title="statement not covered" >        healthZones: ndviValues.zones</span>
 <span class="cstat-no" title="statement not covered" >      };</span>
 <span class="cstat-no" title="statement not covered" >    } catch (error) {</span>
-<span class="cstat-no" title="statement not covered" >      console.error('NDVI calculation failed:', error);</span>
+      // NDVI calculation failed
       // Return simulated data as fallback
 <span class="cstat-no" title="statement not covered" >      return this.simulateNDVICalculation(coordinates);</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
@@ -1831,7 +1801,7 @@ interface SoilAnalysis {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-29T15:17:08.225Z
+                at 2025-08-30T06:00:43.581Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

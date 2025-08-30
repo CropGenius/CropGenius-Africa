@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/95</span>
+                <span class='fraction'>0/102</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/95</span>
+                <span class='fraction'>0/102</span>
             </div>
         
             
@@ -193,7 +193,18 @@
 <a name='L128'></a><a href='#L128'>128</a>
 <a name='L129'></a><a href='#L129'>129</a>
 <a name='L130'></a><a href='#L130'>130</a>
-<a name='L131'></a><a href='#L131'>131</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a>
+<a name='L141'></a><a href='#L141'>141</a>
+<a name='L142'></a><a href='#L142'>142</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -225,6 +236,10 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -247,6 +262,13 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -354,6 +376,10 @@ import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persist
 <span class="cstat-no" title="statement not covered" >  private static instance: OfflineManager;</span>
 <span class="cstat-no" title="statement not covered" >  private isOnline: boolean = navigator.onLine;</span>
 <span class="cstat-no" title="statement not covered" >  private listeners: Array&lt;(online: boolean) =&gt; void&gt; = [];</span>
+  
+  // Store bound functions for proper cleanup
+<span class="cstat-no" title="statement not covered" >  private onlineHandler = () =&gt; this.setOnlineStatus(true);</span>
+<span class="cstat-no" title="statement not covered" >  private offlineHandler = () =&gt; this.setOnlineStatus(false);</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  static getInstance(): OfflineManager {</span>
 <span class="cstat-no" title="statement not covered" >    if (!OfflineManager.instance) {</span>
@@ -363,8 +389,8 @@ import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persist
 <span class="cstat-no" title="statement not covered" >  }</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  constructor() {</span>
-<span class="cstat-no" title="statement not covered" >    window.addEventListener('online', () =&gt; this.setOnlineStatus(true));</span>
-<span class="cstat-no" title="statement not covered" >    window.addEventListener('offline', () =&gt; this.setOnlineStatus(false));</span>
+<span class="cstat-no" title="statement not covered" >    window.addEventListener('online', this.onlineHandler);</span>
+<span class="cstat-no" title="statement not covered" >    window.addEventListener('offline', this.offlineHandler);</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  private setOnlineStatus(online: boolean) {</span>
@@ -381,6 +407,13 @@ import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persist
 <span class="cstat-no" title="statement not covered" >    return () =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >      this.listeners = this.listeners.filter(l =&gt; l !== listener);</span>
 <span class="cstat-no" title="statement not covered" >    };</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+&nbsp;
+  // Cleanup method to prevent memory leaks
+<span class="cstat-no" title="statement not covered" >  destroy(): void {</span>
+<span class="cstat-no" title="statement not covered" >    window.removeEventListener('online', this.onlineHandler);</span>
+<span class="cstat-no" title="statement not covered" >    window.removeEventListener('offline', this.offlineHandler);</span>
+<span class="cstat-no" title="statement not covered" >    this.listeners = [];</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
@@ -460,7 +493,7 @@ import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persist
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-29T15:17:08.225Z
+                at 2025-08-30T06:00:43.581Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

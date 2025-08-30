@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">47.05% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/17</span>
+                <span class='fraction'>8/17</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">12.5% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/1</span>
+                <span class='fraction'>1/8</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/1</span>
+                <span class='fraction'>1/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">47.05% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/17</span>
+                <span class='fraction'>8/17</span>
             </div>
         
             
@@ -89,40 +89,40 @@
 <a name='L24'></a><a href='#L24'>24</a>
 <a name='L25'></a><a href='#L25'>25</a>
 <a name='L26'></a><a href='#L26'>26</a>
-<a name='L27'></a><a href='#L27'>27</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L27'></a><a href='#L27'>27</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import { useAuthContext } from '@/providers/AuthProvider';</span></span></span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span></td><td class="text"><pre class="prettyprint lang-js">import { useAuthContext } from '@/providers/AuthProvider';
 import { Navigate } from 'react-router-dom';
 import { AuthPage } from '@/features/auth/components/AuthPage';
 &nbsp;
-<span class="cstat-no" title="statement not covered" >export default function Auth() {</span>
-<span class="cstat-no" title="statement not covered" >  const { isAuthenticated, user, isLoading, onboardingCompleted } = useAuthContext();</span>
+export default function Auth() {
+  const { isAuthenticated, user, isLoading, onboardingCompleted } = useAuthContext();
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  if (isLoading) {</span>
+  if (isLoading) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
 <span class="cstat-no" title="statement not covered" >    return (</span>
 <span class="cstat-no" title="statement not covered" >      &lt;div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100"&gt;</span>
 <span class="cstat-no" title="statement not covered" >        &lt;div className="animate-spin rounded-full h-8 w-8 border-4 border-green-200 border-t-green-600"&gt;&lt;/div&gt;</span>
@@ -131,24 +131,24 @@ import { AuthPage } from '@/features/auth/components/AuthPage';
 <span class="cstat-no" title="statement not covered" >  }</span>
 &nbsp;
   // Redirect to onboarding if authenticated but onboarding not completed
-<span class="cstat-no" title="statement not covered" >  if (isAuthenticated &amp;&amp; user &amp;&amp; !onboardingCompleted) {</span>
+  if (<span class="branch-0 cbranch-no" title="branch not covered" >isAuthenticated &amp;&amp; <span class="branch-0 cbranch-no" title="branch not covered" >user &amp;&amp; !</span>onboardingCompleted) <span class="branch-0 cbranch-no" title="branch not covered" >{</span></span>
 <span class="cstat-no" title="statement not covered" >    return &lt;Navigate to="/onboarding" replace /&gt;;</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 &nbsp;
   // Redirect to dashboard if authenticated and onboarding completed
-<span class="cstat-no" title="statement not covered" >  if (isAuthenticated &amp;&amp; user &amp;&amp; onboardingCompleted) {</span>
+  if (<span class="branch-0 cbranch-no" title="branch not covered" >isAuthenticated &amp;&amp; <span class="branch-0 cbranch-no" title="branch not covered" >user &amp;&amp; o</span>nboardingCompleted) <span class="branch-0 cbranch-no" title="branch not covered" >{</span></span>
 <span class="cstat-no" title="statement not covered" >    return &lt;Navigate to="/dashboard" replace /&gt;;</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return &lt;AuthPage /&gt;;</span>
-<span class="cstat-no" title="statement not covered" >}</span></pre></td></tr></table></pre>
+  return &lt;AuthPage /&gt;;
+}</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-29T15:17:08.225Z
+                at 2025-08-30T06:00:43.581Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

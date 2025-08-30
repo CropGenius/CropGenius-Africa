@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">1.77% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/676</span>
+                <span class='fraction'>12/676</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">20% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/1</span>
+                <span class='fraction'>1/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">33.33% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/1</span>
+                <span class='fraction'>1/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">1.77% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/676</span>
+                <span class='fraction'>12/676</span>
             </div>
         
             
@@ -1012,7 +1012,7 @@
 <a name='L947'></a><a href='#L947'>947</a>
 <a name='L948'></a><a href='#L948'>948</a>
 <a name='L949'></a><a href='#L949'>949</a>
-<a name='L950'></a><a href='#L950'>950</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L950'></a><a href='#L950'>950</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1028,18 +1028,18 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -1051,7 +1051,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1076,9 +1076,9 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -1961,7 +1961,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import React, { useEffect, useRef, useState, useCallback } from "react";</span></span></span>
+<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import React, { useEffect, useRef, useState, useCallback } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Coordinates, Boundary } from "@/types/field";
@@ -1977,18 +1977,18 @@ import { useLocalStorage } from "@/hooks/use-local-storage";
 // componentLifecycleManager eliminated - using simple lifecycle instead
 &nbsp;
 // Use environment variable for access token with PRODUCTION-READY validation
-<span class="cstat-no" title="statement not covered" >const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || "";</span>
+const MAPBOX_ACCESS_TOKEN = import.meta.env.<span class="branch-0 cbranch-no" title="branch not covered" >VITE_MAPBOX_ACCESS_TOKEN || "";</span>
 &nbsp;
 // INFINITY IQ token validation - handles ALL edge cases
-<span class="cstat-no" title="statement not covered" >const isValidMapboxToken = (token: string): boolean =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >  if (!token || typeof token !== 'string') return false;</span>
+const isValidMapboxToken = (token: string): boolean =&gt; {
+  if (!token || typeof token !== 'string') <span class="branch-0 cbranch-no" title="branch not covered" >return false;</span>
   
   // Mapbox public tokens start with 'pk.' and are JWT format
-<span class="cstat-no" title="statement not covered" >  if (token.startsWith('pk.')) {</span>
+  if (token.startsWith('pk.')) {
     // JWT tokens have 3 parts separated by dots
-<span class="cstat-no" title="statement not covered" >    const parts = token.split('.');</span>
-<span class="cstat-no" title="statement not covered" >    return parts.length === 3 &amp;&amp; token.length &gt; 50;</span>
-<span class="cstat-no" title="statement not covered" >  }</span>
+    const parts = token.split('.');
+    return parts.length === 3 &amp;&amp; token.length &gt; 50;
+<span class="branch-0 cbranch-no" title="branch not covered" >  }</span>
   
   // Mapbox secret tokens start with 'sk.'
 <span class="cstat-no" title="statement not covered" >  if (token.startsWith('sk.')) {</span>
@@ -2000,7 +2000,7 @@ import { useLocalStorage } from "@/hooks/use-local-storage";
 <span class="cstat-no" title="statement not covered" >};</span>
 &nbsp;
 // Calculate polygon area in square meters using the Shoelace formula
-<span class="cstat-no" title="statement not covered" >const calculatePolygonArea = (coordinates: Coordinates[]): number =&gt; {</span>
+const calculatePolygonArea = <span class="fstat-no" title="function not covered" >(coordinates: Coordinates[]): number =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >  if (coordinates.length &lt; 3) return 0;</span>
   
   // Convert lat/lng to x/y using simple approximation
@@ -2025,10 +2025,10 @@ import { useLocalStorage } from "@/hooks/use-local-storage";
 <span class="cstat-no" title="statement not covered" >};</span>
 &nbsp;
 // PRODUCTION-READY token configuration with fallback
-<span class="cstat-no" title="statement not covered" >if (MAPBOX_ACCESS_TOKEN &amp;&amp; isValidMapboxToken(MAPBOX_ACCESS_TOKEN)) {</span>
-<span class="cstat-no" title="statement not covered" >  mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;</span>
-<span class="cstat-no" title="statement not covered" >  console.log("🚀 [MapboxFieldMap] INFINITY-LEVEL Mapbox token configured successfully");</span>
-<span class="cstat-no" title="statement not covered" >} else {</span>
+if (MAPBOX_ACCESS_TOKEN &amp;&amp; isValidMapboxToken(MAPBOX_ACCESS_TOKEN)) {
+  mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
+  console.log("🚀 [MapboxFieldMap] INFINITY-LEVEL Mapbox token configured successfully");
+<span class="cstat-no" title="statement not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >} else {</span></span>
 <span class="cstat-no" title="statement not covered" >  console.error("💥 [MapboxFieldMap] CRITICAL: Invalid or missing VITE_MAPBOX_ACCESS_TOKEN");</span>
 <span class="cstat-no" title="statement not covered" >  console.error("🔧 Token format should be: pk.eyJ... (public) or sk.eyJ... (secret)");</span>
 <span class="cstat-no" title="statement not covered" >  console.error("📋 Current token:", MAPBOX_ACCESS_TOKEN ? `${MAPBOX_ACCESS_TOKEN.substring(0, 20)}...` : 'MISSING');</span>
@@ -2046,7 +2046,7 @@ interface MapboxFieldMapProps {
   showSearch?: boolean;
 }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >export default function MapboxFieldMap({</span>
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >export default function MapboxFieldMap({</span></span>
 <span class="cstat-no" title="statement not covered" >  initialBoundary,</span>
 <span class="cstat-no" title="statement not covered" >  onBoundaryChange,</span>
 <span class="cstat-no" title="statement not covered" >  onLocationChange,</span>
@@ -2917,7 +2917,7 @@ interface MapboxFieldMapProps {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-29T15:17:08.225Z
+                at 2025-08-30T06:00:43.581Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

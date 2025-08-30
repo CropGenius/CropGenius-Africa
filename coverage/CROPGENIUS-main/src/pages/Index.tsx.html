@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">3.15% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/412</span>
+                <span class='fraction'>13/412</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/1</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">3.15% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/412</span>
+                <span class='fraction'>13/412</span>
             </div>
         
             
@@ -560,21 +560,21 @@
 <a name='L495'></a><a href='#L495'>495</a>
 <a name='L496'></a><a href='#L496'>496</a>
 <a name='L497'></a><a href='#L497'>497</a>
-<a name='L498'></a><a href='#L498'>498</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<a name='L498'></a><a href='#L498'>498</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -1057,21 +1057,21 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import React, { useState, memo, useEffect } from 'react';</span></span></span>
-<span class="cstat-no" title="statement not covered" >import { useNavigate } from 'react-router-dom';</span>
-<span class="cstat-no" title="statement not covered" >import { useAuthContext } from '../providers/AuthProvider';</span>
-<span class="cstat-no" title="statement not covered" >import { Card, CardContent } from '@/components/ui/card';</span>
-<span class="cstat-no" title="statement not covered" >import { Button } from '@/components/ui/button';</span>
-<span class="cstat-no" title="statement not covered" >import { Menu, MapPin, CloudRain, Camera, MessageCircle, BarChart3, TrendingUp, RefreshCw, Calendar, Users, Copy, Share2, Check } from 'lucide-react';</span>
-<span class="cstat-no" title="statement not covered" >import { useDashboardManager } from '../hooks/useDashboardManager';</span>
-<span class="cstat-no" title="statement not covered" >import { useReferralSystem } from '../hooks/useReferralSystem';</span>
-<span class="cstat-no" title="statement not covered" >import { useFarmPlanning } from '../hooks/useFarmPlanning';</span>
-<span class="cstat-no" title="statement not covered" >import { supabase } from '@/integrations/supabase/client';</span>
+<span class="cline-any cline-yes">1x</span></td><td class="text"><pre class="prettyprint lang-js">import React, { useState, memo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuthContext } from '../providers/AuthProvider';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Menu, MapPin, CloudRain, Camera, MessageCircle, BarChart3, TrendingUp, RefreshCw, Calendar, Users, Copy, Share2, Check } from 'lucide-react';
+import { useDashboardManager } from '../hooks/useDashboardManager';
+import { useReferralSystem } from '../hooks/useReferralSystem';
+import { useFarmPlanning } from '../hooks/useFarmPlanning';
+import { supabase } from '@/integrations/supabase/client';
 &nbsp;
 &nbsp;
-<span class="cstat-no" title="statement not covered" >import { DailyOrganicActionCard } from '@/components/organic/DailyOrganicActionCard';</span>
+import { DailyOrganicActionCard } from '@/components/organic/DailyOrganicActionCard';
 &nbsp;
-<span class="cstat-no" title="statement not covered" >const Index = memo(function Index() {</span>
+const Index = memo(<span class="fstat-no" title="function not covered" >function Index() {</span>
 <span class="cstat-no" title="statement not covered" >  const navigate = useNavigate();</span>
 <span class="cstat-no" title="statement not covered" >  const { user } = useAuthContext();</span>
 <span class="cstat-no" title="statement not covered" >  const dashboard = useDashboardManager(user?.id);</span>
@@ -1554,14 +1554,14 @@
   );
 <span class="cstat-no" title="statement not covered" >});</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >export default Index;</span></pre></td></tr></table></pre>
+export default Index;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-29T15:17:08.225Z
+                at 2025-08-30T06:00:43.581Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

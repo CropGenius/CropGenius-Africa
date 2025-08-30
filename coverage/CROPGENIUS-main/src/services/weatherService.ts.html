@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/70</span>
+                <span class='fraction'>0/65</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/70</span>
+                <span class='fraction'>0/65</span>
             </div>
         
             
@@ -149,12 +149,7 @@
 <a name='L84'></a><a href='#L84'>84</a>
 <a name='L85'></a><a href='#L85'>85</a>
 <a name='L86'></a><a href='#L86'>86</a>
-<a name='L87'></a><a href='#L87'>87</a>
-<a name='L88'></a><a href='#L88'>88</a>
-<a name='L89'></a><a href='#L89'>89</a>
-<a name='L90'></a><a href='#L90'>90</a>
-<a name='L91'></a><a href='#L91'>91</a>
-<a name='L92'></a><a href='#L92'>92</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L87'></a><a href='#L87'>87</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -167,7 +162,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -188,10 +182,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -259,47 +249,42 @@ export interface WeatherParams {
 }
 &nbsp;
 <span class="cstat-no" title="statement not covered" >export const fetchWeatherData = async (params: WeatherParams): Promise&lt;WeatherData&gt; =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >  try {</span>
-<span class="cstat-no" title="statement not covered" >    const { lat, lon, exclude, units = 'metric', lang = 'en' } = params;</span>
-    
-<span class="cstat-no" title="statement not covered" >    const queryParams = new URLSearchParams({</span>
-<span class="cstat-no" title="statement not covered" >      lat: lat.toString(),</span>
-<span class="cstat-no" title="statement not covered" >      lon: lon.toString(),</span>
-<span class="cstat-no" title="statement not covered" >      appid: API_KEY,</span>
-<span class="cstat-no" title="statement not covered" >      units,</span>
-<span class="cstat-no" title="statement not covered" >      lang,</span>
-<span class="cstat-no" title="statement not covered" >      ...(exclude &amp;&amp; { exclude }),</span>
-<span class="cstat-no" title="statement not covered" >    });</span>
+<span class="cstat-no" title="statement not covered" >  const { lat, lon, exclude, units = 'metric', lang = 'en' } = params;</span>
+  
+<span class="cstat-no" title="statement not covered" >  const queryParams = new URLSearchParams({</span>
+<span class="cstat-no" title="statement not covered" >    lat: lat.toString(),</span>
+<span class="cstat-no" title="statement not covered" >    lon: lon.toString(),</span>
+<span class="cstat-no" title="statement not covered" >    appid: API_KEY,</span>
+<span class="cstat-no" title="statement not covered" >    units,</span>
+<span class="cstat-no" title="statement not covered" >    lang,</span>
+<span class="cstat-no" title="statement not covered" >    ...(exclude &amp;&amp; { exclude }),</span>
+<span class="cstat-no" title="statement not covered" >  });</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    const response = await fetch(`${BASE_URL}?${queryParams.toString()}`);</span>
+<span class="cstat-no" title="statement not covered" >  const response = await fetch(`${BASE_URL}?${queryParams.toString()}`);</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    if (!response.ok) {</span>
-<span class="cstat-no" title="statement not covered" >      throw new Error(`Weather API error: ${response.statusText}`);</span>
-<span class="cstat-no" title="statement not covered" >    }</span>
-&nbsp;
-<span class="cstat-no" title="statement not covered" >    const data = await response.json();</span>
-    
-<span class="cstat-no" title="statement not covered" >    return {</span>
-<span class="cstat-no" title="statement not covered" >      temperature: data.current.temp,</span>
-<span class="cstat-no" title="statement not covered" >      humidity: data.current.humidity,</span>
-<span class="cstat-no" title="statement not covered" >      rainfall: data.current.rain?.['1h'] || 0,</span>
-<span class="cstat-no" title="statement not covered" >      windSpeed: data.current.wind_speed,</span>
-<span class="cstat-no" title="statement not covered" >      forecast: data.daily.slice(0, 5).map((day: any): WeatherForecast =&gt; ({</span>
-<span class="cstat-no" title="statement not covered" >        date: new Date(day.dt * 1000).toISOString().split('T')[0],</span>
-<span class="cstat-no" title="statement not covered" >        temperature: { </span>
-<span class="cstat-no" title="statement not covered" >          min: day.temp.min, </span>
-<span class="cstat-no" title="statement not covered" >          max: day.temp.max </span>
-<span class="cstat-no" title="statement not covered" >        },</span>
-<span class="cstat-no" title="statement not covered" >        humidity: day.humidity,</span>
-<span class="cstat-no" title="statement not covered" >        rainfall: day.rain || 0,</span>
-<span class="cstat-no" title="statement not covered" >        conditions: day.weather[0].description,</span>
-<span class="cstat-no" title="statement not covered" >      })),</span>
-<span class="cstat-no" title="statement not covered" >      farmingInsights: generateFarmingInsights(data),</span>
-<span class="cstat-no" title="statement not covered" >    };</span>
-<span class="cstat-no" title="statement not covered" >  } catch (error) {</span>
-<span class="cstat-no" title="statement not covered" >    console.error('Error fetching weather data:', error);</span>
-<span class="cstat-no" title="statement not covered" >    throw error;</span>
+<span class="cstat-no" title="statement not covered" >  if (!response.ok) {</span>
+<span class="cstat-no" title="statement not covered" >    throw new Error(`Weather API error: ${response.statusText}`);</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >  const data = await response.json();</span>
+  
+<span class="cstat-no" title="statement not covered" >  return {</span>
+<span class="cstat-no" title="statement not covered" >    temperature: data.current.temp,</span>
+<span class="cstat-no" title="statement not covered" >    humidity: data.current.humidity,</span>
+<span class="cstat-no" title="statement not covered" >    rainfall: data.current.rain?.['1h'] || 0,</span>
+<span class="cstat-no" title="statement not covered" >    windSpeed: data.current.wind_speed,</span>
+<span class="cstat-no" title="statement not covered" >    forecast: data.daily.slice(0, 5).map((day: any): WeatherForecast =&gt; ({</span>
+<span class="cstat-no" title="statement not covered" >      date: new Date(day.dt * 1000).toISOString().split('T')[0],</span>
+<span class="cstat-no" title="statement not covered" >      temperature: { </span>
+<span class="cstat-no" title="statement not covered" >        min: day.temp.min, </span>
+<span class="cstat-no" title="statement not covered" >        max: day.temp.max </span>
+<span class="cstat-no" title="statement not covered" >      },</span>
+<span class="cstat-no" title="statement not covered" >      humidity: day.humidity,</span>
+<span class="cstat-no" title="statement not covered" >      rainfall: day.rain || 0,</span>
+<span class="cstat-no" title="statement not covered" >      conditions: day.weather[0].description,</span>
+<span class="cstat-no" title="statement not covered" >    })),</span>
+<span class="cstat-no" title="statement not covered" >    farmingInsights: generateFarmingInsights(data),</span>
+<span class="cstat-no" title="statement not covered" >  };</span>
 <span class="cstat-no" title="statement not covered" >};</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >const generateFarmingInsights = (data: any) =&gt; {</span>
@@ -343,7 +328,7 @@ export interface WeatherParams {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-29T15:17:08.225Z
+                at 2025-08-30T06:00:43.581Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>
