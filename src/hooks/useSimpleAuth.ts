@@ -28,11 +28,19 @@ export const useSimpleAuth = (): AuthState => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Check if we're on OAuth callback page
+    const isOAuthCallback = window.location.pathname === '/auth/callback';
+    
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      setIsLoading(false);
+      
+      // On OAuth callback, wait for onAuthStateChange instead of setting loading false immediately
+      // This gives Supabase time to process OAuth tokens from URL
+      if (!isOAuthCallback) {
+        setIsLoading(false);
+      }
     });
 
     // Listen to auth changes
@@ -41,7 +49,7 @@ export const useSimpleAuth = (): AuthState => {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
-      setIsLoading(false);
+      setIsLoading(false); // Always set loading false on auth state change
     });
 
     return () => subscription.unsubscribe();
