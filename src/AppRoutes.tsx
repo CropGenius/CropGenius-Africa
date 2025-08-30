@@ -6,6 +6,7 @@ import { MobileLayout } from '@/components/mobile/MobileLayout';
 import { OrbitalLoader } from '@/components/ui/orbital-loader';
 
 import SimpleAuthPage from '@/pages/SimpleAuthPage';
+import OAuthCallback from '@/pages/OAuthCallback';
 import Index from '@/pages/Index';
 import Fields from '@/pages/Fields';
 import Weather from '@/pages/Weather';
@@ -54,6 +55,7 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/auth" element={<SimpleAuthPage />} />
+      <Route path="/auth/callback" element={<OAuthCallback />} />
       <Route path="/auth/reset-password" element={<PasswordResetPage />} />
       <Route path="/join" element={<JoinPage />} />
       

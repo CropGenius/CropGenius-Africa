@@ -47,7 +47,7 @@ export const SimpleAuth: React.FC<SimpleAuthProps> = ({ onSuccess }) => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`
+          redirectTo: `${window.location.origin}/auth/callback`
         }
       });
       
@@ -273,11 +273,18 @@ export const SimpleAuth: React.FC<SimpleAuthProps> = ({ onSuccess }) => {
                 </Button>
               </form>
 
-              <div className="text-center">
+              <div className="text-center space-y-2">
                 <p className="text-sm text-gray-500">
                   ✅ New user? We'll create your account automatically<br/>
                   ✅ Existing user? We'll sign you in instantly
                 </p>
+                <button
+                  type="button"
+                  onClick={() => window.location.href = '/auth/reset-password'}
+                  className="text-sm text-green-600 hover:text-green-700 hover:underline"
+                >
+                  Forgot your password?
+                </button>
               </div>
             </CardContent>
           </Card>
