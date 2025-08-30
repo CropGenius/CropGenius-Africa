@@ -30,7 +30,7 @@ import {
   Gift
 } from 'lucide-react';
 import { organicScoringEngine, CertificationProgress } from '../../services/OrganicScoringEngine';
-import { useAuth } from '../../hooks/useAuth';
+import { useSimpleAuthContext as useAuth } from '@/providers/SimpleAuthProvider';
 
 interface OrganicProgressDashboardProps {
   className?: string;

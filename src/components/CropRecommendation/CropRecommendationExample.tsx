@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useSimpleAuthContext as useAuth } from '@/providers/SimpleAuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 import CropRecommendation from '../CropRecommendation';
 import type { FarmContext } from '@/hooks/useCropRecommendations';

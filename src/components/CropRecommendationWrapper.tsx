@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { useSimpleAuthContext as useAuth } from '@/providers/SimpleAuthProvider';
 import { useFieldData } from '@/hooks/useFieldData';
 import CropRecommendation from './CropRecommendation';
 import OptimizedLoading from './loading/OptimizedLoading';

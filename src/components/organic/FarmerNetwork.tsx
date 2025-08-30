@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Users, Star, MessageCircle, Trophy } from 'lucide-react';
 import { supabase } from '../../integrations/supabase/client';
-import { useAuth } from '../../hooks/useAuth';
+import { useSimpleAuthContext as useAuth } from '@/providers/SimpleAuthProvider';
 import { ViralShareButton } from './ViralShareButton';
 
 interface FarmerProfile {

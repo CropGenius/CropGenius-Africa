@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
+import { useSimpleAuthContext as useAuth } from '@/providers/SimpleAuthProvider';
 import { toast } from 'sonner';
 
 interface QuickAddFieldProps {

@@ -27,7 +27,7 @@ import {
   Heart
 } from 'lucide-react';
 import { homebrewArsenalService, HomebrewRecipe, RecipeMatch } from '../../services/HomebrewArsenalService';
-import { useAuth } from '../../hooks/useAuth';
+import { useSimpleAuthContext as useAuth } from '@/providers/SimpleAuthProvider';
 
 interface HomebrewArsenalProps {
   crop?: string;

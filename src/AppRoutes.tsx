@@ -15,7 +15,6 @@ import Chat from './pages/Chat';
 
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
-import OnboardingPage from './pages/OnboardingPage';
 
 import Tasks from './pages/Tasks';
 import More from './pages/More';
@@ -59,8 +58,6 @@ export default function AppRoutes() {
       <Route path="/auth/callback" element={<OAuthCallback />} />
       <Route path="/auth/reset-password" element={<PasswordResetPage />} />
       <Route path="/join" element={<JoinPage />} />
-
-      <Route path="/onboarding" element={<OnboardingPage />} />
       
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/dashboard" element={<Protected><Index /></Protected>} />

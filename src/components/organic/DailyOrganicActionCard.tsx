@@ -23,7 +23,7 @@ import {
   AlertTriangle,
   RefreshCw
 } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
+import { useSimpleAuthContext as useAuth } from '@/providers/SimpleAuthProvider';
 import { directOrganicService } from '../../services/DirectOrganicService';
 import { Database } from '../../integrations/supabase/types';
 

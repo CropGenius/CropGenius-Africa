@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Crown, Zap, CheckCircle, DollarSign, TrendingUp, Star } from 'lucide-react';
 import { premiumEngine, PremiumFeature } from '../../services/PremiumEngine';
-import { useAuth } from '../../hooks/useAuth';
+import { useSimpleAuthContext as useAuth } from '@/providers/SimpleAuthProvider';
 
 interface PremiumUpgradeProps {
   feature?: string;

@@ -7,7 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '../ui/card';
 import { DollarSign, TrendingUp, Coins } from 'lucide-react';
 import { supabase } from '../../integrations/supabase/client';
-import { useAuth } from '../../hooks/useAuth';
+import { useSimpleAuthContext as useAuth } from '@/providers/SimpleAuthProvider';
 
 interface EconomicStats {
   totalSavings: number;
